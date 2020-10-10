@@ -1,0 +1,24 @@
+{
+  "name": "next-themes",
+  "version": "0.0.1",
+  "main": "./dist/index.js",
+  "module": "./dist/index.modern.js",
+  "source": "./index.js",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "microbundle --jsx React.createElement --compress --no-sourcemap"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "next": "^9.5.5",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.11.0",
+    "microbundle": "^0.12.3"
+  }
+}

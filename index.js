@@ -9,7 +9,7 @@ import {
 import NextHead from 'next/head'
 
 const ThemeContext = createContext({
-  setTheme: (_) => {},
+  setTheme: _ => {},
   theme: undefined,
   resolvedTheme: undefined,
   themes: []
@@ -48,7 +48,7 @@ export const ThemeProvider = ({
   }, []) // eslint-disable-line
 
   const handleMediaQuery = useCallback(
-    (e) => {
+    e => {
       const isDark = e.matches
       const theme = isDark ? 'dark' : 'light'
       changeTheme(storageKey, theme, 'system')
@@ -72,7 +72,7 @@ export const ThemeProvider = ({
   }, [theme, forcedTheme, handleMediaQuery])
 
   const setTheme = useCallback(
-    (newTheme) => {
+    newTheme => {
       if (forcedTheme) {
         console.warn('Cannot setTheme on a page with a forced theme.')
         return
@@ -92,7 +92,7 @@ export const ThemeProvider = ({
   )
 
   useEffect(() => {
-    const handleStorage = (e) => {
+    const handleStorage = e => {
       if (e.key !== 'theme') {
         return
       }
@@ -161,7 +161,7 @@ const ThemeScript = memo(
       const val = literal ? name : `'${name}'`
       if (attribute === 'class') {
         const removeClasses = `document.documentElement.classList.remove(${attributeValues
-          .map((t) => `'${t}'`)
+          .map(t => `'${t}'`)
           .join(',')});`
 
         return `${removeClasses}document.documentElement.classList.add(${val});`
@@ -176,52 +176,25 @@ const ThemeScript = memo(
           <script
             key="next-themes-script"
             dangerouslySetInnerHTML={{
-              __html: `(function(){${updateDOM(forcedTheme)}})()`
+              // These are minified via Terser and then updated by hand, don't recommend
+              // prettier-ignore
+              __html: `!function(){${updateDOM(forcedTheme)}}()`
             }}
           />
         ) : enableSystem ? (
           <script
+            key="next-themes-script"
             dangerouslySetInnerHTML={{
-              __html: `(function() {
-          try {
-            var mode = localStorage.getItem('${storageKey}');
-            if (!mode) {
-              localStorage.setItem('${storageKey}', '${defaultTheme}')
-              ${updateDOM(defaultTheme)}
-              return
-            }
-            if (mode === 'system') {
-              var darkQuery = '(prefers-color-scheme: dark)'
-              var preferDark = window.matchMedia(darkQuery)
-              if (preferDark.media === darkQuery && !preferDark.matches) {
-                ${updateDOM('light')}
-              } else {
-                ${updateDOM('dark')}
-              }
-            } else {
-              ${value ? `var modes = ${JSON.stringify(value)};` : ''}
-              ${updateDOM(value ? 'modes[mode]' : 'mode', true)}
-            }
-          } catch (e) {}
-        })()`
+              // prettier-ignore
+              __html: `!function(){try {var e=localStorage.getItem('${storageKey}');if(!e)return localStorage.setItem('${storageKey}','${defaultTheme}'), void ${updateDOM(defaultTheme)}if("system"===e){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}else ${value ? `var modes = ${JSON.stringify(value)};` : ''}${updateDOM(value ? 'modes[mode]' : 'mode', true)}}catch(e){}}()`
             }}
           />
         ) : (
           <script
             key="next-themes-script"
             dangerouslySetInnerHTML={{
-              __html: `(function() {
-          try {
-            var mode = localStorage.getItem('${storageKey}');
-            if (!mode) {
-              localStorage.setItem('${storageKey}', '${defaultTheme}')
-              ${updateDOM(defaultTheme)}
-              return
-            }
-            ${value ? `var modes = ${JSON.stringify(value)};` : ''}
-            ${updateDOM(value ? 'modes[mode]' : 'mode', true)}
-          } catch (e) {}
-        })()`
+              // prettier-ignore
+              __html: `!function(){try{var t=localStorage.getItem("${storageKey}");if(!t)return localStorage.setItem("${storageKey}","${defaultTheme}"),void ${updateDOM(defaultTheme)}${value ? `var modes = ${JSON.stringify(value)};` : ''}${updateDOM(value ? 'modes[mode]' : 'mode', true)}}catch(t){}}();`
             }}
           />
         )}
@@ -233,7 +206,7 @@ const ThemeScript = memo(
 ThemeScript.displayName = 'NextThemesScript'
 
 // Helpers
-const getTheme = (key) => {
+const getTheme = key => {
   if (typeof window === 'undefined') return undefined
   return localStorage.getItem(key) || undefined
 }

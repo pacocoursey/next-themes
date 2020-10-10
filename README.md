@@ -59,7 +59,7 @@ That's it, your Next.js app fully supports dark mode, including System preferenc
 }
 
 [data-theme='dark'] {
-  --backgrouond: black;
+  --background: black;
   --foreground: white;
 }
 ```

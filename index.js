@@ -8,23 +8,18 @@ import React, {
 } from 'react'
 import NextHead from 'next/head'
 
-const ThemeContext = createContext({
-  setTheme: _ => {},
-  theme: undefined,
-  resolvedTheme: undefined,
-  themes: []
-})
+const ThemeContext = createContext({})
 export const useTheme = () => useContext(ThemeContext)
 
 export const ThemeProvider = ({
   forcedTheme,
-  disableTransitionOnChange,
+  disableTransitionOnChange = false,
   enableSystem = true,
   storageKey = 'theme',
   themes = ['light', 'dark'],
-  attribute,
+  defaultTheme = 'light',
+  attribute = 'data-theme',
   value,
-  defaultTheme,
   children
 }) => {
   const [theme, setThemeState] = useState(() => getTheme(storageKey))
@@ -48,7 +43,7 @@ export const ThemeProvider = ({
   }, []) // eslint-disable-line
 
   const handleMediaQuery = useCallback(
-    e => {
+    (e) => {
       const isDark = e.matches
       const theme = isDark ? 'dark' : 'light'
       changeTheme(storageKey, theme, 'system')
@@ -72,7 +67,7 @@ export const ThemeProvider = ({
   }, [theme, forcedTheme, handleMediaQuery])
 
   const setTheme = useCallback(
-    newTheme => {
+    (newTheme) => {
       if (forcedTheme) {
         console.warn('Cannot setTheme on a page with a forced theme.')
         return
@@ -92,7 +87,7 @@ export const ThemeProvider = ({
   )
 
   useEffect(() => {
-    const handleStorage = e => {
+    const handleStorage = (e) => {
       if (e.key !== 'theme') {
         return
       }
@@ -106,7 +101,8 @@ export const ThemeProvider = ({
     // All of these deps are stable and should never change
   }, []) // eslint-disable-line
 
-  if (attribute !== 'class' && !attribute.startsWith('data-')) {
+  // TODO: remove this and put in dev only build?
+  if (attribute && attribute !== 'class' && !attribute.startsWith('data-')) {
     throw new Error(
       `Invalid attribute "${attribute}". Should be "class" or "data-*".`
     )
@@ -114,7 +110,7 @@ export const ThemeProvider = ({
 
   if (themes.includes('system')) {
     throw new Error(
-      '"system" is a reserved theme name. Use `enableSystem` instead.'
+      '"system" is a reserved theme name. Use `enableSystem` prop instead.'
     )
   }
 
@@ -161,13 +157,13 @@ const ThemeScript = memo(
       const val = literal ? name : `'${name}'`
       if (attribute === 'class') {
         const removeClasses = `document.documentElement.classList.remove(${attributeValues
-          .map(t => `'${t}'`)
-          .join(',')});`
+          .map((t) => `'${t}'`)
+          .join(',')})`
 
-        return `${removeClasses}document.documentElement.classList.add(${val});`
+        return `${removeClasses}document.documentElement.classList.add(${val})`
       }
 
-      return `document.documentElement.setAttribute('${attribute}', ${val});`
+      return `document.documentElement.setAttribute('${attribute}', ${val})`
     }
 
     return (
@@ -186,7 +182,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try {var e=localStorage.getItem('${storageKey}');if(!e)return localStorage.setItem('${storageKey}','${defaultTheme}'), void ${updateDOM(defaultTheme)}if("system"===e){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}else ${value ? `var modes = ${JSON.stringify(value)};` : ''}${updateDOM(value ? 'modes[mode]' : 'mode', true)}}catch(e){}}()`
+              __html: `!function(){try {var e=localStorage.getItem('${storageKey}');if(!e)return localStorage.setItem('${storageKey}','${defaultTheme}'), void ${updateDOM(defaultTheme)};if("system"===e){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else ${value ? `var x = ${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
             }}
           />
         ) : (
@@ -194,7 +190,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try{var t=localStorage.getItem("${storageKey}");if(!t)return localStorage.setItem("${storageKey}","${defaultTheme}"),void ${updateDOM(defaultTheme)}${value ? `var modes = ${JSON.stringify(value)};` : ''}${updateDOM(value ? 'modes[mode]' : 'mode', true)}}catch(t){}}();`
+              __html: `!function(){try{var t=localStorage.getItem("${storageKey}");if(!t)return localStorage.setItem("${storageKey}","${defaultTheme}"),void ${updateDOM(defaultTheme)};${value ? `var x = ${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[t]' : 't', true)}}catch(t){}}();`
             }}
           />
         )}
@@ -203,17 +199,14 @@ const ThemeScript = memo(
   }
 )
 
-ThemeScript.displayName = 'NextThemesScript'
-
 // Helpers
-const getTheme = key => {
+const getTheme = (key) => {
   if (typeof window === 'undefined') return undefined
   return localStorage.getItem(key) || undefined
 }
 
 const disableAnimation = () => {
   const css = document.createElement('style')
-  css.type = 'text/css'
   css.appendChild(
     document.createTextNode(
       `*{-webkit-transition: none !important;-moz-transition: none !important;-o-transition: none !important;-ms-transition: none !important;transition: none !important}`

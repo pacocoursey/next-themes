@@ -119,6 +119,7 @@ export const ThemeProvider = ({
       value={{
         theme,
         setTheme,
+        forcedTheme,
         resolvedTheme: theme === 'system' ? resolvedTheme : theme,
         themes: enableSystem ? [...themes, 'system'] : themes
       }}

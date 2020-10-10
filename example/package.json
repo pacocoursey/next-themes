@@ -1,0 +1,12 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "next": "^9.5.5",
+    "next-themes": "^0.0.3",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  }
+}

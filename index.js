@@ -69,7 +69,6 @@ export const ThemeProvider = ({
   const setTheme = useCallback(
     (newTheme) => {
       if (forcedTheme) {
-        console.warn('Cannot setTheme on a page with a forced theme.')
         return
       }
 
@@ -100,19 +99,6 @@ export const ThemeProvider = ({
     return () => window.removeEventListener('storage', handleStorage)
     // All of these deps are stable and should never change
   }, []) // eslint-disable-line
-
-  // TODO: remove this and put in dev only build?
-  if (attribute && attribute !== 'class' && !attribute.startsWith('data-')) {
-    throw new Error(
-      `Invalid attribute "${attribute}". Should be "class" or "data-*".`
-    )
-  }
-
-  if (themes.includes('system')) {
-    throw new Error(
-      '"system" is a reserved theme name. Use `enableSystem` prop instead.'
-    )
-  }
 
   return (
     <ThemeContext.Provider

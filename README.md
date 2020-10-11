@@ -241,7 +241,7 @@ Nope. If you have a good reason for supporting this feature, please open an issu
 
 ---
 
-**Can I use this package with Gatsby or CTA?**
+**Can I use this package with Gatsby or CRA?**
 
 Nope.
 

@@ -225,6 +225,23 @@ next-themes is designed to support any number of themes! Simply pass a list of t
 <ThemeProvider themes={['pink', 'red', 'blue', 'light', 'dark']}>
 ```
 
+### Without CSS variables
+
+This library does not rely on your theme styling using CSS variables. You can hard-code the values in your CSS, and everything will work as expected (without any flashing):
+
+```css
+html, body {
+  color: #000;
+  background: #fff;
+}
+
+[data-theme="dark"],
+[data-theme="dark"] body {
+  color: #fff;
+  background: #000;
+}
+```
+
 ## Discussion
 
 ### The Flash
@@ -232,6 +249,18 @@ next-themes is designed to support any number of themes! Simply pass a list of t
 ThemeProvider automatically injects a script into `next/head` to update the `html` element with the correct attributes before the rest of your page loads. This means the page will not flash under any circumstances, including forced themes, system theme, multiple themes, and incognito. No `noflash.js` required.
 
 ## FAQ
+
+---
+
+**Why is my page still flashing?**
+
+In Next.js dev mode, the page may still flash. When you build your app in production mode, there will be no flashing.
+
+---
+
+**Do I need to use CSS variables with this library?**
+
+Nope. See the [example](#without-css-variables).
 
 ---
 

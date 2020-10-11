@@ -219,7 +219,7 @@ next-themes is designed to support any number of themes! Simply pass a list of t
 <ThemeProvider themes={['pink', 'red', 'blue']}>
 ```
 
-> **Note!** When you pass `themes`, the default set of themes ("light" and "dark") are overriden. Make sure you include those if you still want your light and dark themes:
+> **Note!** When you pass `themes`, the default set of themes ("light" and "dark") are overridden. Make sure you include those if you still want your light and dark themes:
 
 ```js
 <ThemeProvider themes={['pink', 'red', 'blue', 'light', 'dark']}>

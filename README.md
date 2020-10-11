@@ -11,6 +11,8 @@ An abstraction for themes in your Next.js app.
 - ✅ Class or data attribute selector
 - ✅ `useTheme` hook
 
+Check out the [Live Example](https://next-themes-example.vercel.app/) to try it for yourself.
+
 ## Install
 
 ```bash
@@ -114,6 +116,8 @@ useTheme takes no parameters, but returns:
 Not too bad, right? Let's see how to use these properties with examples:
 
 ## Examples
+
+The [Live Example](https://next-themes-example.vercel.app/) shows next-themes in action, with dark, light, system themes and pages with forced themes.
 
 ### Use System preference by default
 

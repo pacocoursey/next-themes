@@ -38,7 +38,7 @@ export default MyApp
 Adding dark mode support takes 2 lines of code:
 
 ```js
-import { ThemeProvider } from 'next-theme'
+import { ThemeProvider } from 'next-themes'
 
 function MyApp({ Component, pageProps }) {
   return (

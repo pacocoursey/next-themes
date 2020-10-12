@@ -25,12 +25,15 @@ export const ThemeProvider = ({
   const [theme, setThemeState] = useState(() => getTheme(storageKey))
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
 
-  const changeTheme = useCallback((key, theme, storageTheme = theme) => {
+  const changeTheme = useCallback((theme, updateStorage = true) => {
     const attributeValues = !value ? themes : Object.values(value)
     const name = value?.[theme] || theme
 
     const enable = disableTransitionOnChange ? disableAnimation() : null
-    localStorage.setItem(key, storageTheme)
+
+    if (updateStorage) {
+      localStorage.setItem(storageKey, theme)
+    }
 
     if (attribute === 'class') {
       document.documentElement.classList.remove(...attributeValues)
@@ -45,26 +48,26 @@ export const ThemeProvider = ({
   const handleMediaQuery = useCallback(
     (e) => {
       const isDark = e.matches
-      const theme = isDark ? 'dark' : 'light'
-      changeTheme(storageKey, theme, 'system')
-      setResolvedTheme(theme)
-      setThemeState('system')
+      const systemTheme = isDark ? 'dark' : 'light'
+      setResolvedTheme(systemTheme)
+
+      if (theme === 'system') changeTheme(systemTheme, false)
     },
-    // All of these deps are stable and should never change
-    [] // eslint-disable-line
+    [theme] // eslint-disable-line
   )
 
   useEffect(() => {
-    const t = forcedTheme || theme
-    const media = window.matchMedia('(prefers-color-scheme: dark)')
-
-    if (t === 'system') {
-      media.addListener(handleMediaQuery)
-      handleMediaQuery(media)
+    if (!enableSystem) {
+      return
     }
 
+    // Always listen to System preference
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    media.addListener(handleMediaQuery)
+    handleMediaQuery(media)
+
     return () => media.removeListener(handleMediaQuery)
-  }, [theme, forcedTheme, handleMediaQuery])
+  }, [handleMediaQuery]) // eslint-disable-line
 
   const setTheme = useCallback(
     (newTheme) => {
@@ -72,14 +75,8 @@ export const ThemeProvider = ({
         return
       }
 
-      // If it's not system we can update right away
-      if (newTheme !== 'system') {
-        changeTheme(storageKey, newTheme)
-        setThemeState(newTheme)
-      } else {
-        const media = window.matchMedia('(prefers-color-scheme: dark)')
-        handleMediaQuery(media)
-      }
+      changeTheme(newTheme)
+      setThemeState(newTheme)
     },
     // All of these deps are stable and should never change
     [] // eslint-disable-line
@@ -107,7 +104,8 @@ export const ThemeProvider = ({
         setTheme,
         forcedTheme,
         resolvedTheme: theme === 'system' ? resolvedTheme : theme,
-        themes: enableSystem ? [...themes, 'system'] : themes
+        themes: enableSystem ? [...themes, 'system'] : themes,
+        systemTheme: enableSystem ? resolvedTheme : undefined
       }}
     >
       <ThemeScript
@@ -203,7 +201,8 @@ const disableAnimation = () => {
 
   return () => {
     // Force restyle
-    ;(() => window.getComputedStyle(css).opacity)()
+    // The CSS property doesn't matter, use "top" because it's short
+    ;(() => window.getComputedStyle(css).top)()
     document.head.removeChild(css)
   }
 }

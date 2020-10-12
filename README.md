@@ -111,6 +111,7 @@ useTheme takes no parameters, but returns:
 - `setTheme(name)`: Function to update the theme
 - `forcedTheme`: Forced page theme or falsy. If `forcedTheme` is set, you should disable any theme switching UI
 - `resolvedTheme`: If `enableSystem` is true and the active theme is "system", this returns whether the system preference resolved to "dark" or "light". Otherwise, identical to `theme`
+- `systemTheme`: If `enableSystem` is true, represents the System theme preference ("dark" or "light"), regardless what the active theme is
 - `themes`: The list of themes passed to `ThemeProvider` (with "system" appended, if `enableSystem` is true)
 
 Not too bad, right? Let's see how to use these properties with examples:
@@ -230,13 +231,14 @@ next-themes is designed to support any number of themes! Simply pass a list of t
 This library does not rely on your theme styling using CSS variables. You can hard-code the values in your CSS, and everything will work as expected (without any flashing):
 
 ```css
-html, body {
+html,
+body {
   color: #000;
   background: #fff;
 }
 
-[data-theme="dark"],
-[data-theme="dark"] body {
+[data-theme='dark'],
+[data-theme='dark'] body {
   color: #fff;
   background: #000;
 }
@@ -297,4 +299,3 @@ const { resolvedTheme } = useTheme()
 ```
 
 If we didn't have `resolvedTheme` and only used `theme`, you'd lose information about the state of your UI (you would only know the theme is "system", and not what it resolved to).
-

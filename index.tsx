@@ -11,7 +11,22 @@ import NextHead from 'next/head'
 const ThemeContext = createContext({})
 export const useTheme = () => useContext(ThemeContext)
 
-export const ThemeProvider = ({
+interface ValueObject {
+  [themeName: string]: string
+}
+
+export interface ThemeProviderProps {
+  forcedTheme?: string
+  disableTransitionOnChange?: boolean
+  enableSystem?: boolean
+  storageKey?: string
+  themes?: string[]
+  defaultTheme?: string
+  attribute?: string
+  value?: ValueObject
+}
+
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   forcedTheme,
   disableTransitionOnChange = false,
   enableSystem = true,
@@ -83,7 +98,7 @@ export const ThemeProvider = ({
   )
 
   useEffect(() => {
-    const handleStorage = (e) => {
+    const handleStorage = (e: StorageEvent) => {
       if (e.key !== 'theme') {
         return
       }
@@ -133,8 +148,16 @@ const ThemeScript = memo(
     defaultTheme,
     value,
     themes
+  }: {
+    forcedTheme?: string
+    storageKey: string
+    attribute?: string
+    enableSystem?: boolean
+    defaultTheme: string
+    value?: ValueObject
+    themes: string[]
   }) => {
-    const updateDOM = (name, literal) => {
+    const updateDOM = (name: string, literal?: boolean) => {
       const attributeValues = !value ? themes : Object.values(value)
       if (value) {
         name = value[name] || name
@@ -142,7 +165,7 @@ const ThemeScript = memo(
       const val = literal ? name : `'${name}'`
       if (attribute === 'class') {
         const removeClasses = `document.documentElement.classList.remove(${attributeValues
-          .map((t) => `'${t}'`)
+          .map((t: string) => `'${t}'`)
           .join(',')})`
 
         return `${removeClasses}document.documentElement.classList.add(${val})`
@@ -185,7 +208,7 @@ const ThemeScript = memo(
 )
 
 // Helpers
-const getTheme = (key) => {
+const getTheme = (key: string) => {
   if (typeof window === 'undefined') return undefined
   return localStorage.getItem(key) || undefined
 }

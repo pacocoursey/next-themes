@@ -244,6 +244,40 @@ body {
 }
 ```
 
+### With Styled Components and any CSS-in-JS
+
+Next Themes is completely CSS independent, it will work with any library. For example, with Styled Components you just need to `createGlobalStyle` in your custom App:
+
+```js
+// pages/_app.js
+import { createGlobalStyle } from 'styled-components'
+import { ThemeProvider } from 'next-themes'
+
+// Your themeing variables
+const GlobalStyle = createGlobalStyle`
+  :root {
+    --fg: #000;
+    --bg: #fff;
+  }
+
+  [data-theme="dark"] {
+    --fg: #fff;
+    --bg: #000;
+  }
+`
+
+function MyApp({ Component, pageProps }) {
+  return (
+    <>
+      <GlobalStyle />
+      <ThemeProvider>
+        <Component {...pageProps} />
+      </ThemeProvider>
+    </>
+  )
+}
+```
+
 ## Discussion
 
 ### The Flash

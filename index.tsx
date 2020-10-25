@@ -8,7 +8,23 @@ import React, {
 } from 'react'
 import NextHead from 'next/head'
 
-const ThemeContext = createContext({})
+interface UseThemeProps {
+  themes: string[]
+  setTheme: (theme: string) => void
+  theme?: string
+  forcedTheme?: string
+  resolvedTheme?: string
+  systemTheme?: 'dark' | 'light'
+}
+
+const ThemeContext = createContext<UseThemeProps>({
+  setTheme: (_) => {},
+  theme: undefined,
+  forcedTheme: undefined,
+  resolvedTheme: undefined,
+  themes: [],
+  systemTheme: undefined
+})
 export const useTheme = () => useContext(ThemeContext)
 
 interface ValueObject {
@@ -120,7 +136,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         forcedTheme,
         resolvedTheme: theme === 'system' ? resolvedTheme : theme,
         themes: enableSystem ? [...themes, 'system'] : themes,
-        systemTheme: enableSystem ? resolvedTheme : undefined
+        systemTheme: (enableSystem ? resolvedTheme : undefined) as
+          | 'light'
+          | 'dark'
+          | undefined
       }}
     >
       <ThemeScript

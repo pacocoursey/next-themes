@@ -183,7 +183,7 @@ const ThemeScript = memo(
 
         return `var d=document.documentElement.classList;${removeClasses};`
       } else {
-        return `var d=document.documentElement.setAttribute;`
+        return `var d=document.documentElement;`
       }
     })()
 
@@ -195,7 +195,7 @@ const ThemeScript = memo(
         return `d.add(${val})`
       }
 
-      return `d('${attribute}', ${val})`
+      return `d.setAttribute('${attribute}', ${val})`
     }
 
     return (

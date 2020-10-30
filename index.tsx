@@ -18,7 +18,7 @@ interface UseThemeProps {
 }
 
 const ThemeContext = createContext<UseThemeProps>({
-  setTheme: _ => {},
+  setTheme: (_) => {},
   theme: undefined,
   forcedTheme: undefined,
   resolvedTheme: undefined,
@@ -77,7 +77,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   }, []) // eslint-disable-line
 
   const handleMediaQuery = useCallback(
-    e => {
+    (e) => {
       const isDark = e.matches
       const systemTheme = isDark ? 'dark' : 'light'
       setResolvedTheme(systemTheme)
@@ -101,7 +101,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   }, [handleMediaQuery]) // eslint-disable-line
 
   const setTheme = useCallback(
-    newTheme => {
+    (newTheme) => {
       if (forcedTheme) {
         return
       }
@@ -250,7 +250,7 @@ const disableAnimation = () => {
   const css = document.createElement('style')
   css.appendChild(
     document.createTextNode(
-      `*{-webkit-transition: none !important;-moz-transition: none !important;-o-transition: none !important;-ms-transition: none !important;transition: none !important}`
+      `*{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}`
     )
   )
   document.head.appendChild(css)

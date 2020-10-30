@@ -51,7 +51,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 }) => {
   const [theme, setThemeState] = useState(() => getTheme(storageKey))
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
-  const attributeValues = !value ? themes : Object.values(value)
+  const attrs = !value ? themes : Object.values(value)
 
   const changeTheme = useCallback((theme, updateStorage = true) => {
     const name = value?.[theme] || theme
@@ -65,7 +65,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     const d = document.documentElement
 
     if (attribute === 'class') {
-      d.classList.remove(...attributeValues)
+      d.classList.remove(...attrs)
       d.classList.add(name)
     } else {
       d.setAttribute(attribute, name)
@@ -113,7 +113,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
-      if (e.key !== 'theme') {
+      if (e.key !== storageKey) {
         return
       }
 
@@ -148,7 +148,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
           value,
           enableSystem,
           defaultTheme,
-          attributeValues
+          attrs
         }}
       />
       {children}
@@ -164,7 +164,7 @@ const ThemeScript = memo(
     enableSystem,
     defaultTheme,
     value,
-    attributeValues
+    attrs
   }: {
     forcedTheme?: string
     storageKey: string
@@ -172,12 +172,12 @@ const ThemeScript = memo(
     enableSystem?: boolean
     defaultTheme: string
     value?: ValueObject
-    attributeValues: any
+    attrs: any
   }) => {
     // Code-golfing the amount of characters in the script
     const optimization = (() => {
       if (attribute === 'class') {
-        const removeClasses = `d.remove(${attributeValues
+        const removeClasses = `d.remove(${attrs
           .map((t: string) => `'${t}'`)
           .join(',')})`
 
@@ -214,7 +214,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');if(!e)return localStorage.setItem('${storageKey}','${defaultTheme}'),${updateDOM(defaultTheme)};if("system"===e){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else ${value ? `var x = ${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
+              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');if(!e)return localStorage.setItem('${storageKey}','${defaultTheme}'),${updateDOM(defaultTheme)};if("system"===e){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else ${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
             }}
           />
         ) : (
@@ -222,7 +222,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try{${optimization}var t=localStorage.getItem("${storageKey}");if(!t)return localStorage.setItem("${storageKey}","${defaultTheme}"),${updateDOM(defaultTheme)};${value ? `var x = ${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[t]' : 't', true)}}catch(t){}}();`
+              __html: `!function(){try{${optimization}var t=localStorage.getItem("${storageKey}");if(!t)return localStorage.setItem("${storageKey}","${defaultTheme}"),${updateDOM(defaultTheme)};${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[t]' : 't', true)}}catch(t){}}();`
             }}
           />
         )}

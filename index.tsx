@@ -19,11 +19,7 @@ interface UseThemeProps {
 
 const ThemeContext = createContext<UseThemeProps>({
   setTheme: (_) => {},
-  theme: undefined,
-  forcedTheme: undefined,
-  resolvedTheme: undefined,
-  themes: [],
-  systemTheme: undefined
+  themes: []
 })
 export const useTheme = () => useContext(ThemeContext)
 
@@ -55,9 +51,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 }) => {
   const [theme, setThemeState] = useState(() => getTheme(storageKey))
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
+  const attrs = !value ? themes : Object.values(value)
 
   const changeTheme = useCallback((theme, updateStorage = true) => {
-    const attributeValues = !value ? themes : Object.values(value)
     const name = value?.[theme] || theme
 
     const enable = disableTransitionOnChange ? disableAnimation() : null
@@ -66,11 +62,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       localStorage.setItem(storageKey, theme)
     }
 
+    const d = document.documentElement
+
     if (attribute === 'class') {
-      document.documentElement.classList.remove(...attributeValues)
-      document.documentElement.classList.add(name)
+      d.classList.remove(...attrs)
+      d.classList.add(name)
     } else {
-      document.documentElement.setAttribute(attribute, name)
+      d.setAttribute(attribute, name)
     }
     enable?.()
     // All of these deps are stable and should never change
@@ -115,7 +113,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
-      if (e.key !== 'theme') {
+      if (e.key !== storageKey) {
         return
       }
 
@@ -150,7 +148,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
           value,
           enableSystem,
           defaultTheme,
-          themes
+          attrs
         }}
       />
       {children}
@@ -166,7 +164,7 @@ const ThemeScript = memo(
     enableSystem,
     defaultTheme,
     value,
-    themes
+    attrs
   }: {
     forcedTheme?: string
     storageKey: string
@@ -174,23 +172,30 @@ const ThemeScript = memo(
     enableSystem?: boolean
     defaultTheme: string
     value?: ValueObject
-    themes: string[]
+    attrs: any
   }) => {
-    const updateDOM = (name: string, literal?: boolean) => {
-      const attributeValues = !value ? themes : Object.values(value)
-      if (value) {
-        name = value[name] || name
-      }
-      const val = literal ? name : `'${name}'`
+    // Code-golfing the amount of characters in the script
+    const optimization = (() => {
       if (attribute === 'class') {
-        const removeClasses = `document.documentElement.classList.remove(${attributeValues
+        const removeClasses = `d.remove(${attrs
           .map((t: string) => `'${t}'`)
           .join(',')})`
 
-        return `${removeClasses}document.documentElement.classList.add(${val})`
+        return `var d=document.documentElement.classList;${removeClasses};`
+      } else {
+        return `var d=document.documentElement;`
+      }
+    })()
+
+    const updateDOM = (name: string, literal?: boolean) => {
+      name = value?.[name] || name
+      const val = literal ? name : `'${name}'`
+
+      if (attribute === 'class') {
+        return `d.add(${val})`
       }
 
-      return `document.documentElement.setAttribute('${attribute}', ${val})`
+      return `d.setAttribute('${attribute}', ${val})`
     }
 
     return (
@@ -209,7 +214,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try {var e=localStorage.getItem('${storageKey}');if(!e)return localStorage.setItem('${storageKey}','${defaultTheme}'), void ${updateDOM(defaultTheme)};if("system"===e){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else ${value ? `var x = ${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
+              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');if(!e)return localStorage.setItem('${storageKey}','${defaultTheme}'),${updateDOM(defaultTheme)};if("system"===e){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else ${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
             }}
           />
         ) : (
@@ -217,12 +222,18 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try{var t=localStorage.getItem("${storageKey}");if(!t)return localStorage.setItem("${storageKey}","${defaultTheme}"),void ${updateDOM(defaultTheme)};${value ? `var x = ${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[t]' : 't', true)}}catch(t){}}();`
+              __html: `!function(){try{${optimization}var t=localStorage.getItem("${storageKey}");if(!t)return localStorage.setItem("${storageKey}","${defaultTheme}"),${updateDOM(defaultTheme)};${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[t]' : 't', true)}}catch(t){}}();`
             }}
           />
         )}
       </NextHead>
     )
+  },
+  (prevProps, nextProps) => {
+    // Only re-render when forcedTheme changes
+    // the rest of the props should be completely stable
+    if (prevProps.forcedTheme !== nextProps.forcedTheme) return false
+    return true
   }
 )
 
@@ -236,7 +247,7 @@ const disableAnimation = () => {
   const css = document.createElement('style')
   css.appendChild(
     document.createTextNode(
-      `*{-webkit-transition: none !important;-moz-transition: none !important;-o-transition: none !important;-ms-transition: none !important;transition: none !important}`
+      `*{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}`
     )
   )
   document.head.appendChild(css)

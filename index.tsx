@@ -55,9 +55,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 }) => {
   const [theme, setThemeState] = useState(() => getTheme(storageKey))
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
+  const attributeValues = !value ? themes : Object.values(value)
 
   const changeTheme = useCallback((theme, updateStorage = true) => {
-    const attributeValues = !value ? themes : Object.values(value)
     const name = value?.[theme] || theme
 
     const enable = disableTransitionOnChange ? disableAnimation() : null
@@ -150,7 +150,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
           value,
           enableSystem,
           defaultTheme,
-          themes
+          attributeValues
         }}
       />
       {children}
@@ -166,7 +166,7 @@ const ThemeScript = memo(
     enableSystem,
     defaultTheme,
     value,
-    themes
+    attributeValues
   }: {
     forcedTheme?: string
     storageKey: string
@@ -174,12 +174,11 @@ const ThemeScript = memo(
     enableSystem?: boolean
     defaultTheme: string
     value?: ValueObject
-    themes: string[]
+    attributeValues: any
   }) => {
     // Code-golfing the amount of characters in the script
     const optimization = (() => {
       if (attribute === 'class') {
-        const attributeValues = !value ? themes : Object.values(value)
         const removeClasses = `d.remove(${attributeValues
           .map((t: string) => `'${t}'`)
           .join(',')})`

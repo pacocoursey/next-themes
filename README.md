@@ -71,6 +71,8 @@ That's it, your Next.js app fully supports dark mode, including System preferenc
 Your UI will need to know the current theme and be able to change it. The `useTheme` hook provides theme information:
 
 ```js
+import { useTheme } from 'next-themes'
+
 const ThemeChanger = () => {
   const { theme, setTheme } = useTheme()
 

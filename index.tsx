@@ -18,7 +18,7 @@ interface UseThemeProps {
 }
 
 const ThemeContext = createContext<UseThemeProps>({
-  setTheme: (_) => {},
+  setTheme: _ => {},
   theme: undefined,
   forcedTheme: undefined,
   resolvedTheme: undefined,
@@ -77,7 +77,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   }, []) // eslint-disable-line
 
   const handleMediaQuery = useCallback(
-    (e) => {
+    e => {
       const isDark = e.matches
       const systemTheme = isDark ? 'dark' : 'light'
       setResolvedTheme(systemTheme)
@@ -101,7 +101,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   }, [handleMediaQuery]) // eslint-disable-line
 
   const setTheme = useCallback(
-    (newTheme) => {
+    newTheme => {
       if (forcedTheme) {
         return
       }
@@ -176,21 +176,29 @@ const ThemeScript = memo(
     value?: ValueObject
     themes: string[]
   }) => {
-    const updateDOM = (name: string, literal?: boolean) => {
-      const attributeValues = !value ? themes : Object.values(value)
-      if (value) {
-        name = value[name] || name
-      }
-      const val = literal ? name : `'${name}'`
+    // Code-golfing the amount of characters in the script
+    const optimization = (() => {
       if (attribute === 'class') {
-        const removeClasses = `document.documentElement.classList.remove(${attributeValues
+        const attributeValues = !value ? themes : Object.values(value)
+        const removeClasses = `d.remove(${attributeValues
           .map((t: string) => `'${t}'`)
           .join(',')})`
 
-        return `${removeClasses}document.documentElement.classList.add(${val})`
+        return `var d=document.documentElement.classList;${removeClasses};`
+      } else {
+        return `var d=document.documentElement.setAttribute;`
+      }
+    })()
+
+    const updateDOM = (name: string, literal?: boolean) => {
+      name = value?.[name] || name
+      const val = literal ? name : `'${name}'`
+
+      if (attribute === 'class') {
+        return `d.add(${val})`
       }
 
-      return `document.documentElement.setAttribute('${attribute}', ${val})`
+      return `d('${attribute}', ${val})`
     }
 
     return (
@@ -209,7 +217,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try {var e=localStorage.getItem('${storageKey}');if(!e)return localStorage.setItem('${storageKey}','${defaultTheme}'), void ${updateDOM(defaultTheme)};if("system"===e){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else ${value ? `var x = ${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
+              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');if(!e)return localStorage.setItem('${storageKey}','${defaultTheme}'),${updateDOM(defaultTheme)};if("system"===e){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else ${value ? `var x = ${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
             }}
           />
         ) : (
@@ -217,12 +225,18 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try{var t=localStorage.getItem("${storageKey}");if(!t)return localStorage.setItem("${storageKey}","${defaultTheme}"),void ${updateDOM(defaultTheme)};${value ? `var x = ${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[t]' : 't', true)}}catch(t){}}();`
+              __html: `!function(){try{${optimization}var t=localStorage.getItem("${storageKey}");if(!t)return localStorage.setItem("${storageKey}","${defaultTheme}"),${updateDOM(defaultTheme)};${value ? `var x = ${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[t]' : 't', true)}}catch(t){}}();`
             }}
           />
         )}
       </NextHead>
     )
+  },
+  (prevProps, nextProps) => {
+    // Only re-render when forcedTheme changes
+    // the rest of the props should be completely stable
+    if (prevProps.forcedTheme !== nextProps.forcedTheme) return false
+    return true
   }
 )
 

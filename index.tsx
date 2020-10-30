@@ -187,7 +187,7 @@ const ThemeScript = memo(
           .map((t: string) => `'${t}'`)
           .join(',')})`
 
-        return `${removeClasses}document.documentElement.classList.add(${val})`
+        return `${removeClasses};document.documentElement.classList.add(${val})`
       }
 
       return `document.documentElement.setAttribute('${attribute}', ${val})`

@@ -19,11 +19,7 @@ interface UseThemeProps {
 
 const ThemeContext = createContext<UseThemeProps>({
   setTheme: (_) => {},
-  theme: undefined,
-  forcedTheme: undefined,
-  resolvedTheme: undefined,
-  themes: [],
-  systemTheme: undefined
+  themes: []
 })
 export const useTheme = () => useContext(ThemeContext)
 
@@ -66,11 +62,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       localStorage.setItem(storageKey, theme)
     }
 
+    const d = document.documentElement
+
     if (attribute === 'class') {
-      document.documentElement.classList.remove(...attributeValues)
-      document.documentElement.classList.add(name)
+      d.classList.remove(...attributeValues)
+      d.classList.add(name)
     } else {
-      document.documentElement.setAttribute(attribute, name)
+      d.setAttribute(attribute, name)
     }
     enable?.()
     // All of these deps are stable and should never change

@@ -86,6 +86,10 @@ const ThemeChanger = () => {
 }
 ```
 
+> **Warning!** The above code is hydration _unsafe_ and will throw a hydration mismatch warning when rendering with SSG or SSR. This is because we cannot know the `theme` on the server, so it will always be `undefined` until mounted on the client. 
+> 
+> You should delay rendering any theme toggling UI until mounted on the client. See the [example](#avoid-hydration-mismatch).
+
 ## API
 
 Let's dig into the details.
@@ -280,6 +284,54 @@ function MyApp({ Component, pageProps }) {
 }
 ```
 
+### Avoid Hydration Mismatch
+
+Because we cannot know the `theme` on the server, many of the values returned from `useTheme` will be `undefined` until mounted on the client. This means if you try to render UI based on the current theme before mounting on the client, you will see a hydration mismatch error.
+
+The following code sample is **unsafe**:
+
+```js
+import { useTheme } from 'next-themes'
+
+const ThemeChanger = () => {
+  const { theme, setTheme } = useTheme()
+
+  return (
+    <div>
+      The current theme is: {theme}
+      <button onClick={() => setTheme('light')}>Light Mode</button>
+      <button onClick={() => setTheme('dark')}>Dark Mode</button>
+    </div>
+  )
+}
+```
+
+To fix this, make sure you only render UI that uses the current theme when the page is mounted on the client:
+
+```js
+import { useTheme } from 'next-themes'
+
+const ThemeChanger = () => {
+  const [mounted, setMounted] = useState(false)
+  const { theme, setTheme } = useTheme()
+  
+  // When mounted on client, now we can show the UI
+  useEffect(() => setMounted(true), [])
+  
+  if (!mounted) return null
+
+  return (
+    <div>
+      The current theme is: {theme}
+      <button onClick={() => setTheme('light')}>Light Mode</button>
+      <button onClick={() => setTheme('dark')}>Dark Mode</button>
+    </div>
+  )
+}
+```
+
+To avoid Content Layout Shift, consider rendering a skeleton until mounted on the client side.
+
 ## Discussion
 
 ### The Flash
@@ -293,6 +345,12 @@ ThemeProvider automatically injects a script into `next/head` to update the `htm
 **Why is my page still flashing?**
 
 In Next.js dev mode, the page may still flash. When you build your app in production mode, there will be no flashing.
+
+---
+
+**Why do I get server/client mismatch error?**
+
+When using `useTheme`, you will use see a hydration mismatch error when rendering UI that relies on the current theme. This is because many of the values returned by `useTheme` are undefined on the server, since we can't read `localStorage` until mounting on the client. See the [example](#avoid-hydration-mismatch) for how to fix this error.
 
 ---
 

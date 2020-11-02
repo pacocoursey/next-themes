@@ -206,7 +206,7 @@ const ThemeScript = memo(
             dangerouslySetInnerHTML={{
               // These are minified via Terser and then updated by hand, don't recommend
               // prettier-ignore
-              __html: `!function(){${updateDOM(forcedTheme)}}()`
+              __html: `!function(){${optimization}${updateDOM(forcedTheme)}}()`
             }}
           />
         ) : enableSystem ? (

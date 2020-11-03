@@ -1,6 +1,6 @@
 {
   "name": "next-themes",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "main": "./dist/index.js",
   "module": "./dist/index.modern.js",
   "types": "./dist/index.d.ts",
@@ -10,6 +10,7 @@
     "dist"
   ],
   "scripts": {
+    "prepublish": "yarn build",
     "build": "microbundle --jsx React.createElement --compress --no-sourcemap"
   },
   "dependencies": {},

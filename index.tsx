@@ -240,7 +240,13 @@ const ThemeScript = memo(
 // Helpers
 const getTheme = (key: string) => {
   if (typeof window === 'undefined') return undefined
-  return localStorage.getItem(key) || undefined
+  let theme
+  try {
+    theme = localStorage.getItem(key) || undefined
+  } catch(e) {
+    // Unsupported
+  }
+  return theme
 }
 
 const disableAnimation = () => {

@@ -59,7 +59,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     const enable = disableTransitionOnChange ? disableAnimation() : null
 
     if (updateStorage) {
-      localStorage.setItem(storageKey, theme)
+      try {
+        localStorage.setItem(storageKey, theme)
+      } catch (e) {
+        // Unsupported
+      }
     }
 
     const d = document.documentElement
@@ -243,7 +247,7 @@ const getTheme = (key: string) => {
   let theme
   try {
     theme = localStorage.getItem(key) || undefined
-  } catch(e) {
+  } catch (e) {
     // Unsupported
   }
   return theme

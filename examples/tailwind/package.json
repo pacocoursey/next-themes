@@ -1,0 +1,21 @@
+{
+  "name": "with-tailwindcss",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "autoprefixer": "^10.0.2",
+    "next": "latest",
+    "next-themes": "^0.0.10",
+    "postcss": "^8.1.7",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  },
+  "devDependencies": {
+    "tailwindcss": "^2.0.1"
+  },
+  "license": "MIT"
+}

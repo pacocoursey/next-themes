@@ -86,8 +86,8 @@ const ThemeChanger = () => {
 }
 ```
 
-> **Warning!** The above code is hydration _unsafe_ and will throw a hydration mismatch warning when rendering with SSG or SSR. This is because we cannot know the `theme` on the server, so it will always be `undefined` until mounted on the client. 
-> 
+> **Warning!** The above code is hydration _unsafe_ and will throw a hydration mismatch warning when rendering with SSG or SSR. This is because we cannot know the `theme` on the server, so it will always be `undefined` until mounted on the client.
+>
 > You should delay rendering any theme toggling UI until mounted on the client. See the [example](#avoid-hydration-mismatch).
 
 ## API
@@ -314,10 +314,10 @@ import { useTheme } from 'next-themes'
 const ThemeChanger = () => {
   const [mounted, setMounted] = useState(false)
   const { theme, setTheme } = useTheme()
-  
+
   // When mounted on client, now we can show the UI
   useEffect(() => setMounted(true), [])
-  
+
   if (!mounted) return null
 
   return (
@@ -331,6 +331,36 @@ const ThemeChanger = () => {
 ```
 
 To avoid Content Layout Shift, consider rendering a skeleton until mounted on the client side.
+
+### With Tailwind
+
+[Visit the live example](https://next-themes-tailwind.vercel.app) • [View the example source code](https://github.com/pacocoursey/next-themes/tree/master/examples/tailwind)
+
+> NOTE! Tailwind only supports dark mode in version >2.
+
+In your `tailwind.config.js`, set the dark mode property to class:
+
+```js
+// tailwind.config.js
+module.exports = {
+  darkMode: 'class'
+}
+```
+
+Set the attribute for your Theme Provider to class:
+
+```js
+// pages/_app.js
+<ThemeProvider attribute="class">
+```
+
+If you're using the `value` prop to specify different attribute values, make sure your dark theme explicitly uses the "dark" value, as required by Tailwind.
+
+That's it! Now you can use dark-mode specific classes:
+
+```js
+<h1 className="text-black dark:text-white">
+```
 
 ## Discussion
 

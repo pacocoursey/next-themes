@@ -96,10 +96,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
     // Always listen to System preference
     const media = window.matchMedia('(prefers-color-scheme: dark)')
-    media.addListener(handleMediaQuery)
+    media.addEventListener('change', handleMediaQuery)
     handleMediaQuery(media)
 
-    return () => media.removeListener(handleMediaQuery)
+    return () => media.removeEventListener('change', handleMediaQuery)
   }, [handleMediaQuery]) // eslint-disable-line
 
   const setTheme = useCallback(

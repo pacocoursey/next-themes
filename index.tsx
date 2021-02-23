@@ -49,7 +49,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   value,
   children
 }) => {
-  const [theme, setThemeState] = useState(() => getTheme(storageKey))
+  const [theme, setThemeState] = useState(() =>
+    getTheme(storageKey, defaultTheme)
+  )
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
 
@@ -202,6 +204,8 @@ const ThemeScript = memo(
       return `d.setAttribute('${attribute}', ${val})`
     }
 
+    const defaultSystem = defaultTheme === 'system'
+
     return (
       <NextHead>
         {forcedTheme ? (
@@ -218,7 +222,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');if(!e)return localStorage.setItem('${storageKey}','${defaultTheme}'),${updateDOM(defaultTheme)};if("system"===e){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else ${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
+              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');${!defaultSystem ? updateDOM(defaultTheme) + ';' : ''}if("system"===e||(!e&&${defaultSystem})){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else ${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
             }}
           />
         ) : (
@@ -226,7 +230,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try{${optimization}var t=localStorage.getItem("${storageKey}");if(!t)return localStorage.setItem("${storageKey}","${defaultTheme}"),${updateDOM(defaultTheme)};${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[t]' : 't', true)}}catch(t){}}();`
+              __html: `!function(){try{${optimization}var e=localStorage.getItem("${storageKey}");${!defaultSystem ? updateDOM(defaultTheme) : ''};${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(t){}}();`
             }}
           />
         )}
@@ -242,7 +246,8 @@ const ThemeScript = memo(
 )
 
 // Helpers
-const getTheme = (key: string) => {
+const getTheme = (key: string, fallback?: string) => {
+  console.log(typeof window)
   if (typeof window === 'undefined') return undefined
   let theme
   try {
@@ -250,7 +255,7 @@ const getTheme = (key: string) => {
   } catch (e) {
     // Unsupported
   }
-  return theme
+  return theme || fallback
 }
 
 const disableAnimation = () => {

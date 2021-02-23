@@ -279,8 +279,11 @@ const disableAnimation = () => {
 
   return () => {
     // Force restyle
-    // The CSS property doesn't matter, use "top" because it's short
     ;(() => window.getComputedStyle(document.body))()
-    document.head.removeChild(css)
+
+    // Wait for next tick before removing
+    setTimeout(() => {
+      document.head.removeChild(css)
+    }, 1)
   }
 }

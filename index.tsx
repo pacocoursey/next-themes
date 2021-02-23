@@ -247,7 +247,6 @@ const ThemeScript = memo(
 
 // Helpers
 const getTheme = (key: string, fallback?: string) => {
-  console.log(typeof window)
   if (typeof window === 'undefined') return undefined
   let theme
   try {
@@ -270,7 +269,7 @@ const disableAnimation = () => {
   return () => {
     // Force restyle
     // The CSS property doesn't matter, use "top" because it's short
-    ;(() => window.getComputedStyle(css).top)()
+    ;(() => window.getComputedStyle(document.body))()
     document.head.removeChild(css)
   }
 }

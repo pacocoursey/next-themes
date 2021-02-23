@@ -44,7 +44,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   enableSystem = true,
   storageKey = 'theme',
   themes = ['light', 'dark'],
-  defaultTheme = 'light',
+  defaultTheme = enableSystem ? 'system' : 'light',
   attribute = 'data-theme',
   value,
   children

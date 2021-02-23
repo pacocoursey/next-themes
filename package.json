@@ -1,6 +1,6 @@
 {
   "name": "next-themes",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "main": "./dist/index.js",
   "module": "./dist/index.modern.js",
   "types": "./dist/index.d.ts",

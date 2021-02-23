@@ -132,6 +132,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     // All of these deps are stable and should never change
   }, []) // eslint-disable-line
 
+  useEffect(() => {
+    // color-scheme tells browser how to render built-in elements like forms, scrollbars, etc.
+    if (theme === 'light') {
+      document.documentElement.style.setProperty('color-scheme', 'light')
+    } else if (theme === 'dark') {
+      document.documentElement.style.setProperty('color-scheme', 'dark')
+    } else if (theme === 'system' && resolvedTheme) {
+      document.documentElement.style.setProperty('color-scheme', resolvedTheme)
+    }
+  }, [theme, resolvedTheme])
+
   return (
     <ThemeContext.Provider
       value={{

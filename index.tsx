@@ -59,29 +59,35 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
 
-  const changeTheme = useCallback((theme, updateStorage = true) => {
-    const name = value?.[theme] || theme
+  const changeTheme = useCallback(
+    (theme, updateStorage = true, updateDOM = true) => {
+      const name = value?.[theme] || theme
 
-    const enable = disableTransitionOnChange ? disableAnimation() : null
+      const enable =
+        disableTransitionOnChange && updateDOM ? disableAnimation() : null
 
-    if (updateStorage) {
-      try {
-        localStorage.setItem(storageKey, theme)
-      } catch (e) {
-        // Unsupported
+      if (updateStorage) {
+        try {
+          localStorage.setItem(storageKey, theme)
+        } catch (e) {
+          // Unsupported
+        }
       }
-    }
 
-    const d = document.documentElement
+      if (updateDOM) {
+        const d = document.documentElement
 
-    if (attribute === 'class') {
-      d.classList.remove(...attrs)
-      d.classList.add(name)
-    } else {
-      d.setAttribute(attribute, name)
-    }
-    enable?.()
-  }, [])
+        if (attribute === 'class') {
+          d.classList.remove(...attrs)
+          d.classList.add(name)
+        } else {
+          d.setAttribute(attribute, name)
+        }
+        enable?.()
+      }
+    },
+    []
+  )
 
   const handleMediaQuery = useCallback(
     (e) => {
@@ -109,11 +115,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   const setTheme = useCallback(
     (newTheme) => {
-      console.log('setTheme', { forcedTheme })
       if (forcedTheme) {
-        return
+        changeTheme(newTheme, true, false)
+      } else {
+        changeTheme(newTheme)
       }
-      changeTheme(newTheme)
       setThemeState(newTheme)
     },
     [forcedTheme]

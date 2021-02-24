@@ -23,6 +23,8 @@ const ThemeContext = createContext<UseThemeProps>({
 })
 export const useTheme = () => useContext(ThemeContext)
 
+const colorSchemes = ['light', 'dark']
+
 interface ValueObject {
   [themeName: string]: string
 }
@@ -31,6 +33,7 @@ export interface ThemeProviderProps {
   forcedTheme?: string
   disableTransitionOnChange?: boolean
   enableSystem?: boolean
+  enableColorScheme?: boolean
   storageKey?: string
   themes?: string[]
   defaultTheme?: string
@@ -42,6 +45,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   forcedTheme,
   disableTransitionOnChange = false,
   enableSystem = true,
+  enableColorScheme = true,
   storageKey = 'theme',
   themes = ['light', 'dark'],
   defaultTheme = enableSystem ? 'system' : 'light',
@@ -77,8 +81,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       d.setAttribute(attribute, name)
     }
     enable?.()
-    // All of these deps are stable and should never change
-  }, []) // eslint-disable-line
+  }, [])
 
   const handleMediaQuery = useCallback(
     (e) => {
@@ -86,9 +89,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       const systemTheme = isDark ? 'dark' : 'light'
       setResolvedTheme(systemTheme)
 
-      if (theme === 'system') changeTheme(systemTheme, false)
+      if (theme === 'system' && !forcedTheme) changeTheme(systemTheme, false)
     },
-    [theme] // eslint-disable-line
+    [theme, forcedTheme]
   )
 
   useEffect(() => {
@@ -102,19 +105,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     handleMediaQuery(media)
 
     return () => media.removeListener(handleMediaQuery)
-  }, [handleMediaQuery]) // eslint-disable-line
+  }, [handleMediaQuery])
 
   const setTheme = useCallback(
     (newTheme) => {
+      console.log('setTheme', { forcedTheme })
       if (forcedTheme) {
         return
       }
-
       changeTheme(newTheme)
       setThemeState(newTheme)
     },
-    // All of these deps are stable and should never change
-    [] // eslint-disable-line
+    [forcedTheme]
   )
 
   useEffect(() => {
@@ -129,19 +131,27 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
-    // All of these deps are stable and should never change
-  }, []) // eslint-disable-line
+  }, [setTheme])
 
   useEffect(() => {
+    if (!enableColorScheme) return
+
+    let colorScheme =
+      // If theme is forced to light or dark, use that
+      forcedTheme && colorSchemes.includes(forcedTheme)
+        ? forcedTheme
+        : // If regular theme is light or dark
+        theme && colorSchemes.includes(theme)
+        ? theme
+        : // If theme is system, use the resolved version
+        theme === 'system'
+        ? resolvedTheme || null
+        : null
+
     // color-scheme tells browser how to render built-in elements like forms, scrollbars, etc.
-    if (theme === 'light') {
-      document.documentElement.style.setProperty('color-scheme', 'light')
-    } else if (theme === 'dark') {
-      document.documentElement.style.setProperty('color-scheme', 'dark')
-    } else if (theme === 'system' && resolvedTheme) {
-      document.documentElement.style.setProperty('color-scheme', resolvedTheme)
-    }
-  }, [theme, resolvedTheme])
+    // if color-scheme is null, this will remove the property
+    document.documentElement.style.setProperty('color-scheme', colorScheme)
+  }, [enableColorScheme, theme, resolvedTheme, forcedTheme])
 
   return (
     <ThemeContext.Provider
@@ -233,7 +243,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');${!defaultSystem ? updateDOM(defaultTheme) + ';' : ''}if("system"===e||(!e&&${defaultSystem})){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else ${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
+              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');${!defaultSystem ? updateDOM(defaultTheme) + ';' : ''}if("system"===e||(!e&&${defaultSystem})){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else if(e) ${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
             }}
           />
         ) : (
@@ -241,7 +251,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try{${optimization}var e=localStorage.getItem("${storageKey}");${!defaultSystem ? updateDOM(defaultTheme) : ''};${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(t){}}();`
+              __html: `!function(){try{${optimization}var e=localStorage.getItem("${storageKey}");if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}else{${updateDOM(defaultTheme)};}}catch(t){}}();`
             }}
           />
         )}

@@ -211,7 +211,7 @@ Done! To be extra clear, this affects only the DOM. Here's how all the values wi
 const { theme } = useTheme()
 // => "pink"
 
-localStorage.get('theme')
+localStorage.getItem('theme')
 // => "pink"
 
 document.documentElement.getAttribute('data-theme')

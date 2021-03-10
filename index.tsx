@@ -23,8 +23,6 @@ const ThemeContext = createContext<UseThemeProps>({
 })
 export const useTheme = () => useContext(ThemeContext)
 
-const colorSchemes = ['light', 'dark']
-
 interface ValueObject {
   [themeName: string]: string
 }
@@ -36,6 +34,7 @@ export interface ThemeProviderProps {
   enableColorScheme?: boolean
   storageKey?: string
   themes?: string[]
+  colorSchemes?: string[]
   defaultTheme?: string
   attribute?: string
   value?: ValueObject
@@ -48,6 +47,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   enableColorScheme = true,
   storageKey = 'theme',
   themes = ['light', 'dark'],
+  colorSchemes = themes,
   defaultTheme = enableSystem ? 'system' : 'light',
   attribute = 'data-theme',
   value,
@@ -92,7 +92,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   const handleMediaQuery = useCallback(
     (e) => {
       const isDark = e.matches
-      const systemTheme = isDark ? 'dark' : 'light'
+      const systemTheme = isDark ? colorSchemes[1] || 'dark' : colorSchemes[0] || 'light'
       setResolvedTheme(systemTheme)
 
       if (theme === 'system' && !forcedTheme) changeTheme(systemTheme, false)
@@ -249,7 +249,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');${!defaultSystem ? updateDOM(defaultTheme) + ';' : ''}if("system"===e||(!e&&${defaultSystem})){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else if(e) ${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
+              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');${!defaultSystem ? updateDOM(defaultTheme) + ';' : ''}if("system"===e||(!e&&${defaultSystem})){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM(attrs[1] || 'dark')}:${updateDOM(attrs[0] || 'light')}}else if(e) ${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
             }}
           />
         ) : (

@@ -7,7 +7,7 @@
   --bg: #fff;
 }
 
-[data-theme="dark"] {
+.my-dark-theme {
   --fg: #fff;
   --bg: #000;
 }

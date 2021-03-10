@@ -8,5 +8,5 @@ const Page = () => {
 	)
 }
 
-Page.theme = 'light'
+Page.theme = 'my-light-theme'
 export default Page

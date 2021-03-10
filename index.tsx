@@ -95,7 +95,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       const systemTheme = isDark ? colorSchemes[1] || 'dark' : colorSchemes[0] || 'light'
       setResolvedTheme(systemTheme)
 
-      if (theme === 'system' && !forcedTheme) changeTheme(systemTheme, false)
+      if (theme === 'system' && !forcedTheme) changeTheme(systemTheme)
     },
     [theme, forcedTheme]
   )

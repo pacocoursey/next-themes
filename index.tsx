@@ -4,6 +4,7 @@ import React, {
   useContext,
   useEffect,
   useState,
+  useRef,
   memo
 } from 'react'
 import NextHead from 'next/head'
@@ -24,6 +25,7 @@ const ThemeContext = createContext<UseThemeProps>({
 export const useTheme = () => useContext(ThemeContext)
 
 const colorSchemes = ['light', 'dark']
+const MEDIA = '(prefers-color-scheme: dark)'
 
 interface ValueObject {
   [themeName: string]: string
@@ -59,9 +61,22 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
 
+  const handleMediaQuery = useCallback(
+    (e?) => {
+      const systemTheme = getSystemTheme(e)
+      setResolvedTheme(systemTheme)
+      if (theme === 'system' && !forcedTheme) changeTheme(systemTheme, false)
+    },
+    [theme, forcedTheme]
+  )
+
+  // Ref hack to avoid adding handleMediaQuery as a dep
+  const mediaListener = useRef(handleMediaQuery)
+  mediaListener.current = handleMediaQuery
+
   const changeTheme = useCallback(
     (theme, updateStorage = true, updateDOM = true) => {
-      const name = value?.[theme] || theme
+      let name = value?.[theme] || theme
 
       const enable =
         disableTransitionOnChange && updateDOM ? disableAnimation() : null
@@ -72,6 +87,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         } catch (e) {
           // Unsupported
         }
+      }
+
+      if (theme === 'system' && enableSystem) {
+        const resolved = getSystemTheme()
+        name = value?.[resolved] || resolved
       }
 
       if (updateDOM) {
@@ -89,29 +109,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     []
   )
 
-  const handleMediaQuery = useCallback(
-    (e) => {
-      const isDark = e.matches
-      const systemTheme = isDark ? 'dark' : 'light'
-      setResolvedTheme(systemTheme)
-
-      if (theme === 'system' && !forcedTheme) changeTheme(systemTheme, false)
-    },
-    [theme, forcedTheme]
-  )
-
   useEffect(() => {
-    if (!enableSystem) {
-      return
-    }
+    const handler = mediaListener.current
 
     // Always listen to System preference
-    const media = window.matchMedia('(prefers-color-scheme: dark)')
-    media.addListener(handleMediaQuery)
-    handleMediaQuery(media)
+    const media = window.matchMedia(MEDIA)
 
-    return () => media.removeListener(handleMediaQuery)
-  }, [handleMediaQuery])
+    // Intentionally use deprecated listener methods to support iOS & old browsers
+    media.addListener(handler)
+    handler(media)
+
+    return () => media.removeListener(handler)
+  }, [])
 
   const setTheme = useCallback(
     (newTheme) => {
@@ -125,6 +134,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     [forcedTheme]
   )
 
+  // localStorage event handling
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
       if (e.key !== storageKey) {
@@ -139,6 +149,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     return () => window.removeEventListener('storage', handleStorage)
   }, [setTheme])
 
+  // color-scheme handling
   useEffect(() => {
     if (!enableColorScheme) return
 
@@ -249,7 +260,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');${!defaultSystem ? updateDOM(defaultTheme) + ';' : ''}if("system"===e||(!e&&${defaultSystem})){var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else if(e) ${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
+              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');${!defaultSystem ? updateDOM(defaultTheme) + ';' : ''}if("system"===e||(!e&&${defaultSystem})){var t="${MEDIA}",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else if(e) ${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
             }}
           />
         ) : (
@@ -302,4 +313,14 @@ const disableAnimation = () => {
       document.head.removeChild(css)
     }, 1)
   }
+}
+
+const getSystemTheme = (e?: MediaQueryList) => {
+  if (!e) {
+    e = window.matchMedia(MEDIA)
+  }
+
+  const isDark = e.matches
+  const systemTheme = isDark ? 'dark' : 'light'
+  return systemTheme
 }

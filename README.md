@@ -4,6 +4,7 @@ An abstraction for themes in your Next.js app.
 
 - ✅ Perfect dark mode in 2 lines of code
 - ✅ System setting with prefers-color-scheme
+- ✅ Themed browser UI with color-scheme
 - ✅ No flash on load (both SSR and SSG)
 - ✅ Sync theme across tabs and windows
 - ✅ Disable flashing when changing themes
@@ -99,9 +100,10 @@ Let's dig into the details.
 All your theme configuration is passed to ThemeProvider.
 
 - `storageKey = 'theme'`: Key used to store theme setting in localStorage
-- `defaultTheme = 'light'`: Default theme name
+- `defaultTheme = 'system'`: Default theme name (for v0.0.12 and lower the default was `light`). If `enableSystem` is false, the default theme is `light`
 - `forcedTheme`: Forced theme name for the current page (does not modify saved theme settings)
 - `enableSystem = true`: Whether to switch between `dark` and `light` based on `prefers-color-scheme`
+- `enableColorScheme = true`: Whether to indicate to browsers which color scheme is used (dark or light) for built-in UI like inputs and buttons
 - `disableTransitionOnChange = false`: Optionally disable all CSS transitions when switching themes ([example](#disable-transitions-on-theme-change))
 - `themes = ['light', 'dark']`: List of theme names
 - `attribute = 'data-theme'`: HTML attribute modified based on the active theme

@@ -110,7 +110,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   )
 
   useEffect(() => {
-    const handler = mediaListener.current
+    const handler = (...args: any) => mediaListener.current(...args)
 
     // Always listen to System preference
     const media = window.matchMedia(MEDIA)

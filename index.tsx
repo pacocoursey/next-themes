@@ -9,7 +9,7 @@ import React, {
 } from 'react'
 import NextHead from 'next/head'
 
-interface UseThemeProps {
+export interface UseThemeProps {
   themes: string[]
   setTheme: (theme: string) => void
   theme?: string
@@ -18,7 +18,7 @@ interface UseThemeProps {
   systemTheme?: 'dark' | 'light'
 }
 
-const ThemeContext = createContext<UseThemeProps>({
+export const ThemeContext = createContext<UseThemeProps>({
   setTheme: (_) => {},
   themes: []
 })

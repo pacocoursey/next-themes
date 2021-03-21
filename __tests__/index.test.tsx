@@ -1,6 +1,8 @@
-import {render, screen} from "@testing-library/react";
-import {ThemeContext, ThemeProvider, UseThemeProps} from "../index";
-import React from "react";
+import {act, render, screen} from "@testing-library/react";
+import {ThemeContext, ThemeProvider, useTheme, UseThemeProps} from "../index";
+import React, {useEffect} from "react";
+
+let localStorageMock: { [key: string]: string } = {}
 
 beforeAll(() => {
     // Create a mock of the window.matchMedia function
@@ -18,11 +20,22 @@ beforeAll(() => {
             dispatchEvent: jest.fn(),
         })),
     })
+
+    // Create mocks of localStorage getItem and setItem functions
+    global.Storage.prototype.getItem = jest.fn((key: string) => localStorageMock[key])
+    global.Storage.prototype.setItem = jest.fn((key: string, value: string) => {
+        localStorageMock[key] = value;
+    })
 })
 
-describe("defaultTheme test-suite", () => {
+beforeEach(() => {
+    // Clear the localStorage-mock
+    localStorageMock = {}
+})
 
-    test('should return system when using default settings', () => {
+describe('defaultTheme test-suite', () => {
+
+    test('should return system when no default theme is set', () => {
         render(
             <ThemeProvider>
                 <ThemeContext.Consumer>
@@ -35,10 +48,26 @@ describe("defaultTheme test-suite", () => {
             </ThemeProvider>
         )
 
-        expect(screen.getByTestId("theme").textContent).toBe("system")
+        expect(screen.getByTestId('theme').textContent).toBe('system')
     })
 
-    test('should return light when set it as default-theme', () => {
+    test('should return light when no default theme is set and enableSystem=false', () => {
+        render(
+            <ThemeProvider enableSystem={false}>
+                <ThemeContext.Consumer>
+                    {
+                        ({theme}: UseThemeProps) => (
+                            <p data-testid="theme">{theme}</p>
+                        )
+                    }
+                </ThemeContext.Consumer>
+            </ThemeProvider>
+        )
+
+        expect(screen.getByTestId('theme').textContent).toBe('light')
+    })
+
+    test('should return light when light is set as default-theme', () => {
         render(
             <ThemeProvider defaultTheme="light">
                 <ThemeContext.Consumer>
@@ -51,10 +80,10 @@ describe("defaultTheme test-suite", () => {
             </ThemeProvider>
         )
 
-        expect(screen.getByTestId("theme").textContent).toBe("light")
+        expect(screen.getByTestId('theme').textContent).toBe('light')
     })
 
-    test('should return dark when set as default-theme', () => {
+    test('should return dark when dark is set as default-theme', () => {
         render(
             <ThemeProvider defaultTheme="dark">
                 <ThemeContext.Consumer>
@@ -67,6 +96,42 @@ describe("defaultTheme test-suite", () => {
             </ThemeProvider>
         )
 
-        expect(screen.getByTestId("theme").textContent).toBe("dark")
+        expect(screen.getByTestId('theme').textContent).toBe('dark')
     })
 });
+
+describe('custom storageKey test-suite', () => {
+
+    const HelperComponent = ({theme}: { theme: string }) => {
+        const {setTheme} = useTheme()
+
+        useEffect(() => {
+            setTheme(theme)
+        }, [])
+
+        return null;
+    }
+
+    test('should save to localStorage with \'theme\' key when using default settings', () => {
+        act(() => {
+            render(<ThemeProvider>
+                <HelperComponent theme="light"/>
+            </ThemeProvider>)
+        })
+
+        expect(global.Storage.prototype.getItem).toHaveBeenCalledWith('theme')
+        expect(global.Storage.prototype.setItem).toHaveBeenCalledWith('theme', 'light')
+    })
+
+    test('should save to localStorage with \'custom\' when setting prop \'storageKey\' to \'customKey\'', () => {
+        act(() => {
+            render(<ThemeProvider storageKey="customKey">
+                <HelperComponent theme="light"/>
+            </ThemeProvider>)
+        })
+
+        expect(global.Storage.prototype.getItem).toHaveBeenCalledWith('customKey')
+        expect(global.Storage.prototype.setItem).toHaveBeenCalledWith('customKey', 'light')
+    })
+
+})

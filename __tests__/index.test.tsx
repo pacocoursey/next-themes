@@ -1,18 +1,20 @@
 import {act, render, screen} from "@testing-library/react";
-import {ThemeContext, ThemeProvider, useTheme, UseThemeProps} from "../index";
+import {ThemeProvider, useTheme} from "../index";
 import React, {useEffect} from "react";
 
 let localStorageMock: { [key: string]: string } = {}
 
 // HelperComponent to set a theme using the useTheme-hook
-const HelperComponent = ({forceSetTheme}: { forceSetTheme: string }) => {
-    const {setTheme} = useTheme()
+const HelperComponent = ({forceSetTheme}: { forceSetTheme?: string }) => {
+    const {setTheme, theme} = useTheme()
 
     useEffect(() => {
-        setTheme(forceSetTheme)
-    }, [])
+        if (forceSetTheme) {
+            setTheme(forceSetTheme)
+        }
+    }, [forceSetTheme])
 
-    return null;
+    return <p data-testid="theme">{theme}</p>;
 }
 
 beforeAll(() => {
@@ -49,13 +51,7 @@ describe('defaultTheme test-suite', () => {
     test('should return system when no default-theme is set', () => {
         render(
             <ThemeProvider>
-                <ThemeContext.Consumer>
-                    {
-                        ({theme}: UseThemeProps) => (
-                            <p data-testid="theme">{theme}</p>
-                        )
-                    }
-                </ThemeContext.Consumer>
+                <HelperComponent />
             </ThemeProvider>
         )
 
@@ -65,13 +61,7 @@ describe('defaultTheme test-suite', () => {
     test('should return light when no default-theme is set and enableSystem=false', () => {
         render(
             <ThemeProvider enableSystem={false}>
-                <ThemeContext.Consumer>
-                    {
-                        ({theme}: UseThemeProps) => (
-                            <p data-testid="theme">{theme}</p>
-                        )
-                    }
-                </ThemeContext.Consumer>
+                <HelperComponent />
             </ThemeProvider>
         )
 
@@ -81,13 +71,7 @@ describe('defaultTheme test-suite', () => {
     test('should return light when light is set as default-theme', () => {
         render(
             <ThemeProvider defaultTheme="light">
-                <ThemeContext.Consumer>
-                    {
-                        ({theme}: UseThemeProps) => (
-                            <p data-testid="theme">{theme}</p>
-                        )
-                    }
-                </ThemeContext.Consumer>
+                <HelperComponent />
             </ThemeProvider>
         )
 
@@ -97,13 +81,7 @@ describe('defaultTheme test-suite', () => {
     test('should return dark when dark is set as default-theme', () => {
         render(
             <ThemeProvider defaultTheme="dark">
-                <ThemeContext.Consumer>
-                    {
-                        ({theme}: UseThemeProps) => (
-                            <p data-testid="theme">{theme}</p>
-                        )
-                    }
-                </ThemeContext.Consumer>
+                <HelperComponent />
             </ThemeProvider>
         )
 

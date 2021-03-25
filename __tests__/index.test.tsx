@@ -4,9 +4,9 @@ import React, {useEffect} from "react";
 
 let localStorageMock: { [key: string]: string } = {}
 
-// HelperComponent to set a theme using the useTheme-hook
+// HelperComponent to render the theme inside a paragraph-tag and setting a theme via the forceSetTheme prop
 const HelperComponent = ({forceSetTheme}: { forceSetTheme?: string }) => {
-    const {setTheme, theme} = useTheme()
+    const {setTheme, theme, forcedTheme} = useTheme()
 
     useEffect(() => {
         if (forceSetTheme) {
@@ -14,7 +14,10 @@ const HelperComponent = ({forceSetTheme}: { forceSetTheme?: string }) => {
         }
     }, [forceSetTheme])
 
-    return <p data-testid="theme">{theme}</p>;
+    return <>
+        <p data-testid="theme">{theme}</p>
+        <p data-testid="forcedTheme">{forcedTheme}</p>
+    </>;
 }
 
 beforeAll(() => {
@@ -51,7 +54,7 @@ describe('defaultTheme test-suite', () => {
     test('should return system when no default-theme is set', () => {
         render(
             <ThemeProvider>
-                <HelperComponent />
+                <HelperComponent/>
             </ThemeProvider>
         )
 
@@ -61,7 +64,7 @@ describe('defaultTheme test-suite', () => {
     test('should return light when no default-theme is set and enableSystem=false', () => {
         render(
             <ThemeProvider enableSystem={false}>
-                <HelperComponent />
+                <HelperComponent/>
             </ThemeProvider>
         )
 
@@ -71,7 +74,7 @@ describe('defaultTheme test-suite', () => {
     test('should return light when light is set as default-theme', () => {
         render(
             <ThemeProvider defaultTheme="light">
-                <HelperComponent />
+                <HelperComponent/>
             </ThemeProvider>
         )
 
@@ -81,7 +84,7 @@ describe('defaultTheme test-suite', () => {
     test('should return dark when dark is set as default-theme', () => {
         render(
             <ThemeProvider defaultTheme="dark">
-                <HelperComponent />
+                <HelperComponent/>
             </ThemeProvider>
         )
 
@@ -162,6 +165,36 @@ describe('custom value-mapping test-suite', () => {
 
         expect(document.documentElement.getAttribute('data-theme')).toBe('my-pink-theme')
         expect(global.Storage.prototype.setItem).toHaveBeenCalledWith('theme', 'pink')
+    })
+
+})
+
+describe('forcedTheme test-suite', () => {
+
+    test('should render saved theme when no forcedTheme is set', () => {
+        localStorageMock['theme'] = 'dark';
+
+        render(
+            <ThemeProvider>
+                <HelperComponent/>
+            </ThemeProvider>
+        )
+
+        expect(screen.getByTestId('theme').textContent).toBe('dark')
+        expect(screen.getByTestId('forcedTheme').textContent).toBe('')
+    })
+
+    test('should render light theme when forcedTheme is set a', () => {
+        localStorageMock['theme'] = 'dark'
+
+        act(() => {
+            render(<ThemeProvider forcedTheme="light">
+                <HelperComponent/>
+            </ThemeProvider>)
+        })
+
+        expect(screen.getByTestId('theme').textContent).toBe('dark')
+        expect(screen.getByTestId('forcedTheme').textContent).toBe('light')
     })
 
 })

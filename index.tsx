@@ -19,7 +19,7 @@ interface UseThemeProps {
 }
 
 const ThemeContext = createContext<UseThemeProps>({
-  setTheme: (_) => {},
+  setTheme: _ => {},
   themes: []
 })
 export const useTheme = () => useContext(ThemeContext)
@@ -123,7 +123,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   }, [])
 
   const setTheme = useCallback(
-    (newTheme) => {
+    newTheme => {
       if (forcedTheme) {
         changeTheme(newTheme, true, false)
       } else {

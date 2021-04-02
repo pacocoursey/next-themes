@@ -8,7 +8,7 @@ const Index = () => {
     <div>
       <h1>next-themes Example</h1>
       {theme !== undefined && (
-        <select value={theme} onChange={(e) => setTheme(e.target.value)}>
+        <select value={theme} onChange={e => setTheme(e.target.value)}>
           <option value="dark">Dark</option>
           <option value="light">Light</option>
           <option value="system">System</option>
@@ -21,10 +21,8 @@ const Index = () => {
       <div>
         <Link href="/dark">
           <a>Forced Dark Page</a>
-        </Link>
-
-        {' '}•{' '}
-
+        </Link>{' '}
+        •{' '}
         <Link href="/light">
           <a>Forced Light Page</a>
         </Link>

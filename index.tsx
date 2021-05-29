@@ -140,8 +140,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       if (e.key !== storageKey) {
         return
       }
-
-      const theme = e.newValue
+      // If default theme set, use it if localstorage === null (happens on local storage manual deletion)
+      const theme = e.newValue || defaultTheme
       setTheme(theme)
     }
 

@@ -251,7 +251,7 @@ const ThemeScript = memo(
 
     const updateDOM = (name: string, literal?: boolean) => {
       const resolvedName = value ? value[name] : name
-      const val = literal ? name : `'${resolvedName}'`
+      const val = literal ? name + `|| ''` : `'${resolvedName}'`
 
       if (attribute === 'class') {
         if (literal || resolvedName) {

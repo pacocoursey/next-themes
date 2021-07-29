@@ -91,7 +91,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   const changeTheme = useCallback(
     (theme, updateStorage = true, updateDOM = true) => {
-      let name = value?.[theme] || theme
+      let name = value ? value[theme] : theme
 
       const enable =
         disableTransitionOnChange && updateDOM ? disableAnimation() : null
@@ -106,7 +106,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
       if (theme === 'system' && enableSystem) {
         const resolved = getSystemTheme()
-        name = value?.[resolved] || resolved
+        name = value ? value[resolved] : theme
       }
 
       if (updateDOM) {
@@ -114,9 +114,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
         if (attribute === 'class') {
           d.classList.remove(...attrs)
-          d.classList.add(name)
+
+          if (name) d.classList.add(name)
         } else {
-          d.setAttribute(attribute, name)
+          // ?? '' acts as removing the attribute, like d.classList.remove above
+          // name can be null here, but we don't want data-theme="undefined"
+          d.setAttribute(attribute, name ?? '')
         }
         enable?.()
       }
@@ -247,14 +250,18 @@ const ThemeScript = memo(
     })()
 
     const updateDOM = (name: string, literal?: boolean) => {
-      name = value?.[name] || name
-      const val = literal ? name : `'${name}'`
+      const resolvedName = value ? value[name] : name
+      const val = literal ? name : `'${resolvedName}'`
 
       if (attribute === 'class') {
-        return `d.add(${val})`
+        if (literal || resolvedName) {
+          return `d.add(${val})`
+        } else {
+          return `null`
+        }
       }
 
-      return `d.setAttribute('${attribute}', ${val})`
+      return `d.setAttribute('${attribute}', ${resolvedName ? val : `''`})`
     }
 
     const defaultSystem = defaultTheme === 'system'
@@ -275,7 +282,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');${!defaultSystem ? updateDOM(defaultTheme) + ';' : ''}if("system"===e||(!e&&${defaultSystem})){var t="${MEDIA}",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else if(e) ${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
+              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');if("system"===e||(!e&&${defaultSystem})){var t="${MEDIA}",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? `x[e]` : 'e', true)}}else{${!defaultSystem ? updateDOM(defaultTheme) : ''}}}catch(e){}}()`
             }}
           />
         ) : (
@@ -283,7 +290,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try{${optimization}var e=localStorage.getItem("${storageKey}");if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}else{${updateDOM(defaultTheme)};}}catch(t){}}();`
+              __html: `!function(){try{${optimization}var e=localStorage.getItem("${storageKey}");if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? `x[e]` : 'e', true)}}else{${updateDOM(defaultTheme)};}}catch(t){}}();`
             }}
           />
         )}

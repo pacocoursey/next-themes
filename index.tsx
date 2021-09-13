@@ -167,27 +167,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     return () => window.removeEventListener('storage', handleStorage)
   }, [setTheme])
 
-  // color-scheme handling
-  useEffect(() => {
-    if (!enableColorScheme) return
-
-    let colorScheme =
-      // If theme is forced to light or dark, use that
-      forcedTheme && colorSchemes.includes(forcedTheme)
-        ? forcedTheme
-        : // If regular theme is light or dark
-        theme && colorSchemes.includes(theme)
-        ? theme
-        : // If theme is system, use the resolved version
-        theme === 'system'
-        ? resolvedTheme || null
-        : null
-
-    // color-scheme tells browser how to render built-in elements like forms, scrollbars, etc.
-    // if color-scheme is null, this will remove the property
-    document.documentElement.style.setProperty('color-scheme', colorScheme)
-  }, [enableColorScheme, theme, resolvedTheme, forcedTheme])
-
   return (
     <ThemeContext.Provider
       value={{
@@ -209,6 +188,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
           attribute,
           value,
           enableSystem,
+          enableColorScheme,
           defaultTheme,
           attrs
         }}
@@ -224,6 +204,7 @@ const ThemeScript = memo(
     storageKey,
     attribute,
     enableSystem,
+    enableColorScheme,
     defaultTheme,
     value,
     attrs
@@ -232,6 +213,7 @@ const ThemeScript = memo(
     storageKey: string
     attribute?: string
     enableSystem?: boolean
+    enableColorScheme?: boolean
     defaultTheme: string
     value?: ValueObject
     attrs: any
@@ -243,25 +225,58 @@ const ThemeScript = memo(
           .map((t: string) => `'${t}'`)
           .join(',')})`
 
-        return `var d=document.documentElement.classList;${removeClasses};`
+        return `var d=document.documentElement.classList;${removeClasses};var `
       } else {
-        return `var d=document.documentElement;`
+        return `var d=document.documentElement;var n='${attribute}';var s = 'setAttribute';`
       }
     })()
 
-    const updateDOM = (name: string, literal?: boolean) => {
+    const updateDOM = (
+      name: string,
+      literal: boolean = false,
+      setColorScheme = true
+    ) => {
       const resolvedName = value ? value[name] : name
       const val = literal ? name + `|| ''` : `'${resolvedName}'`
+      let text = ''
+
+      // MUST faster to set colorScheme alongside HTML attribute/class
+      // as it only incurs 1 style recalculation rather than 2
+      // This can save over 250ms of work for pages with big DOM
+      if (
+        enableColorScheme &&
+        setColorScheme &&
+        !literal &&
+        colorSchemes.includes(name)
+      ) {
+        text += `d.style.colorScheme = '${name}';`
+      }
 
       if (attribute === 'class') {
         if (literal || resolvedName) {
-          return `d.add(${val})`
+          text += `d.add(${val})`
         } else {
-          return `null`
+          text += `null`
         }
+      } else {
+        text += `d[s](n, ${resolvedName ? val : `''`})`
       }
 
-      return `d.setAttribute('${attribute}', ${resolvedName ? val : `''`})`
+      return text
+    }
+
+    const fallbackColorScheme = () => {
+      if (!enableColorScheme) {
+        return ''
+      }
+
+      const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
+
+      if (fallback) {
+        return `if(e==='light'||e==='dark'||!e)d.style.colorScheme=e||'${defaultTheme}'`
+      } else {
+        return `if(e==='light'||e==='dark')d.style.colorScheme=e`
+      }
     }
 
     const defaultSystem = defaultTheme === 'system'
@@ -282,7 +297,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');if("system"===e||(!e&&${defaultSystem})){var t="${MEDIA}",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? `x[e]` : 'e', true)}}else{${!defaultSystem ? updateDOM(defaultTheme) : ''}}}catch(e){}}()`
+              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');if("system"===e||(!e&&${defaultSystem})){var t="${MEDIA}",m=window.matchMedia(t);if(m.media!==t||m.matches){${updateDOM('dark')}}else{${updateDOM('light')}}}else if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? `x[e]` : 'e', true)}}${!defaultSystem ? `else{` + updateDOM(defaultTheme, false, false) + '}' : ''}${fallbackColorScheme()}}catch(e){}}()`
             }}
           />
         ) : (
@@ -290,7 +305,7 @@ const ThemeScript = memo(
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
-              __html: `!function(){try{${optimization}var e=localStorage.getItem("${storageKey}");if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? `x[e]` : 'e', true)}}else{${updateDOM(defaultTheme)};}}catch(t){}}();`
+              __html: `!function(){try{${optimization}var e=localStorage.getItem("${storageKey}");if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? `x[e]` : 'e', true)}}else{${updateDOM(defaultTheme, false, false)};}${fallbackColorScheme()}}catch(t){}}();`
             }}
           />
         )}

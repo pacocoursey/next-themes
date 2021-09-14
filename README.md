@@ -334,7 +334,7 @@ const ThemeChanger = () => {
 
 To avoid [Layout Shift](https://web.dev/cls/), consider rendering a skeleton/placeholder until mounted on the client side.
 
-For example, with [`next/image`](https://nextjs.org/docs/basic-features/image-optimization) you can use an empty image until the them is resolved.
+For example, with [`next/image`](https://nextjs.org/docs/basic-features/image-optimization) you can use an empty image until the theme is resolved.
 
 ```js
 import Image from 'next/image'

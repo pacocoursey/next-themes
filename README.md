@@ -340,6 +340,7 @@ For example, with [`next/image`](https://nextjs.org/docs/basic-features/image-op
 import Image from 'next/image'
 import { useTheme } from 'next-themes'
 
+function ThemedImage() {
 const { resolvedTheme } = useTheme()
 let src
 
@@ -356,6 +357,7 @@ switch (resolvedTheme) {
 }
 
 <Image src={src} width={400} height={400} />
+}
 ```
 
 ### With Tailwind

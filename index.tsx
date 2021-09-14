@@ -225,7 +225,7 @@ const ThemeScript = memo(
           .map((t: string) => `'${t}'`)
           .join(',')})`
 
-        return `var d=document.documentElement.classList;${removeClasses};var `
+        return `var d=document.documentElement.classList;${removeClasses};`
       } else {
         return `var d=document.documentElement;var n='${attribute}';var s = 'setAttribute';`
       }

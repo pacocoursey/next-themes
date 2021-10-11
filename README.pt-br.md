@@ -183,7 +183,7 @@ Pronto! Sua página sempre usará o tema escuro (apesar da preferência do usuá
 ```js
 const { forcedTheme } = useTheme()
 
-// O tema foi forçado, não deveríamos deixar o usuário mudar o tema
+// O tema foi forçado, não deveríamos deixar o usuário alterá-lo
 const disabled = !!forcedTheme
 ```
 
@@ -261,7 +261,7 @@ Next Themes é completamente independente do CSS, e funcionará com qualquer liv
 import { createGlobalStyle } from 'styled-components'
 import { ThemeProvider } from 'next-themes'
 
-// Your themeing variables
+// Suas variáveis de tema
 const GlobalStyle = createGlobalStyle`
   :root {
     --fg: #000;
@@ -317,7 +317,7 @@ const ThemeChanger = () => {
   const [mounted, setMounted] = useState(false)
   const { theme, setTheme } = useTheme()
 
-  // When mounted on client, now we can show the UI
+  // Quando montado no cliente, agora podemos mostrar a UI
   useEffect(() => setMounted(true), [])
 
   if (!mounted) return null

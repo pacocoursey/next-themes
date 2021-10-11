@@ -408,7 +408,7 @@ In Next.js dev mode, the page may still flash. When you build your app in produc
 
 **Why do I get server/client mismatch error?**
 
-When using `useTheme`, you will use see a hydration mismatch error when rendering UI that relies on the current theme. This is because many of the values returned by `useTheme` are undefined on the server, since we can't read `localStorage` until mounting on the client. See the [example](#avoid-hydration-mismatch) for how to fix this error.
+When using `useTheme`, you will see a hydration mismatch error when rendering UI that relies on the current theme. This is because many of the values returned by `useTheme` are undefined on the server, since we can't read `localStorage` until mounting on the client. See the [example](#avoid-hydration-mismatch) for how to fix this error.
 
 ---
 

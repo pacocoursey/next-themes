@@ -100,6 +100,7 @@ Let's dig into the details.
 All your theme configuration is passed to ThemeProvider.
 
 - `storageKey = 'theme'`: Key used to store theme setting in localStorage
+- `useSessionStorage = false`: Whether to use `localStorage` or `sessionStorage`
 - `defaultTheme = 'system'`: Default theme name (for v0.0.12 and lower the default was `light`). If `enableSystem` is false, the default theme is `light`
 - `forcedTheme`: Forced theme name for the current page (does not modify saved theme settings)
 - `enableSystem = true`: Whether to switch between `dark` and `light` based on `prefers-color-scheme`

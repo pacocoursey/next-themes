@@ -37,6 +37,8 @@ export interface ThemeProviderProps {
   enableColorScheme?: boolean
   /** Key used to store theme setting in localStorage */
   storageKey?: string
+  /** Set to `true` to use sessionStorage instead of localStorage */
+  useSessionStorage?: boolean
   /** Default theme name (for v0.0.12 and lower the default was light). If `enableSystem` is false, the default theme is light */
   defaultTheme?: string
   /** HTML attribute modified based on the active theme. Accepts `class` and `data-*` (meaning any data attribute, `data-mode`, `data-color`, etc.) */
@@ -64,6 +66,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   enableSystem = true,
   enableColorScheme = true,
   storageKey = 'theme',
+  useSessionStorage = false,
   themes = ['light', 'dark'],
   defaultTheme = enableSystem ? 'system' : 'light',
   attribute = 'data-theme',
@@ -71,7 +74,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children
 }) => {
   const [theme, setThemeState] = useState(() =>
-    getTheme(storageKey, defaultTheme)
+    getTheme(storageKey, defaultTheme, useSessionStorage)
   )
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
@@ -98,7 +101,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
       if (updateStorage) {
         try {
-          localStorage.setItem(storageKey, theme)
+          useSessionStorage ? sessionStorage.setItem(storageKey, theme) : localStorage.setItem(storageKey, theme)
         } catch (e) {
           // Unsupported
         }
@@ -149,7 +152,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     [forcedTheme]
   )
 
-  // localStorage event handling
+  // storage event handling
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
       if (e.key !== storageKey) {
@@ -220,6 +223,7 @@ const ThemeScript = memo(
     forcedTheme,
     storageKey,
     attribute,
+    useSessionStorage,
     enableSystem,
     defaultTheme,
     value,
@@ -228,6 +232,7 @@ const ThemeScript = memo(
     forcedTheme?: string
     storageKey: string
     attribute?: string
+    useSessionStorage?: boolean
     enableSystem?: boolean
     defaultTheme: string
     value?: ValueObject
@@ -259,34 +264,59 @@ const ThemeScript = memo(
 
     const defaultSystem = defaultTheme === 'system'
 
+    let script
+    if (forcedTheme) {
+      script = (
+        <script
+          key="next-themes-script"
+          dangerouslySetInnerHTML={{
+            // These are minified via Terser and then updated by hand, don't recommend
+            // prettier-ignore
+            __html: `!function(){${optimization}${updateDOM(forcedTheme)}}()`
+          }}
+        />
+      )
+    } else if (enableSystem && useSessionStorage) {
+      script = (
+        <script
+          key="next-themes-script"
+          dangerouslySetInnerHTML={{
+            // prettier-ignore
+            __html: `!function(){try {${optimization}var e=sessionStorage.getItem('${storageKey}');${!defaultSystem ? updateDOM(defaultTheme) + ';' : ''}if("system"===e||(!e&&${defaultSystem})){var t="${MEDIA}",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else if(e) ${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
+          }}
+        />
+      )
+    }  else if (enableSystem && !useSessionStorage) {
+      script = (
+        <script
+          key="next-themes-script"
+          dangerouslySetInnerHTML={{
+            // prettier-ignore
+            __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');${!defaultSystem ? updateDOM(defaultTheme) + ';' : ''}if("system"===e||(!e&&${defaultSystem})){var t="${MEDIA}",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else if(e) ${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
+          }}
+        />
+      )
+    } else if (useSessionStorage){
+      script = (<script
+        key="next-themes-script"
+        dangerouslySetInnerHTML={{
+          // prettier-ignore
+          __html: `!function(){try{${optimization}var e=sessionStorage.getItem("${storageKey}");if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}else{${updateDOM(defaultTheme)};}}catch(t){}}();`
+        }}
+      />)
+    } else {
+      script = (<script
+        key="next-themes-script"
+        dangerouslySetInnerHTML={{
+          // prettier-ignore
+          __html: `!function(){try{${optimization}var e=localStorage.getItem("${storageKey}");if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}else{${updateDOM(defaultTheme)};}}catch(t){}}();`
+        }}
+      />)
+    }
+
     return (
       <NextHead>
-        {forcedTheme ? (
-          <script
-            key="next-themes-script"
-            dangerouslySetInnerHTML={{
-              // These are minified via Terser and then updated by hand, don't recommend
-              // prettier-ignore
-              __html: `!function(){${optimization}${updateDOM(forcedTheme)}}()`
-            }}
-          />
-        ) : enableSystem ? (
-          <script
-            key="next-themes-script"
-            dangerouslySetInnerHTML={{
-              // prettier-ignore
-              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');${!defaultSystem ? updateDOM(defaultTheme) + ';' : ''}if("system"===e||(!e&&${defaultSystem})){var t="${MEDIA}",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else if(e) ${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
-            }}
-          />
-        ) : (
-          <script
-            key="next-themes-script"
-            dangerouslySetInnerHTML={{
-              // prettier-ignore
-              __html: `!function(){try{${optimization}var e=localStorage.getItem("${storageKey}");if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}else{${updateDOM(defaultTheme)};}}catch(t){}}();`
-            }}
-          />
-        )}
+        {script}
       </NextHead>
     )
   },
@@ -299,11 +329,11 @@ const ThemeScript = memo(
 )
 
 // Helpers
-const getTheme = (key: string, fallback?: string) => {
+const getTheme = (key: string, fallback?: string, useSessionStorage?: boolean) => {
   if (typeof window === 'undefined') return undefined
   let theme
   try {
-    theme = localStorage.getItem(key) || undefined
+    theme = (useSessionStorage ? sessionStorage.getItem(key) : localStorage.getItem(key)) || undefined
   } catch (e) {
     // Unsupported
   }

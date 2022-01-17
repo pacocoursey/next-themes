@@ -9,7 +9,7 @@ import React, {
 } from 'react'
 import NextHead from 'next/head'
 
-interface UseThemeProps {
+export interface UseThemeProps {
   /** List of all available theme names */
   themes: string[]
   /** Forced theme name for the current page */

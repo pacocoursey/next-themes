@@ -332,7 +332,33 @@ const ThemeChanger = () => {
 }
 ```
 
-To avoid Content Layout Shift, consider rendering a skeleton until mounted on the client side.
+To avoid [Layout Shift](https://web.dev/cls/), consider rendering a skeleton/placeholder until mounted on the client side.
+
+For example, with [`next/image`](https://nextjs.org/docs/basic-features/image-optimization) you can use an empty image until the theme is resolved.
+
+```js
+import Image from 'next/image'
+import { useTheme } from 'next-themes'
+
+function ThemedImage() {
+  const { resolvedTheme } = useTheme()
+  let src
+
+  switch (resolvedTheme) {
+    case 'light':
+      src = '/light.png'
+      break
+    case 'dark':
+      src = '/dark.png'
+      break
+    default:
+      src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+      break
+  }
+
+  return <Image src={src} width={400} height={400} />
+}
+```
 
 ### With Tailwind
 

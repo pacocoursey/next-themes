@@ -6,7 +6,7 @@ let localStorageMock: { [key: string]: string } = {}
 
 // HelperComponent to render the theme inside a paragraph-tag and setting a theme via the forceSetTheme prop
 const HelperComponent = ({ forceSetTheme }: { forceSetTheme?: string }) => {
-  const { setTheme, theme, forcedTheme } = useTheme()
+  const { setTheme, theme, forcedTheme, resolvedTheme, finalTheme } = useTheme()
 
   useEffect(() => {
     if (forceSetTheme) {
@@ -18,6 +18,8 @@ const HelperComponent = ({ forceSetTheme }: { forceSetTheme?: string }) => {
     <>
       <p data-testid="theme">{theme}</p>
       <p data-testid="forcedTheme">{forcedTheme}</p>
+      <p data-testid="resolvedTheme">{resolvedTheme}</p>
+      <p data-testid="finalTheme">{finalTheme}</p>
     </>
   )
 }
@@ -219,5 +221,37 @@ describe('forcedTheme test-suite', () => {
 
     expect(screen.getByTestId('theme').textContent).toBe('dark')
     expect(screen.getByTestId('forcedTheme').textContent).toBe('light')
+  })
+})
+
+describe('finalTheme test-suite', () => {
+  test('should return resolved theme if no theme is forced', () => {
+    localStorageMock['theme'] = 'dark'
+
+    act(() => {
+      render(
+        <ThemeProvider>
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
+
+    expect(screen.getByTestId('theme').textContent).toBe('dark')
+    expect(screen.getByTestId('finalTheme').textContent).toBe('dark')
+  })
+
+  test('should return froced-theme as final-theme', () => {
+    localStorageMock['theme'] = 'dark'
+
+    act(() => {
+      render(
+        <ThemeProvider forcedTheme='light'>
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
+
+    expect(screen.getByTestId('theme').textContent).toBe('dark')
+    expect(screen.getByTestId('finalTheme').textContent).toBe('light')
   })
 })

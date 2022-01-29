@@ -22,6 +22,8 @@ export interface UseThemeProps {
   resolvedTheme?: string
   /** If enableSystem is true, returns the System theme preference ("dark" or "light"), regardless what the active theme is */
   systemTheme?: 'dark' | 'light'
+  /** Final theme of the page, either the forced-theme, if defined, or the resovled-theme  */
+  finalTheme?: string
 }
 
 export interface ThemeProviderProps {
@@ -74,6 +76,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     getTheme(storageKey, defaultTheme)
   )
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
+  const userResolvedTheme = theme === 'system' ? resolvedTheme : theme
   const attrs = !value ? themes : Object.values(value)
 
   const handleMediaQuery = useCallback(
@@ -184,14 +187,16 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     // if color-scheme is null, this will remove the property
     document.documentElement.style.setProperty('color-scheme', colorScheme)
   }, [enableColorScheme, theme, resolvedTheme, forcedTheme])
-
+  
+  
   return (
     <ThemeContext.Provider
       value={{
         theme,
         setTheme,
         forcedTheme,
-        resolvedTheme: theme === 'system' ? resolvedTheme : theme,
+        resolvedTheme: userResolvedTheme,
+        finalTheme: forcedTheme ?? userResolvedTheme,
         themes: enableSystem ? [...themes, 'system'] : themes,
         systemTheme: (enableSystem ? resolvedTheme : undefined) as
           | 'light'

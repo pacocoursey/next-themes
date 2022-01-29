@@ -121,6 +121,7 @@ useTheme takes no parameters, but returns:
 - `resolvedTheme`: If `enableSystem` is true and the active theme is "system", this returns whether the system preference resolved to "dark" or "light". Otherwise, identical to `theme`
 - `systemTheme`: If `enableSystem` is true, represents the System theme preference ("dark" or "light"), regardless what the active theme is
 - `themes`: The list of themes passed to `ThemeProvider` (with "system" appended, if `enableSystem` is true)
+- `finalTheme`: Returns `forcedTheme` if set. Otherwise, the `resolvedTheme` is returned.
 
 Not too bad, right? Let's see how to use these properties with examples:
 

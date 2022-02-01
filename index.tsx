@@ -240,7 +240,7 @@ const ThemeScript = memo(
       const val = literal ? name + `|| ''` : `'${resolvedName}'`
       let text = ''
 
-      // MUST faster to set colorScheme alongside HTML attribute/class
+      // MUCH faster to set colorScheme alongside HTML attribute/class
       // as it only incurs 1 style recalculation rather than 2
       // This can save over 250ms of work for pages with big DOM
       if (

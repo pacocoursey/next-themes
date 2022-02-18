@@ -8,6 +8,7 @@ import React, {
   memo
 } from 'react'
 import NextHead from 'next/head'
+import Script from 'next/script'
 
 export interface UseThemeProps {
   /** List of all available theme names */
@@ -262,7 +263,7 @@ const ThemeScript = memo(
     return (
       <NextHead>
         {forcedTheme ? (
-          <script
+          <Script
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // These are minified via Terser and then updated by hand, don't recommend
@@ -271,7 +272,7 @@ const ThemeScript = memo(
             }}
           />
         ) : enableSystem ? (
-          <script
+          <Script
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore
@@ -279,7 +280,7 @@ const ThemeScript = memo(
             }}
           />
         ) : (
-          <script
+          <Script
             key="next-themes-script"
             dangerouslySetInnerHTML={{
               // prettier-ignore

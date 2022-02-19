@@ -45,9 +45,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
         if (name) d.classList.add(name)
       } else {
-        // ?? '' acts as removing the attribute, like d.classList.remove above
-        // name can be null here, but we don't want data-theme="undefined"
-        d.setAttribute(attribute, name ?? '')
+        if (name) {
+          d.setAttribute(attribute, name)
+        } else {
+          d.removeAttribute(attribute)
+        }
       }
 
       if (enableColorScheme) {
@@ -215,7 +217,9 @@ const ThemeScript = memo(
           text += `null`
         }
       } else {
-        text += `d[s](n, ${resolvedName ? val : `''`})`
+        if (resolvedName) {
+          text += `d[s](n, ${val})`
+        }
       }
 
       return text

@@ -187,6 +187,30 @@ describe('custom value-mapping', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('my-pink-theme')
     expect(global.Storage.prototype.setItem).toHaveBeenCalledWith('theme', 'pink')
   })
+
+  test('should allow missing values (attribute)', () => {
+    act(() => {
+      render(
+        <ThemeProvider value={{ dark: 'dark-mode' }}>
+          <HelperComponent forceSetTheme="light" />
+        </ThemeProvider>
+      )
+    })
+
+    expect(document.documentElement.hasAttribute('data-theme')).toBeFalsy()
+  })
+
+  test('should allow missing values (class)', () => {
+    act(() => {
+      render(
+        <ThemeProvider attribute="class" value={{ dark: 'dark-mode' }}>
+          <HelperComponent forceSetTheme="light" />
+        </ThemeProvider>
+      )
+    })
+
+    expect(document.documentElement.classList.contains('light')).toBeFalsy()
+  })
 })
 
 describe('forcedTheme', () => {

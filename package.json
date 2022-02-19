@@ -1,6 +1,6 @@
 {
   "name": "next-themes",
-  "version": "0.0.16-beta.8",
+  "version": "0.0.16-beta.10",
   "main": "./dist/index.js",
   "module": "./dist/index.modern.js",
   "types": "./dist/index.d.ts",
@@ -16,7 +16,7 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "next": "^11.1.1",
+    "next": ">=11.1.1",
     "react": "*",
     "react-dom": "*"
   },

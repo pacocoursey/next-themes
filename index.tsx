@@ -265,6 +265,7 @@ const ThemeScript = memo(
         {forcedTheme ? (
           <Script
             key="next-themes-script"
+            id="default-theme-select"
             dangerouslySetInnerHTML={{
               // These are minified via Terser and then updated by hand, don't recommend
               // prettier-ignore
@@ -274,6 +275,7 @@ const ThemeScript = memo(
         ) : enableSystem ? (
           <Script
             key="next-themes-script"
+            id="default-theme-select"
             dangerouslySetInnerHTML={{
               // prettier-ignore
               __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');${!defaultSystem ? updateDOM(defaultTheme) + ';' : ''}if("system"===e||(!e&&${defaultSystem})){var t="${MEDIA}",m=window.matchMedia(t);m.media!==t||m.matches?${updateDOM('dark')}:${updateDOM('light')}}else if(e) ${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}catch(e){}}()`
@@ -282,6 +284,7 @@ const ThemeScript = memo(
         ) : (
           <Script
             key="next-themes-script"
+            id="default-theme-select"
             dangerouslySetInnerHTML={{
               // prettier-ignore
               __html: `!function(){try{${optimization}var e=localStorage.getItem("${storageKey}");if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? 'x[e]' : 'e', true)}}else{${updateDOM(defaultTheme)};}}catch(t){}}();`

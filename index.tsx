@@ -1,6 +1,8 @@
 // @ts-ignore
 import NextScript from 'next/script'
-import React, { createContext, memo, useCallback, useContext, useEffect, useState } from 'react'
+// @ts-ignore
+import NextHead from 'next/head'
+import React, { createContext, useCallback, useContext, useEffect, useState, memo } from 'react'
 import { ThemeProviderProps, UseThemeProps } from './types'
 
 const colorSchemes = ['light', 'dark']
@@ -25,25 +27,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
 
-  const changeTheme = useCallback((theme, updateStorage = true, updateDOM = true) => {
-    let name = value ? value[theme] : theme
+  const applyTheme = useCallback(
+    (theme, _ = true) => {
+      let resolved = theme
 
-    const enable = disableTransitionOnChange && updateDOM ? disableAnimation() : null
-
-    if (updateStorage) {
-      try {
-        localStorage.setItem(storageKey, theme)
-      } catch (e) {
-        // Unsupported
+      // If theme is system, resolve it before setting theme
+      if (theme === 'system' && enableSystem) {
+        resolved = getSystemTheme()
       }
-    }
 
-    if (theme === 'system' && enableSystem) {
-      const resolved = getSystemTheme()
-      name = value ? value[resolved] : theme
-    }
-
-    if (updateDOM) {
+      const name = value ? value[resolved] : resolved
+      const enable = disableTransitionOnChange ? disableAnimation() : null
       const d = document.documentElement
 
       if (attribute === 'class') {
@@ -55,33 +49,45 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         // name can be null here, but we don't want data-theme="undefined"
         d.setAttribute(attribute, name ?? '')
       }
+
+      if (enableColorScheme) {
+        const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
+        const colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
+
+        // @ts-ignore
+        d.style.colorScheme = colorScheme
+      }
+
       enable?.()
-    }
-  }, [])
+    },
+    [value, attribute, disableTransitionOnChange]
+  )
 
   const setTheme = useCallback(
     newTheme => {
-      if (forcedTheme) {
-        changeTheme(newTheme, true, false)
-      } else {
-        changeTheme(newTheme)
-      }
+      // If there is a forced theme, changing the theme is a no-op
+      if (forcedTheme) return
+
+      applyTheme(newTheme)
       setThemeState(newTheme)
     },
-    [forcedTheme]
+    [forcedTheme, applyTheme]
   )
 
   const handleMediaQuery = useCallback(
-    (e?) => {
-      const systemTheme = getSystemTheme(e)
-      setResolvedTheme(systemTheme)
-      if (theme === 'system' && !forcedTheme) changeTheme(systemTheme, false)
+    (e: MediaQueryListEvent | MediaQueryList) => {
+      const resolved = getSystemTheme(e)
+      setResolvedTheme(resolved)
+
+      if (theme === 'system' && enableSystem && !forcedTheme) {
+        applyTheme('system')
+      }
     },
-    [theme, forcedTheme]
+    [theme, applyTheme, forcedTheme]
   )
 
+  // Always listen to System preference
   useEffect(() => {
-    // Always listen to System preference
     const media = window.matchMedia(MEDIA)
 
     // Intentionally use deprecated listener methods to support iOS & old browsers
@@ -97,6 +103,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       if (e.key !== storageKey) {
         return
       }
+
       // If default theme set, use it if localstorage === null (happens on local storage manual deletion)
       const theme = e.newValue || defaultTheme
       setTheme(theme)
@@ -105,6 +112,23 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
   }, [setTheme])
+
+  // Update storage provider when theme changes
+  useEffect(() => {
+    if (!theme) return
+
+    try {
+      localStorage.setItem(storageKey, theme)
+    } catch (e) {
+      // Unsupported
+    }
+  }, [theme])
+
+  useEffect(() => {
+    if (forcedTheme) {
+      applyTheme(forcedTheme)
+    }
+  }, [forcedTheme])
 
   return (
     <ThemeContext.Provider
@@ -221,7 +245,12 @@ const ThemeScript = memo(
       )};}${fallbackColorScheme}}catch(t){}}();`
     })()
 
-    return <NextScript id="next-themes-script" dangerouslySetInnerHTML={{ __html: scriptSrc }} />
+    // We MUST use next/script's `beforeInteractive` strategy to avoid flashing on load.
+    // However, it only accepts the `src` prop, not `dangerouslySetInnerHTML` or `children`
+    // But our script cannot be external because it changes at runtime based on React props
+    // so we trick next/script by passing `src` as a base64 JS script
+    const encodedScript = `data:text/javascript;base64,${btoa(scriptSrc)}`
+    return <NextScript id="next-themes-script" strategy="beforeInteractive" src={encodedScript} />
   },
   // Never re-render this component
   () => false
@@ -259,11 +288,8 @@ const disableAnimation = () => {
   }
 }
 
-const getSystemTheme = (e?: MediaQueryList) => {
-  if (!e) {
-    e = window.matchMedia(MEDIA)
-  }
-
+const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
+  if (!e) e = window.matchMedia(MEDIA)
   const isDark = e.matches
   const systemTheme = isDark ? 'dark' : 'light'
   return systemTheme

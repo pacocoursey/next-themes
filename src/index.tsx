@@ -29,53 +29,56 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
 
-  const applyTheme = useCallback(
-    theme => {
-      let resolved = theme
+  const applyTheme = useCallback(theme => {
+    let resolved = theme
 
-      // If theme is system, resolve it before setting theme
-      if (theme === 'system' && enableSystem) {
-        resolved = getSystemTheme()
-      }
+    // If theme is system, resolve it before setting theme
+    if (theme === 'system' && enableSystem) {
+      resolved = getSystemTheme()
+    }
 
-      const name = value ? value[resolved] : resolved
-      const enable = disableTransitionOnChange ? disableAnimation() : null
-      const d = document.documentElement
+    const name = value ? value[resolved] : resolved
+    const enable = disableTransitionOnChange ? disableAnimation() : null
+    const d = document.documentElement
 
-      if (attribute === 'class') {
-        d.classList.remove(...attrs)
+    if (attribute === 'class') {
+      d.classList.remove(...attrs)
 
-        if (name) d.classList.add(name)
+      if (name) d.classList.add(name)
+    } else {
+      if (name) {
+        d.setAttribute(attribute, name)
       } else {
-        if (name) {
-          d.setAttribute(attribute, name)
-        } else {
-          d.removeAttribute(attribute)
-        }
+        d.removeAttribute(attribute)
       }
+    }
 
-      if (enableColorScheme) {
-        const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
-        const colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
+    if (enableColorScheme) {
+      const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
+      const colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
+      // @ts-ignore
+      d.style.colorScheme = colorScheme
+    }
 
-        // @ts-ignore
-        d.style.colorScheme = colorScheme
-      }
-
-      enable?.()
-    },
-    [value, attribute, disableTransitionOnChange, defaultTheme, enableColorScheme]
-  )
+    enable?.()
+  }, [])
 
   const setTheme = useCallback(
-    newTheme => {
+    theme => {
       // If there is a forced theme, changing the theme is a no-op
       if (forcedTheme) return
 
-      applyTheme(newTheme)
-      setThemeState(newTheme)
+      applyTheme(theme)
+      setThemeState(theme)
+
+      // Save to storage
+      try {
+        localStorage.setItem(storageKey, theme)
+      } catch (e) {
+        // Unsupported
+      }
     },
-    [forcedTheme, applyTheme]
+    [forcedTheme]
   )
 
   const handleMediaQuery = useCallback(
@@ -87,7 +90,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
         applyTheme('system')
       }
     },
-    [theme, applyTheme, forcedTheme]
+    [theme, forcedTheme]
   )
 
   // Always listen to System preference
@@ -116,17 +119,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
   }, [setTheme])
-
-  // Update storage provider when theme changes
-  useEffect(() => {
-    if (!theme) return
-
-    try {
-      localStorage.setItem(storageKey, theme)
-    } catch (e) {
-      // Unsupported
-    }
-  }, [theme])
 
   useEffect(() => {
     if (forcedTheme) {

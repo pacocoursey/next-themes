@@ -103,6 +103,34 @@ describe('defaultTheme', () => {
   })
 })
 
+describe('storage', () => {
+  test('should not set localStorage with default value', () => {
+    act(() => {
+      render(
+        <ThemeProvider defaultTheme="dark">
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
+
+    expect(global.Storage.prototype.setItem).toBeCalledTimes(0)
+    expect(global.Storage.prototype.getItem('theme')).toBeUndefined()
+  })
+
+  test('should set localStorage when switching themes', () => {
+    act(() => {
+      render(
+        <ThemeProvider>
+          <HelperComponent forceSetTheme="dark" />
+        </ThemeProvider>
+      )
+    })
+
+    expect(global.Storage.prototype.setItem).toBeCalledTimes(1)
+    expect(global.Storage.prototype.getItem('theme')).toBe('dark')
+  })
+})
+
 describe('custom storageKey', () => {
   test("should save to localStorage with 'theme' key when using default settings", () => {
     act(() => {

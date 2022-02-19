@@ -28,7 +28,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   const attrs = !value ? themes : Object.values(value)
 
   const applyTheme = useCallback(
-    (theme, _ = true) => {
+    theme => {
       let resolved = theme
 
       // If theme is system, resolve it before setting theme
@@ -60,7 +60,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
       enable?.()
     },
-    [value, attribute, disableTransitionOnChange]
+    [value, attribute, disableTransitionOnChange, defaultTheme, enableColorScheme]
   )
 
   const setTheme = useCallback(
@@ -253,7 +253,7 @@ const ThemeScript = memo(
     return <NextScript id="next-themes-script" strategy="beforeInteractive" src={encodedScript} />
   },
   // Never re-render this component
-  () => false
+  () => true
 )
 
 // Helpers

@@ -1,62 +1,13 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  useRef,
-  memo
-} from 'react'
-import NextHead from 'next/head'
-
-export interface UseThemeProps {
-  /** List of all available theme names */
-  themes: string[]
-  /** Forced theme name for the current page */
-  forcedTheme?: string
-  /** Update the theme */
-  setTheme: (theme: string) => void
-  /** Active theme name */
-  theme?: string
-  /** If `enableSystem` is true and the active theme is "system", this returns whether the system preference resolved to "dark" or "light". Otherwise, identical to `theme` */
-  resolvedTheme?: string
-  /** If enableSystem is true, returns the System theme preference ("dark" or "light"), regardless what the active theme is */
-  systemTheme?: 'dark' | 'light'
-}
-
-export interface ThemeProviderProps {
-  /** List of all available theme names */
-  themes?: string[]
-  /** Forced theme name for the current page */
-  forcedTheme?: string
-  /** Whether to switch between dark and light themes based on prefers-color-scheme */
-  enableSystem?: boolean
-  /** Disable all CSS transitions when switching themes */
-  disableTransitionOnChange?: boolean
-  /** Whether to indicate to browsers which color scheme is used (dark or light) for built-in UI like inputs and buttons */
-  enableColorScheme?: boolean
-  /** Key used to store theme setting in localStorage */
-  storageKey?: string
-  /** Default theme name (for v0.0.12 and lower the default was light). If `enableSystem` is false, the default theme is light */
-  defaultTheme?: string
-  /** HTML attribute modified based on the active theme. Accepts `class` and `data-*` (meaning any data attribute, `data-mode`, `data-color`, etc.) */
-  attribute?: string | 'class'
-  /** Mapping of theme name to HTML attribute value. Object where key is the theme name and value is the attribute value */
-  value?: ValueObject
-}
-
-const ThemeContext = createContext<UseThemeProps>({
-  setTheme: _ => {},
-  themes: []
-})
-export const useTheme = () => useContext(ThemeContext)
+// @ts-ignore
+import NextScript from 'next/script'
+import React, { createContext, memo, useCallback, useContext, useEffect, useState } from 'react'
+import { ThemeProviderProps, UseThemeProps } from './types'
 
 const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
+const ThemeContext = createContext<UseThemeProps>({ setTheme: _ => {}, themes: [] })
 
-interface ValueObject {
-  [themeName: string]: string
-}
+export const useTheme = () => useContext(ThemeContext)
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   forcedTheme,
@@ -70,74 +21,42 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   value,
   children
 }) => {
-  const [theme, setThemeState] = useState(() =>
-    getTheme(storageKey, defaultTheme)
-  )
+  const [theme, setThemeState] = useState(() => getTheme(storageKey, defaultTheme))
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
 
-  const handleMediaQuery = useCallback(
-    (e?) => {
-      const systemTheme = getSystemTheme(e)
-      setResolvedTheme(systemTheme)
-      if (theme === 'system' && !forcedTheme) changeTheme(systemTheme, false)
-    },
-    [theme, forcedTheme]
-  )
+  const changeTheme = useCallback((theme, updateStorage = true, updateDOM = true) => {
+    let name = value ? value[theme] : theme
 
-  // Ref hack to avoid adding handleMediaQuery as a dep
-  const mediaListener = useRef(handleMediaQuery)
-  mediaListener.current = handleMediaQuery
+    const enable = disableTransitionOnChange && updateDOM ? disableAnimation() : null
 
-  const changeTheme = useCallback(
-    (theme, updateStorage = true, updateDOM = true) => {
-      let name = value ? value[theme] : theme
-
-      const enable =
-        disableTransitionOnChange && updateDOM ? disableAnimation() : null
-
-      if (updateStorage) {
-        try {
-          localStorage.setItem(storageKey, theme)
-        } catch (e) {
-          // Unsupported
-        }
+    if (updateStorage) {
+      try {
+        localStorage.setItem(storageKey, theme)
+      } catch (e) {
+        // Unsupported
       }
+    }
 
-      if (theme === 'system' && enableSystem) {
-        const resolved = getSystemTheme()
-        name = value ? value[resolved] : theme
+    if (theme === 'system' && enableSystem) {
+      const resolved = getSystemTheme()
+      name = value ? value[resolved] : theme
+    }
+
+    if (updateDOM) {
+      const d = document.documentElement
+
+      if (attribute === 'class') {
+        d.classList.remove(...attrs)
+
+        if (name) d.classList.add(name)
+      } else {
+        // ?? '' acts as removing the attribute, like d.classList.remove above
+        // name can be null here, but we don't want data-theme="undefined"
+        d.setAttribute(attribute, name ?? '')
       }
-
-      if (updateDOM) {
-        const d = document.documentElement
-
-        if (attribute === 'class') {
-          d.classList.remove(...attrs)
-
-          if (name) d.classList.add(name)
-        } else {
-          // ?? '' acts as removing the attribute, like d.classList.remove above
-          // name can be null here, but we don't want data-theme="undefined"
-          d.setAttribute(attribute, name ?? '')
-        }
-        enable?.()
-      }
-    },
-    []
-  )
-
-  useEffect(() => {
-    const handler = (...args: any) => mediaListener.current(...args)
-
-    // Always listen to System preference
-    const media = window.matchMedia(MEDIA)
-
-    // Intentionally use deprecated listener methods to support iOS & old browsers
-    media.addListener(handler)
-    handler(media)
-
-    return () => media.removeListener(handler)
+      enable?.()
+    }
   }, [])
 
   const setTheme = useCallback(
@@ -151,6 +70,26 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     },
     [forcedTheme]
   )
+
+  const handleMediaQuery = useCallback(
+    (e?) => {
+      const systemTheme = getSystemTheme(e)
+      setResolvedTheme(systemTheme)
+      if (theme === 'system' && !forcedTheme) changeTheme(systemTheme, false)
+    },
+    [theme, forcedTheme]
+  )
+
+  useEffect(() => {
+    // Always listen to System preference
+    const media = window.matchMedia(MEDIA)
+
+    // Intentionally use deprecated listener methods to support iOS & old browsers
+    media.addListener(handleMediaQuery)
+    handleMediaQuery(media)
+
+    return () => media.removeListener(handleMediaQuery)
+  }, [handleMediaQuery])
 
   // localStorage event handling
   useEffect(() => {
@@ -175,10 +114,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         forcedTheme,
         resolvedTheme: theme === 'system' ? resolvedTheme : theme,
         themes: enableSystem ? [...themes, 'system'] : themes,
-        systemTheme: (enableSystem ? resolvedTheme : undefined) as
-          | 'light'
-          | 'dark'
-          | undefined
+        systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
       }}
     >
       <ThemeScript
@@ -208,22 +144,13 @@ const ThemeScript = memo(
     defaultTheme,
     value,
     attrs
-  }: {
-    forcedTheme?: string
-    storageKey: string
-    attribute?: string
-    enableSystem?: boolean
-    enableColorScheme?: boolean
-    defaultTheme: string
-    value?: ValueObject
-    attrs: any
-  }) => {
+  }: ThemeProviderProps & { attrs: string[]; defaultTheme: string }) => {
+    const defaultSystem = defaultTheme === 'system'
+
     // Code-golfing the amount of characters in the script
     const optimization = (() => {
       if (attribute === 'class') {
-        const removeClasses = `d.remove(${attrs
-          .map((t: string) => `'${t}'`)
-          .join(',')})`
+        const removeClasses = `d.remove(${attrs.map((t: string) => `'${t}'`).join(',')})`
 
         return `var d=document.documentElement.classList;${removeClasses};`
       } else {
@@ -231,11 +158,21 @@ const ThemeScript = memo(
       }
     })()
 
-    const updateDOM = (
-      name: string,
-      literal: boolean = false,
-      setColorScheme = true
-    ) => {
+    const fallbackColorScheme = (() => {
+      if (!enableColorScheme) {
+        return ''
+      }
+
+      const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
+
+      if (fallback) {
+        return `if(e==='light'||e==='dark'||!e)d.style.colorScheme=e||'${defaultTheme}'`
+      } else {
+        return `if(e==='light'||e==='dark')d.style.colorScheme=e`
+      }
+    })()
+
+    const updateDOM = (name: string, literal: boolean = false, setColorScheme = true) => {
       const resolvedName = value ? value[name] : name
       const val = literal ? name + `|| ''` : `'${resolvedName}'`
       let text = ''
@@ -243,12 +180,7 @@ const ThemeScript = memo(
       // MUCH faster to set colorScheme alongside HTML attribute/class
       // as it only incurs 1 style recalculation rather than 2
       // This can save over 250ms of work for pages with big DOM
-      if (
-        enableColorScheme &&
-        setColorScheme &&
-        !literal &&
-        colorSchemes.includes(name)
-      ) {
+      if (enableColorScheme && setColorScheme && !literal && colorSchemes.includes(name)) {
         text += `d.style.colorScheme = '${name}';`
       }
 
@@ -265,59 +197,34 @@ const ThemeScript = memo(
       return text
     }
 
-    const fallbackColorScheme = () => {
-      if (!enableColorScheme) {
-        return ''
+    const scriptSrc = (() => {
+      if (forcedTheme) {
+        return `!function(){${optimization}${updateDOM(forcedTheme)}}()`
       }
 
-      const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
-
-      if (fallback) {
-        return `if(e==='light'||e==='dark'||!e)d.style.colorScheme=e||'${defaultTheme}'`
-      } else {
-        return `if(e==='light'||e==='dark')d.style.colorScheme=e`
+      if (enableSystem) {
+        return `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');if("system"===e||(!e&&${defaultSystem})){var t="${MEDIA}",m=window.matchMedia(t);if(m.media!==t||m.matches){${updateDOM(
+          'dark'
+        )}}else{${updateDOM('light')}}}else if(e){${
+          value ? `var x=${JSON.stringify(value)};` : ''
+        }${updateDOM(value ? `x[e]` : 'e', true)}}${
+          !defaultSystem ? `else{` + updateDOM(defaultTheme, false, false) + '}' : ''
+        }${fallbackColorScheme}}catch(e){}}()`
       }
-    }
 
-    const defaultSystem = defaultTheme === 'system'
+      return `!function(){try{${optimization}var e=localStorage.getItem("${storageKey}");if(e){${
+        value ? `var x=${JSON.stringify(value)};` : ''
+      }${updateDOM(value ? `x[e]` : 'e', true)}}else{${updateDOM(
+        defaultTheme,
+        false,
+        false
+      )};}${fallbackColorScheme}}catch(t){}}();`
+    })()
 
-    return (
-      <NextHead>
-        {forcedTheme ? (
-          <script
-            key="next-themes-script"
-            dangerouslySetInnerHTML={{
-              // These are minified via Terser and then updated by hand, don't recommend
-              // prettier-ignore
-              __html: `!function(){${optimization}${updateDOM(forcedTheme)}}()`
-            }}
-          />
-        ) : enableSystem ? (
-          <script
-            key="next-themes-script"
-            dangerouslySetInnerHTML={{
-              // prettier-ignore
-              __html: `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');if("system"===e||(!e&&${defaultSystem})){var t="${MEDIA}",m=window.matchMedia(t);if(m.media!==t||m.matches){${updateDOM('dark')}}else{${updateDOM('light')}}}else if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? `x[e]` : 'e', true)}}${!defaultSystem ? `else{` + updateDOM(defaultTheme, false, false) + '}' : ''}${fallbackColorScheme()}}catch(e){}}()`
-            }}
-          />
-        ) : (
-          <script
-            key="next-themes-script"
-            dangerouslySetInnerHTML={{
-              // prettier-ignore
-              __html: `!function(){try{${optimization}var e=localStorage.getItem("${storageKey}");if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(value ? `x[e]` : 'e', true)}}else{${updateDOM(defaultTheme, false, false)};}${fallbackColorScheme()}}catch(t){}}();`
-            }}
-          />
-        )}
-      </NextHead>
-    )
+    return <NextScript id="next-themes-script" dangerouslySetInnerHTML={{ __html: scriptSrc }} />
   },
-  (prevProps, nextProps) => {
-    // Only re-render when forcedTheme changes
-    // the rest of the props should be completely stable
-    if (prevProps.forcedTheme !== nextProps.forcedTheme) return false
-    return true
-  }
+  // Never re-render this component
+  () => false
 )
 
 // Helpers

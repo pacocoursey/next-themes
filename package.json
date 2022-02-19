@@ -16,7 +16,7 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "next": "*",
+    "next": "^12.1.0",
     "react": "*",
     "react-dom": "*"
   },
@@ -29,7 +29,6 @@
     "@babel/preset-typescript": "^7.13.0",
     "@testing-library/react": "^11.2.5",
     "@types/jest": "^26.0.21",
-    "@types/next": "^9.0.0",
     "@types/react": "^16.9.53",
     "babel-jest": "^26.6.3",
     "jest": "^26.6.3",
@@ -47,6 +46,7 @@
     "semi": false,
     "singleQuote": true,
     "trailingComma": "none",
-    "arrowParens": "avoid"
+    "arrowParens": "avoid",
+    "printWidth": 100
   }
 }

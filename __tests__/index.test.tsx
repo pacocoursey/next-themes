@@ -6,7 +6,7 @@ let localStorageMock: { [key: string]: string } = {}
 
 // HelperComponent to render the theme inside a paragraph-tag and setting a theme via the forceSetTheme prop
 const HelperComponent = ({ forceSetTheme }: { forceSetTheme?: string }) => {
-  const { setTheme, theme, forcedTheme, resolvedTheme, systemTheme } = useTheme()
+  const { setTheme, theme, resolvedTheme, systemTheme } = useTheme()
 
   useEffect(() => {
     if (forceSetTheme) {
@@ -17,7 +17,6 @@ const HelperComponent = ({ forceSetTheme }: { forceSetTheme?: string }) => {
   return (
     <>
       <p data-testid="theme">{theme}</p>
-      <p data-testid="forcedTheme">{forcedTheme}</p>
       <p data-testid="resolvedTheme">{resolvedTheme}</p>
       <p data-testid="systemTheme">{systemTheme}</p>
     </>
@@ -242,7 +241,7 @@ describe('custom value-mapping', () => {
 })
 
 describe('forcedTheme', () => {
-  test('should render saved theme when no forcedTheme is set', () => {
+  test('should render saved theme when forcedTheme is not set', () => {
     localStorageMock['theme'] = 'dark'
 
     render(
@@ -253,10 +252,9 @@ describe('forcedTheme', () => {
 
     expect(screen.getByTestId('theme').textContent).toBe('dark')
     expect(screen.getByTestId('resolvedTheme').textContent).toBe('dark')
-    expect(screen.getByTestId('forcedTheme').textContent).toBe('')
   })
 
-  test('should render light theme when forcedTheme is set to light', () => {
+  test('should render light theme when forcedTheme is set to "light"', () => {
     localStorageMock['theme'] = 'dark'
 
     act(() => {
@@ -267,9 +265,8 @@ describe('forcedTheme', () => {
       )
     })
 
-    expect(screen.getByTestId('theme').textContent).toBe('dark')
+    expect(screen.getByTestId('theme').textContent).toBe('forced')
     expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
-    expect(screen.getByTestId('forcedTheme').textContent).toBe('light')
   })
 })
 
@@ -286,7 +283,6 @@ describe('system', () => {
     })
 
     expect(screen.getByTestId('theme').textContent).toBe('system')
-    expect(screen.getByTestId('forcedTheme').textContent).toBe('')
     expect(screen.getByTestId('resolvedTheme').textContent).toBe('dark')
   })
 
@@ -302,7 +298,6 @@ describe('system', () => {
     })
 
     expect(screen.getByTestId('theme').textContent).toBe('light')
-    expect(screen.getByTestId('forcedTheme').textContent).toBe('')
     expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
     expect(screen.getByTestId('systemTheme').textContent).toBe('dark')
   })
@@ -319,7 +314,6 @@ describe('system', () => {
     })
 
     expect(screen.getByTestId('theme').textContent).toBe('light')
-    expect(screen.getByTestId('forcedTheme').textContent).toBe('')
     expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
     expect(screen.getByTestId('systemTheme').textContent).toBe('')
   })

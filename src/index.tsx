@@ -243,18 +243,10 @@ const ThemeScript = memo(
       )};}${fallbackColorScheme}}catch(t){}}();`
     })()
 
-    // We MUST use next/script's `beforeInteractive` strategy to avoid flashing on load.
-    // However, it only accepts the `src` prop, not `dangerouslySetInnerHTML` or `children`
-    // But our script cannot be external because it changes at runtime based on React props
-    // so we trick next/script by passing `src` as a base64 JS script
-    const encodedScript = `data:text/javascript;base64,${encodeBase64(scriptSrc)}`
     return (
-      <NextScript
-        id="next-themes-script"
-        strategy="beforeInteractive"
-        src={encodedScript}
-        nonce={nonce}
-      />
+      <NextScript id="next-themes-script" data-script="" strategy="beforeInteractive" nonce={nonce}>
+        {scriptSrc}
+      </NextScript>
     )
   },
   // Never re-render this component
@@ -298,8 +290,4 @@ const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
   const isDark = e.matches
   const systemTheme = isDark ? 'dark' : 'light'
   return systemTheme
-}
-
-const encodeBase64 = (str: string) => {
-  return isServer ? Buffer.from(str).toString('base64') : btoa(str)
 }

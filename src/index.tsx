@@ -7,6 +7,7 @@ import { ThemeProviderProps, UseThemeProps } from './types'
 
 const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
+const isServer = typeof window === 'undefined'
 const ThemeContext = createContext<UseThemeProps>({ setTheme: _ => {}, themes: [] })
 
 export const useTheme = () => useContext(ThemeContext)
@@ -251,7 +252,7 @@ const ThemeScript = memo(
     // However, it only accepts the `src` prop, not `dangerouslySetInnerHTML` or `children`
     // But our script cannot be external because it changes at runtime based on React props
     // so we trick next/script by passing `src` as a base64 JS script
-    const encodedScript = `data:text/javascript;base64,${btoa(scriptSrc)}`
+    const encodedScript = `data:text/javascript;base64,${encodeBase64(scriptSrc)}`
     return (
       <NextScript
         id="next-themes-script"
@@ -267,7 +268,7 @@ const ThemeScript = memo(
 
 // Helpers
 const getTheme = (key: string, fallback?: string) => {
-  if (typeof window === 'undefined') return undefined
+  if (isServer) return undefined
   let theme
   try {
     theme = localStorage.getItem(key) || undefined
@@ -302,4 +303,8 @@ const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
   const isDark = e.matches
   const systemTheme = isDark ? 'dark' : 'light'
   return systemTheme
+}
+
+const encodeBase64 = (str: string) => {
+  return isServer ? Buffer.from(str).toString('base64') : btoa(str)
 }

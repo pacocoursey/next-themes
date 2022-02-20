@@ -1,6 +1,6 @@
 {
   "name": "next-themes",
-  "version": "0.0.16-beta.11",
+  "version": "0.0.16-beta.12",
   "main": "./dist/index.js",
   "module": "./dist/index.modern.js",
   "types": "./dist/index.d.ts",
@@ -12,7 +12,8 @@
   "scripts": {
     "prepublish": "yarn build",
     "build": "microbundle --jsx React.createElement --compress --no-sourcemap",
-    "test": "jest"
+    "test": "jest __tests__",
+    "playwright": "playwright test --project=chrome"
   },
   "dependencies": {},
   "peerDependencies": {
@@ -27,6 +28,7 @@
     "@babel/preset-env": "^7.13.10",
     "@babel/preset-react": "^7.12.13",
     "@babel/preset-typescript": "^7.13.0",
+    "@playwright/test": "^1.19.1",
     "@testing-library/react": "^11.2.5",
     "@types/jest": "^26.0.21",
     "@types/next": "^9.0.0",

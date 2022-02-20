@@ -103,6 +103,22 @@ describe('defaultTheme', () => {
   })
 })
 
+describe('provider', () => {
+  it('ignores nested ThemeProviders', () => {
+    act(() => {
+      render(
+        <ThemeProvider defaultTheme="dark">
+          <ThemeProvider defaultTheme="light">
+            <HelperComponent />
+          </ThemeProvider>
+        </ThemeProvider>
+      )
+    })
+
+    expect(screen.getByTestId('theme').textContent).toBe('dark')
+  })
+})
+
 describe('storage', () => {
   test('should not set localStorage with default value', () => {
     act(() => {

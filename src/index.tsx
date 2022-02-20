@@ -1,18 +1,31 @@
-// @ts-ignore
-import NextScript from 'next/script'
-// @ts-ignore
-import NextHead from 'next/head'
-import React, { createContext, useCallback, useContext, useEffect, useState, memo } from 'react'
+import React, {
+  Fragment,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  memo
+} from 'react'
 import { ThemeProviderProps, UseThemeProps } from './types'
 
 const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
-const ThemeContext = createContext<UseThemeProps>({ setTheme: _ => {}, themes: [] })
+const ThemeContext = createContext<UseThemeProps | undefined>(undefined)
+const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
 
-export const useTheme = () => useContext(ThemeContext)
+export const useTheme = () => useContext(ThemeContext) ?? defaultContext
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({
+export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
+  const context = useContext(ThemeContext)
+
+  // Ignore nested context providers, just passthrough children
+  if (context) return <Fragment>{props.children}</Fragment>
+  return <Theme {...props} />
+}
+
+export const Theme: React.FC<ThemeProviderProps> = ({
   forcedTheme,
   disableTransitionOnChange = false,
   enableSystem = true,
@@ -31,6 +44,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   const applyTheme = useCallback(theme => {
     let resolved = theme
+    if (!resolved) return
 
     // If theme is system, resolve it before setting theme
     if (theme === 'system' && enableSystem) {
@@ -243,11 +257,7 @@ const ThemeScript = memo(
       )};}${fallbackColorScheme}}catch(t){}}();`
     })()
 
-    return (
-      <NextScript id="next-themes-script" strategy="beforeInteractive" nonce={nonce}>
-        {scriptSrc}
-      </NextScript>
-    )
+    return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
   },
   // Never re-render this component
   () => true

@@ -4,8 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "next": "^12.1.0",
-    "next-themes": "^0.0.16-beta.13",
+    "next": "latest",
+    "next-themes": "latest",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
   }

@@ -5,8 +5,6 @@ interface ValueObject {
 export interface UseThemeProps {
   /** List of all available theme names */
   themes: string[]
-  /** Forced theme name for the current page */
-  forcedTheme?: string
   /** Update the theme */
   setTheme: (theme: string) => void
   /** Active theme name */

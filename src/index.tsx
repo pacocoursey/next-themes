@@ -25,7 +25,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children,
   nonce
 }) => {
-  const [theme, setThemeState] = useState(() => getTheme(storageKey, defaultTheme))
+  const [theme, setThemeState] = useState(
+    () => forcedTheme
+      ? 'forced'
+      : getTheme(storageKey, defaultTheme)
+  )
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
 
@@ -65,6 +69,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   const setTheme = useCallback(
     theme => {
+      // When a theme is forced it should not be possible to override it.
+      if (forcedTheme) return
       setThemeState(theme)
 
       // Save to storage
@@ -118,6 +124,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   // Whenever theme or forcedTheme changes, apply it
   useEffect(() => {
+    if (forcedTheme && theme !== 'forced') {
+      setTheme('forced')
+    }
+
     applyTheme(forcedTheme ?? theme)
   }, [forcedTheme, theme])
 
@@ -126,7 +136,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       value={{
         theme,
         setTheme,
-        forcedTheme,
         resolvedTheme: forcedTheme ?? theme === 'system' ? resolvedTheme : theme,
         themes: enableSystem ? [...themes, 'system'] : themes,
         systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined

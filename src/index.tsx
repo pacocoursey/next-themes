@@ -65,10 +65,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   const setTheme = useCallback(
     theme => {
-      // If there is a forced theme, changing the theme is a no-op
-      if (forcedTheme) return
-
-      applyTheme(theme)
       setThemeState(theme)
 
       // Save to storage
@@ -120,11 +116,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     return () => window.removeEventListener('storage', handleStorage)
   }, [setTheme])
 
+  // Whenever theme or forcedTheme changes, apply it
   useEffect(() => {
-    if (forcedTheme) {
-      applyTheme(forcedTheme)
-    }
-  }, [forcedTheme])
+    applyTheme(forcedTheme ?? theme)
+  }, [forcedTheme, theme])
 
   return (
     <ThemeContext.Provider

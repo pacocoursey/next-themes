@@ -84,10 +84,10 @@ nanoid@^3.1.30:
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.1.tgz#6347a18cac88af88f58af0b3594b723d5e99bb35"
   integrity sha512-n6Vs/3KGyxPQd6uO0eH4Bv0ojGSUvuLlIHtC3Y0kEO23YRge8H9x1GCzLn28YX0H66pMkxuaeESFq4tKISKwdw==
 
-next-themes@^0.0.16-beta.7:
-  version "0.0.16-beta.7"
-  resolved "https://registry.yarnpkg.com/next-themes/-/next-themes-0.0.16-beta.7.tgz#73be729737c17b8d47cbff509b3abd226bcb34de"
-  integrity sha512-WZ1QvxSdeRJFcjaa0DQ9b3uqFuBmFqPd5LDulfWSq6hZ6O4Dj/qBPKFJl1tADMfwNnUyPAZ7q2xUnbgDnF0eHw==
+next-themes@^0.0.16-beta.13:
+  version "0.0.16-beta.13"
+  resolved "https://registry.yarnpkg.com/next-themes/-/next-themes-0.0.16-beta.13.tgz#5ffcb9ef9d536ef4cfa5847f45e13b9473c30d91"
+  integrity sha512-EG4AT0IT6W35+/FL+8KtEe7I6XfSP83krSmxeH8kMrhu/CUp1zq2Sb8w1apO1wtzf7yqu0CzmMtmVlFGOzIyjw==
 
 next@^12.1.0:
   version "12.1.0"

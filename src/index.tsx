@@ -11,20 +11,19 @@ const ThemeContext = createContext<UseThemeProps>({ setTheme: _ => {}, themes: [
 
 export const useTheme = () => useContext(ThemeContext)
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
-  const {
-    forcedTheme,
-    disableTransitionOnChange = false,
-    enableSystem = true,
-    enableColorScheme = true,
-    storageKey = 'theme',
-    themes = ['light', 'dark'],
-    defaultTheme = enableSystem ? 'system' : 'light',
-    attribute = 'data-theme',
-    value,
-    children
-  } = props
-
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({
+  forcedTheme,
+  disableTransitionOnChange = false,
+  enableSystem = true,
+  enableColorScheme = true,
+  storageKey = 'theme',
+  themes = ['light', 'dark'],
+  defaultTheme = enableSystem ? 'system' : 'light',
+  attribute = 'data-theme',
+  value,
+  children,
+  nonce
+}) => {
   const [theme, setThemeState] = useState(() => getTheme(storageKey, defaultTheme))
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
@@ -137,7 +136,22 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
         systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
       }}
     >
-      <ThemeScript {...props} attrs={attrs} defaultTheme={defaultTheme} />
+      <ThemeScript
+        {...{
+          forcedTheme,
+          disableTransitionOnChange,
+          enableSystem,
+          enableColorScheme,
+          storageKey,
+          themes,
+          defaultTheme,
+          attribute,
+          value,
+          children,
+          attrs,
+          nonce
+        }}
+      />
       {children}
     </ThemeContext.Provider>
   )

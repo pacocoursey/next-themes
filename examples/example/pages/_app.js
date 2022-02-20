@@ -3,7 +3,7 @@ import '../styles.css'
 
 function MyApp({ Component, pageProps }) {
   return (
-    <ThemeProvider enableColorScheme={false} forcedTheme={Component.theme || undefined}>
+    <ThemeProvider forcedTheme={Component.theme || undefined}>
       <Component {...pageProps} />
     </ThemeProvider>
   )

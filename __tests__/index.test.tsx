@@ -252,6 +252,7 @@ describe('forcedTheme', () => {
     )
 
     expect(screen.getByTestId('theme').textContent).toBe('dark')
+    expect(screen.getByTestId('resolvedTheme').textContent).toBe('dark')
     expect(screen.getByTestId('forcedTheme').textContent).toBe('')
   })
 
@@ -267,6 +268,7 @@ describe('forcedTheme', () => {
     })
 
     expect(screen.getByTestId('theme').textContent).toBe('dark')
+    expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
     expect(screen.getByTestId('forcedTheme').textContent).toBe('light')
   })
 })

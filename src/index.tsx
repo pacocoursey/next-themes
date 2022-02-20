@@ -244,7 +244,7 @@ const ThemeScript = memo(
     })()
 
     return (
-      <NextScript id="next-themes-script" data-script="" strategy="beforeInteractive" nonce={nonce}>
+      <NextScript id="next-themes-script" strategy="beforeInteractive" nonce={nonce}>
         {scriptSrc}
       </NextScript>
     )

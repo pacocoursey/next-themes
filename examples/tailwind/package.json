@@ -7,14 +7,14 @@
     "start": "next start"
   },
   "dependencies": {
-    "autoprefixer": "^10.0.2",
     "next": "latest",
-    "next-themes": "^0.0.10",
-    "postcss": "^8.1.7",
+    "next-themes": "latest",
     "react": "^16.13.1",
     "react-dom": "^16.13.1"
   },
   "devDependencies": {
+    "autoprefixer": "^10.0.2",
+    "postcss": "^8.1.7",
     "tailwindcss": "^2.0.1"
   },
   "license": "MIT"

@@ -5,7 +5,8 @@
       {
         "loose": true
       }
-    ]
+    ],
+    "@babel/plugin-proposal-nullish-coalescing-operator"
   ],
   "presets": [
     [

@@ -31,6 +31,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       : getTheme(storageKey, defaultTheme)
   )
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
+
+  // TODO: Track if storage event's have been fired while the theme was forced
+
   const attrs = !value ? themes : Object.values(value)
 
   const applyTheme = useCallback(theme => {

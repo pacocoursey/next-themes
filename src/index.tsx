@@ -31,6 +31,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       : getTheme(storageKey, defaultTheme)
   )
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
+  const [ignoredThemeUpdate, setIgnoredThemeUpdate] = useState<string | null>(null)
 
   // TODO: Track if storage event's have been fired while the theme was forced
 
@@ -116,6 +117,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         return
       }
 
+      if (forcedTheme && e.newValue) {
+        setIgnoredThemeUpdate(e.newValue)
+        return
+      }
+
       // If default theme set, use it if localstorage === null (happens on local storage manual deletion)
       const theme = e.newValue || defaultTheme
       setTheme(theme)
@@ -125,10 +131,16 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     return () => window.removeEventListener('storage', handleStorage)
   }, [setTheme])
 
-  // Whenever theme or forcedTheme changes, apply it
   useEffect(() => {
     if (forcedTheme && theme !== 'forced') {
       setTheme('forced')
+    }
+
+    if (!forcedTheme && ignoredThemeUpdate) {
+      setTheme(ignoredThemeUpdate) // Apply theme sent with storage-event
+      applyTheme(ignoredThemeUpdate) // Apply the theme
+      setIgnoredThemeUpdate(null) // reset tracker
+      return
     }
 
     applyTheme(forcedTheme ?? theme)

@@ -1,4 +1,4 @@
-import { act, render, screen} from '@testing-library/react'
+import { act, render, RenderResult, screen } from '@testing-library/react'
 import { ThemeProvider, useTheme } from '../src'
 import React, { useEffect } from 'react'
 
@@ -357,9 +357,10 @@ describe('forcedTheme', () => {
   test('should update theme if forcedTheme is unset and a storage event was dispatched while theme was forced', () => {
     // TODO: implement according to edge case described in - https://github.com/pacocoursey/next-themes/pull/83#discussion_r810658259
     localStorageMock['theme'] = 'light'
+    let wrapper: RenderResult
 
     act(() => {
-      render(
+      wrapper = render(
         <ThemeProvider forcedTheme="light">
           <HelperComponent />
         </ThemeProvider>
@@ -383,7 +384,17 @@ describe('forcedTheme', () => {
     expect(screen.getByTestId('theme').textContent).toBe('forced')
     expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
 
+    // Rerender without forced theme
+    act(() => {
+      wrapper.rerender(
+        <ThemeProvider>
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
 
+    expect(screen.getByTestId('theme').textContent).toBe('dark')
+    expect(screen.getByTestId('resolvedTheme').textContent).toBe('dark')
   })
 })
 

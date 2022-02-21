@@ -1,4 +1,4 @@
-import { act, render, RenderResult, screen } from '@testing-library/react'
+import { act, render, RenderResult, screen, waitFor } from '@testing-library/react'
 import { ThemeProvider, useTheme } from '../src'
 import React, { useEffect } from 'react'
 
@@ -348,7 +348,6 @@ describe('forcedTheme', () => {
   })
 
   test('should update theme if forcedTheme is unset and a storage event was dispatched while theme was forced', () => {
-    // TODO: implement according to edge case described in - https://github.com/pacocoursey/next-themes/pull/83#discussion_r810658259
     localStorageMock['theme'] = 'system'
     let wrapper: RenderResult
 
@@ -370,10 +369,10 @@ describe('forcedTheme', () => {
     })
 
     expect(storageEventListenerMock).toHaveBeenCalledWith(event)
+    // Since forceTheme is set, the storage event should be ignored
     expect(screen.getByTestId('theme').textContent).toBe('forced')
     expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
 
-    // Rerender without forced theme
     act(() => {
       wrapper.rerender(
         <ThemeProvider>
@@ -382,8 +381,41 @@ describe('forcedTheme', () => {
       )
     })
 
-    expect(screen.getByTestId('theme').textContent).toBe('dark')
-    expect(screen.getByTestId('resolvedTheme').textContent).toBe('dark')
+    waitFor(() => {
+      // Since forceTheme is unset, we should update the theme
+      // to the value of the previous storage event
+      expect(screen.getByTestId('theme').textContent).toBe('dark')
+      expect(screen.getByTestId('resolvedTheme').textContent).toBe('dark')
+    })
+  })
+
+  test('should be able to set forceTheme at a later point in time', () => {
+    localStorageMock['theme'] = 'light'
+    let wrapper: RenderResult
+
+    act(() => {
+      wrapper = render(
+        <ThemeProvider>
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
+
+    expect(screen.getByTestId('theme').textContent).toBe('light')
+    expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
+
+    act(() => {
+      wrapper.rerender(
+        <ThemeProvider forcedTheme="dark">
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
+
+    waitFor(() => {
+      expect(screen.getByTestId('theme').textContent).toBe('forced')
+      expect(screen.getByTestId('resolvedTheme').textContent).toBe('dark')
+    })
   })
 })
 

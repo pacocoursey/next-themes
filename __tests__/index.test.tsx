@@ -1,8 +1,9 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import { ThemeProvider, useTheme } from '../src'
 import React, { useEffect } from 'react'
 
 let localStorageMock: { [key: string]: string } = {}
+let storageEventListenerMock = jest.fn()
 
 // HelperComponent to render the theme inside a paragraph-tag and setting a theme via the forceSetTheme prop
 const HelperComponent = ({ forceSetTheme }: { forceSetTheme?: string }) => {
@@ -39,14 +40,25 @@ function setDeviceTheme(theme: 'light' | 'dark') {
       dispatchEvent: jest.fn()
     }))
   })
+
+  window.addEventListener('storage', jest.fn())
 }
 
 beforeAll(() => {
   // Create mocks of localStorage getItem and setItem functions
   global.Storage.prototype.getItem = jest.fn((key: string) => localStorageMock[key])
   global.Storage.prototype.setItem = jest.fn((key: string, value: string) => {
+    const oldValue = localStorageMock[key]
     localStorageMock[key] = value
+    // Dispatch window event used to update the theme
+    window.dispatchEvent(new StorageEvent('storage', {
+      key,
+      newValue: value,
+      oldValue
+    }))
   })
+
+  window.addEventListener('storage', storageEventListenerMock)
 })
 
 beforeEach(() => {
@@ -127,6 +139,37 @@ describe('storage', () => {
 
     expect(global.Storage.prototype.setItem).toBeCalledTimes(1)
     expect(global.Storage.prototype.getItem('theme')).toBe('dark')
+  })
+
+  test('should update theme based on storage event', async () => {
+    localStorageMock['theme'] = 'dark'
+
+    act(() => {
+      render(
+        <ThemeProvider>
+          <HelperComponent />
+        </ThemeProvider>
+      )
+
+      expect(screen.getByTestId('resolvedTheme').textContent).toBe('dark')
+    })
+
+    const event = new StorageEvent('storage', {
+      key: 'theme',
+      newValue: 'light',
+      oldValue: 'dark'
+    })
+
+    // Dispatch storage event
+    window.dispatchEvent(event)
+
+    // Expect another call to have been made
+    expect(storageEventListenerMock).toHaveBeenCalledWith(event)
+
+    // Work around to wait for the useEffect hook to update the theme
+    setTimeout(() => {
+      expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
+    }, 0)
   })
 })
 

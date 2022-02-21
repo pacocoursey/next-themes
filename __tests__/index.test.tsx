@@ -59,11 +59,7 @@ beforeAll(() => {
     const oldValue = localStorageMock[key]
     localStorageMock[key] = value
     // Dispatch window event used to update the theme
-    window.dispatchEvent(new StorageEvent('storage', {
-      key,
-      newValue: value,
-      oldValue
-    }))
+    window.dispatchEvent(makeStorageEvent(key, value, oldValue))
   })
 
   window.addEventListener('storage', storageEventListenerMock)
@@ -173,7 +169,6 @@ describe('storage', () => {
     const event = makeStorageEvent('theme', 'light', 'dark')
 
     act(() => {
-      // Dispatch storage event
       window.dispatchEvent(event)
     })
 
@@ -339,13 +334,11 @@ describe('forcedTheme', () => {
     expect(screen.getByTestId('theme').textContent).toBe('forced')
     expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
 
-    const event = new StorageEvent('storage', {
-      key: 'theme',
-      newValue: 'dark',
-      oldValue: 'light',
-    })
+    const event = makeStorageEvent('theme','dark','light')
 
-    window.dispatchEvent(event)
+    act(() => {
+      window.dispatchEvent(event)
+    })
 
     expect(storageEventListenerMock).toHaveBeenCalledWith(event)
 
@@ -356,7 +349,7 @@ describe('forcedTheme', () => {
 
   test('should update theme if forcedTheme is unset and a storage event was dispatched while theme was forced', () => {
     // TODO: implement according to edge case described in - https://github.com/pacocoursey/next-themes/pull/83#discussion_r810658259
-    localStorageMock['theme'] = 'light'
+    localStorageMock['theme'] = 'system'
     let wrapper: RenderResult
 
     act(() => {
@@ -370,11 +363,7 @@ describe('forcedTheme', () => {
     expect(screen.getByTestId('theme').textContent).toBe('forced')
     expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
 
-    const event = new StorageEvent('storage', {
-      key: 'theme',
-      newValue: 'dark',
-      oldValue: 'light',
-    })
+    const event = makeStorageEvent('theme', 'dark', 'system')
 
     act(() => {
       window.dispatchEvent(event)

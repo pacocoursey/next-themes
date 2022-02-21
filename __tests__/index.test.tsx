@@ -179,37 +179,9 @@ describe('storage', () => {
 
     // Expect another call to have been made
     expect(storageEventListenerMock).toHaveBeenCalledWith(event)
-
-    // Workaround to wait for the useEffect hook to update the theme
     expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
   })
 
-  test('should update theme based on storage event when switching themes', async () => {
-    localStorageMock['theme'] = 'dark'
-
-    act(() => {
-      render(
-        <ThemeProvider>
-          <HelperComponent forceSetTheme="light" />
-        </ThemeProvider>
-      )
-
-      expect(screen.getByTestId('resolvedTheme').textContent).toBe('dark')
-    })
-
-    const event = makeStorageEvent('theme', 'light', 'dark')
-
-    act(() => {
-      // Dispatch storage event
-      window.dispatchEvent(event)
-    })
-
-    // Expect another call to have been made
-    expect(storageEventListenerMock).toHaveBeenCalledWith(event)
-
-    // Workaround to wait for the useEffect hook to update the theme
-    expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
-  })
 })
 
 describe('custom storageKey', () => {

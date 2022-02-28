@@ -311,25 +311,27 @@ const ThemeChanger = () => {
 To fix this, make sure you only render UI that uses the current theme when the page is mounted on the client:
 
 ```js
-import { useTheme } from 'next-themes'
+import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 
-const ThemeChanger = () => {
-  const [mounted, setMounted] = useState(false)
-  const { theme, setTheme } = useTheme()
+const ThemeSwitch = () => {
+  const [mounted, setMounted] = useState(false);
+  const { theme, setTheme } = useTheme();
 
-  // When mounted on client, now we can show the UI
-  useEffect(() => setMounted(true), [])
+  useEffect(() => setMounted(true), []);
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   return (
-    <div>
-      The current theme is: {theme}
-      <button onClick={() => setTheme('light')}>Light Mode</button>
-      <button onClick={() => setTheme('dark')}>Dark Mode</button>
-    </div>
-  )
-}
+    <button
+      onClick={() => (theme === "light" ? setTheme("dark") : setTheme("light"))}
+    >
+      {theme === "light" ? "Light" : "Dark"}
+    </button>
+  );
+};
+
+export default ThemeSwitch;
 ```
 
 To avoid [Layout Shift](https://web.dev/cls/), consider rendering a skeleton/placeholder until mounted on the client side.

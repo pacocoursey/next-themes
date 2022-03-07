@@ -74,7 +74,7 @@ Your UI will need to know the current theme and be able to change it. The `useTh
 ```js
 import { useTheme } from 'next-themes'
 
-const ThemeChanger = () => {
+const ThemeToggle = () => {
   const { theme, setTheme } = useTheme()
 
   return (
@@ -293,17 +293,13 @@ Because we cannot know the `theme` on the server, many of the values returned fr
 The following code sample is **unsafe**:
 
 ```js
-import { useTheme } from 'next-themes'
-
-const ThemeChanger = () => {
+const ThemeToggle = () => {
   const { theme, setTheme } = useTheme()
 
   return (
-    <div>
-      The current theme is: {theme}
-      <button onClick={() => setTheme('light')}>Light Mode</button>
-      <button onClick={() => setTheme('dark')}>Dark Mode</button>
-    </div>
+    <button onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
+      {theme === "light" ? "Light" : "Dark"} Mode
+    </button>
   )
 }
 ```
@@ -311,9 +307,10 @@ const ThemeChanger = () => {
 To fix this, make sure you only render UI that uses the current theme when the page is mounted on the client:
 
 ```js
+import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 
-const ThemeChanger = () => {
+const ThemeToggle = () => {
   const [mounted, setMounted] = useState(false)
   const { theme, setTheme } = useTheme()
 
@@ -323,40 +320,54 @@ const ThemeChanger = () => {
   if (!mounted) return null
 
   return (
-    <div>
-      The current theme is: {theme}
-      <button onClick={() => setTheme('light')}>Light Mode</button>
-      <button onClick={() => setTheme('dark')}>Dark Mode</button>
-    </div>
+    <button onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
+      {theme === "light" ? "Light" : "Dark"} Mode
+    </button>
   )
 }
 ```
 
-To avoid [Layout Shift](https://web.dev/cls/), consider rendering a skeleton/placeholder until mounted on the client side.
-
-For example, with [`next/image`](https://nextjs.org/docs/basic-features/image-optimization) you can use an empty image until the theme is resolved.
+But there will be a flash on the toggle button during initial rendering, a better solution is rendering the two states in the same time but hide one using CSS selectors.
 
 ```js
-import Image from 'next/image'
-import { useTheme } from 'next-themes'
+const ThemeToggle = () => {
+  const { theme, setTheme } = useTheme()
 
-function ThemedImage() {
-  const { resolvedTheme } = useTheme()
-  let src
+  return (
+    <>
+      <button data-hide="dark" onClick={() => setTheme("dark")}>
+        Light Mode
+      </button>
+      <button data-hide="light" onClick={() => setTheme("light")}>
+        Dark Mode
+      </button>
+    </>
+  )
+}
+```
 
-  switch (resolvedTheme) {
-    case 'light':
-      src = '/light.png'
-      break
-    case 'dark':
-      src = '/dark.png'
-      break
-    default:
-      src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-      break
+```css
+[data-theme='dark'] [data-hide='dark'],
+[data-theme='light'] [data-hide='light'] {
+  display: none;
+}
+```
+
+You can even make it work with Javascript disabled:
+
+add `data-theme="system"` to `Html` tag in `pages/_document.tsx` and then add the following style
+
+```css
+@media (prefers-color-scheme: dark) {
+  [data-theme='system'] [data-hide='dark'] {
+    display: none;
   }
+}
 
-  return <Image src={src} width={400} height={400} />
+@media (prefers-color-scheme: light) {
+  [data-theme='system'] [data-hide='light'] {
+    display: none;
+  }
 }
 ```
 

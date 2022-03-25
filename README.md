@@ -117,8 +117,9 @@ useTheme takes no parameters, but returns:
 
 - `theme`: Active theme name
 - `setTheme(name)`: Function to update the theme
-- `forcedTheme`: Forced page theme or falsy. If `forcedTheme` is set, you should disable any theme switching UI
-- `resolvedTheme`: If `enableSystem` is true and the active theme is "system", this returns whether the system preference resolved to "dark" or "light". Otherwise, identical to `theme`
+- `resolvedTheme`: Returns the effective theme color of the page. 
+If `enableSystem` is true and the active theme is "system", this returns whether the system preference resolved to "dark" or "light".
+In case a theme is forced (the `forcedTheme` attribute is set on the theme-provider) the forced-theme is returned. Otherwise identitcal to `theme`
 - `systemTheme`: If `enableSystem` is true, represents the System theme preference ("dark" or "light"), regardless what the active theme is
 - `themes`: The list of themes passed to `ThemeProvider` (with "system" appended, if `enableSystem` is true)
 
@@ -181,10 +182,10 @@ function MyApp({ Component, pageProps }) {
 Done! Your page is always dark theme (regardless of user preference), and calling `setTheme` from `useTheme` is now a no-op. However, you should make sure to disable any of your UI that would normally change the theme:
 
 ```js
-const { forcedTheme } = useTheme()
+const { theme } = useTheme()
 
 // Theme is forced, we shouldn't allow user to change the theme
-const disabled = !!forcedTheme
+const disabled = theme === 'forced'
 ```
 
 ### Disable transitions on theme change

@@ -184,11 +184,11 @@ const ThemeScript = memo(
     // Code-golfing the amount of characters in the script
     const optimization = (() => {
       if (attribute === 'class') {
-        const removeClasses = `d.remove(${attrs.map((t: string) => `'${t}'`).join(',')})`
+        const removeClasses = `c.remove(${attrs.map((t: string) => `'${t}'`).join(',')})`
 
-        return `var d=document.documentElement.classList;${removeClasses};`
+        return `var d=document.documentElement,c=d.classList;${removeClasses};`
       } else {
-        return `var d=document.documentElement;var n='${attribute}';var s = 'setAttribute';`
+        return `var d=document.documentElement,n='${attribute}',s='setAttribute';`
       }
     })()
 
@@ -220,13 +220,13 @@ const ThemeScript = memo(
 
       if (attribute === 'class') {
         if (literal || resolvedName) {
-          text += `d.add(${val})`
+          text += `c.add(${val})`
         } else {
           text += `null`
         }
       } else {
         if (resolvedName) {
-          text += `d[s](n, ${val})`
+          text += `d[s](n,${val})`
         }
       }
 
@@ -239,7 +239,7 @@ const ThemeScript = memo(
       }
 
       if (enableSystem) {
-        return `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');if("system"===e||(!e&&${defaultSystem})){var t="${MEDIA}",m=window.matchMedia(t);if(m.media!==t||m.matches){${updateDOM(
+        return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if("system"===e||(!e&&${defaultSystem})){var t="${MEDIA}",m=window.matchMedia(t);if(m.media!==t||m.matches){${updateDOM(
           'dark'
         )}}else{${updateDOM('light')}}}else if(e){${
           value ? `var x=${JSON.stringify(value)};` : ''

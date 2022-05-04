@@ -1,9 +1,8 @@
 {
   "name": "next-themes",
-  "version": "0.1.2-beta.0",
+  "version": "0.2-beta.0",
   "main": "./dist/index.js",
   "module": "./dist/index.module.js",
-  "exports": "./dist/index.modern.mjs",
   "types": "./dist/index.d.ts",
   "source": "./src/index.tsx",
   "license": "MIT",

@@ -16,7 +16,7 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "next": ">=11.1.1",
+    "next": ">=12.1.6",
     "react": "*",
     "react-dom": "*"
   },

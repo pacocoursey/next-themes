@@ -38,4 +38,6 @@ export interface ThemeProviderProps {
   value?: ValueObject
   /** Nonce string to pass to the inline script for CSP headers */
   nonce?: string
+
+  children?: React.ReactNode
 }

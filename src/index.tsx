@@ -1,18 +1,31 @@
-// @ts-ignore
-import NextScript from 'next/script'
-// @ts-ignore
-import NextHead from 'next/head'
-import React, { createContext, useCallback, useContext, useEffect, useState, memo } from 'react'
-import { ThemeProviderProps, UseThemeProps } from './types'
+import React, {
+  Fragment,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  memo
+} from 'react'
+import type { UseThemeProps, ThemeProviderProps } from './types'
 
 const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
-const ThemeContext = createContext<UseThemeProps>({ setTheme: _ => {}, themes: [] })
+const ThemeContext = createContext<UseThemeProps | undefined>(undefined)
+const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
 
-export const useTheme = () => useContext(ThemeContext)
+export const useTheme = () => useContext(ThemeContext) ?? defaultContext
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({
+export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
+  const context = useContext(ThemeContext)
+
+  // Ignore nested context providers, just passthrough children
+  if (context) return <Fragment>{props.children}</Fragment>
+  return <Theme {...props} />
+}
+
+const Theme: React.FC<ThemeProviderProps> = ({
   forcedTheme,
   disableTransitionOnChange = false,
   enableSystem = true,
@@ -31,6 +44,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   const applyTheme = useCallback(theme => {
     let resolved = theme
+    if (!resolved) return
 
     // If theme is system, resolve it before setting theme
     if (theme === 'system' && enableSystem) {
@@ -170,11 +184,11 @@ const ThemeScript = memo(
     // Code-golfing the amount of characters in the script
     const optimization = (() => {
       if (attribute === 'class') {
-        const removeClasses = `d.remove(${attrs.map((t: string) => `'${t}'`).join(',')})`
+        const removeClasses = `c.remove(${attrs.map((t: string) => `'${t}'`).join(',')})`
 
-        return `var d=document.documentElement.classList;${removeClasses};`
+        return `var d=document.documentElement,c=d.classList;${removeClasses};`
       } else {
-        return `var d=document.documentElement;var n='${attribute}';var s = 'setAttribute';`
+        return `var d=document.documentElement,n='${attribute}',s='setAttribute';`
       }
     })()
 
@@ -206,13 +220,13 @@ const ThemeScript = memo(
 
       if (attribute === 'class') {
         if (literal || resolvedName) {
-          text += `d.add(${val})`
+          text += `c.add(${val})`
         } else {
           text += `null`
         }
       } else {
         if (resolvedName) {
-          text += `d[s](n, ${val})`
+          text += `d[s](n,${val})`
         }
       }
 
@@ -225,7 +239,7 @@ const ThemeScript = memo(
       }
 
       if (enableSystem) {
-        return `!function(){try {${optimization}var e=localStorage.getItem('${storageKey}');if("system"===e||(!e&&${defaultSystem})){var t="${MEDIA}",m=window.matchMedia(t);if(m.media!==t||m.matches){${updateDOM(
+        return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if('system'===e||(!e&&${defaultSystem})){var t='${MEDIA}',m=window.matchMedia(t);if(m.media!==t||m.matches){${updateDOM(
           'dark'
         )}}else{${updateDOM('light')}}}else if(e){${
           value ? `var x=${JSON.stringify(value)};` : ''
@@ -234,7 +248,7 @@ const ThemeScript = memo(
         }${fallbackColorScheme}}catch(e){}}()`
       }
 
-      return `!function(){try{${optimization}var e=localStorage.getItem("${storageKey}");if(e){${
+      return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if(e){${
         value ? `var x=${JSON.stringify(value)};` : ''
       }${updateDOM(value ? `x[e]` : 'e', true)}}else{${updateDOM(
         defaultTheme,
@@ -243,19 +257,7 @@ const ThemeScript = memo(
       )};}${fallbackColorScheme}}catch(t){}}();`
     })()
 
-    // We MUST use next/script's `beforeInteractive` strategy to avoid flashing on load.
-    // However, it only accepts the `src` prop, not `dangerouslySetInnerHTML` or `children`
-    // But our script cannot be external because it changes at runtime based on React props
-    // so we trick next/script by passing `src` as a base64 JS script
-    const encodedScript = `data:text/javascript;base64,${encodeBase64(scriptSrc)}`
-    return (
-      <NextScript
-        id="next-themes-script"
-        strategy="beforeInteractive"
-        src={encodedScript}
-        nonce={nonce}
-      />
-    )
+    return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
   },
   // Never re-render this component
   () => true
@@ -298,8 +300,4 @@ const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
   const isDark = e.matches
   const systemTheme = isDark ? 'dark' : 'light'
   return systemTheme
-}
-
-const encodeBase64 = (str: string) => {
-  return isServer ? Buffer.from(str).toString('base64') : btoa(str)
 }

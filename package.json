@@ -1,8 +1,8 @@
 {
   "name": "next-themes",
-  "version": "0.1.1",
+  "version": "0.2.0-beta.2",
   "main": "./dist/index.js",
-  "module": "./dist/index.modern.js",
+  "module": "./dist/index.module.js",
   "types": "./dist/index.d.ts",
   "source": "./src/index.tsx",
   "license": "MIT",
@@ -16,7 +16,7 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "next": ">=11.1.1",
+    "next": "*",
     "react": "*",
     "react-dom": "*"
   },
@@ -33,7 +33,7 @@
     "@types/react": "^16.9.53",
     "babel-jest": "^26.6.3",
     "jest": "^26.6.3",
-    "microbundle": "^0.12.3",
+    "microbundle": "^0.15.0",
     "prettier": "^2.2.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",

@@ -295,46 +295,56 @@ The following code sample is **unsafe**:
 ```js
 import { useTheme } from 'next-themes'
 
-const ThemeChanger = () => {
-  const { theme, setTheme } = useTheme()
+// Do NOT use this! It will throw a hydration mismatch error.
+const ThemeSwitch = () => {
+  const { resolvedTheme, setTheme } = useTheme()
 
   return (
-    <div>
-      The current theme is: {theme}
-      <button onClick={() => setTheme('light')}>Light Mode</button>
-      <button onClick={() => setTheme('dark')}>Dark Mode</button>
-    </div>
+    <select value={resolvedTheme} onChange={e => setTheme(e.target.value)}>
+      <option value="system">System</option>
+      <option value="dark">Dark</option>
+      <option value="light">Light</option>
+    </select>
   )
 }
+
+export default ThemeSwitch
 ```
 
 To fix this, make sure you only render UI that uses the current theme when the page is mounted on the client:
 
 ```js
+import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 
-const ThemeChanger = () => {
+const ThemeSwitch = () => {
   const [mounted, setMounted] = useState(false)
-  const { theme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
 
-  // When mounted on client, now we can show the UI
-  useEffect(() => setMounted(true), [])
+  // useEffect only runs on the client, so now we can safely show the UI
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
-  if (!mounted) return null
+  if (!mounted) {
+    return null
+  }
 
   return (
-    <div>
-      The current theme is: {theme}
-      <button onClick={() => setTheme('light')}>Light Mode</button>
-      <button onClick={() => setTheme('dark')}>Dark Mode</button>
-    </div>
+    <select value={resolvedTheme} onChange={e => setTheme(e.target.value)}>
+      <option value="system">System</option>
+      <option value="dark">Dark</option>
+      <option value="light">Light</option>
+    </select>
   )
 }
+
+export default ThemeSwitch
 ```
 
 To avoid [Layout Shift](https://web.dev/cls/), consider rendering a skeleton/placeholder until mounted on the client side.
 
-For example, with [`next/image`](https://nextjs.org/docs/basic-features/image-optimization) you can use an empty image until the theme is resolved.
+Showing different images based on the current theme also suffers from the hydration mismatch problem. With [`next/image`](https://nextjs.org/docs/basic-features/image-optimization) you can use an empty image until the theme is resolved:
 
 ```js
 import Image from 'next/image'
@@ -358,6 +368,8 @@ function ThemedImage() {
 
   return <Image src={src} width={400} height={400} />
 }
+
+export default ThemedImage
 ```
 
 ### With Tailwind

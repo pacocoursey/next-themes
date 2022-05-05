@@ -344,6 +344,8 @@ export default ThemeSwitch
 
 To avoid [Layout Shift](https://web.dev/cls/), consider rendering a skeleton/placeholder until mounted on the client side.
 
+#### Images
+
 Showing different images based on the current theme also suffers from the hydration mismatch problem. With [`next/image`](https://nextjs.org/docs/basic-features/image-optimization) you can use an empty image until the theme is resolved:
 
 ```js
@@ -370,6 +372,37 @@ function ThemedImage() {
 }
 
 export default ThemedImage
+```
+
+#### CSS
+
+You can also use CSS to hide or show content based on the current theme. To avoid the hydration mismatch, you'll need to render _both_ versions of the UI, with CSS hiding the unused version. For example:
+
+```jsx
+function ThemedImage() {
+  return (
+    <>
+      {/* When the theme is dark, hide this div */}
+      <div data-hide-on-theme="dark">
+        <Image src="light.png" width={400} height={400} />
+      </div>
+
+      {/* When the theme is light, hide this div */}
+      <div data-hide-on-theme="light">
+        <Image src="dark.png" width={400} height={400} />
+      </div>
+    </>
+  )
+}
+
+export default ThemedImage
+```
+
+```css
+[data-theme='dark'] [data-hide-on-theme='dark'],
+[data-theme='light'] [data-hide-on-theme='light'] {
+  display: none;
+}
 ```
 
 ### With Tailwind

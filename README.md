@@ -110,6 +110,7 @@ All your theme configuration is passed to ThemeProvider.
   - accepts `class` and `data-*` (meaning any data attribute, `data-mode`, `data-color`, etc.) ([example](#class-instead-of-data-attribute))
 - `value`: Optional mapping of theme name to attribute value
   - value is an `object` where key is the theme name and value is the attribute value ([example](#differing-dom-attribute-and-theme-name))
+- `nonce`: Optional nonce passed to the injected `script` tag, used to allow-list the next-themes script in your CSP
 
 ### useTheme
 
@@ -295,46 +296,58 @@ The following code sample is **unsafe**:
 ```js
 import { useTheme } from 'next-themes'
 
-const ThemeChanger = () => {
-  const { theme, setTheme } = useTheme()
+// Do NOT use this! It will throw a hydration mismatch error.
+const ThemeSwitch = () => {
+  const { resolvedTheme, setTheme } = useTheme()
 
   return (
-    <div>
-      The current theme is: {theme}
-      <button onClick={() => setTheme('light')}>Light Mode</button>
-      <button onClick={() => setTheme('dark')}>Dark Mode</button>
-    </div>
+    <select value={resolvedTheme} onChange={e => setTheme(e.target.value)}>
+      <option value="system">System</option>
+      <option value="dark">Dark</option>
+      <option value="light">Light</option>
+    </select>
   )
 }
+
+export default ThemeSwitch
 ```
 
 To fix this, make sure you only render UI that uses the current theme when the page is mounted on the client:
 
 ```js
+import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 
-const ThemeChanger = () => {
+const ThemeSwitch = () => {
   const [mounted, setMounted] = useState(false)
-  const { theme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
 
-  // When mounted on client, now we can show the UI
-  useEffect(() => setMounted(true), [])
+  // useEffect only runs on the client, so now we can safely show the UI
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
-  if (!mounted) return null
+  if (!mounted) {
+    return null
+  }
 
   return (
-    <div>
-      The current theme is: {theme}
-      <button onClick={() => setTheme('light')}>Light Mode</button>
-      <button onClick={() => setTheme('dark')}>Dark Mode</button>
-    </div>
+    <select value={resolvedTheme} onChange={e => setTheme(e.target.value)}>
+      <option value="system">System</option>
+      <option value="dark">Dark</option>
+      <option value="light">Light</option>
+    </select>
   )
 }
+
+export default ThemeSwitch
 ```
 
 To avoid [Layout Shift](https://web.dev/cls/), consider rendering a skeleton/placeholder until mounted on the client side.
 
-For example, with [`next/image`](https://nextjs.org/docs/basic-features/image-optimization) you can use an empty image until the theme is resolved.
+#### Images
+
+Showing different images based on the current theme also suffers from the hydration mismatch problem. With [`next/image`](https://nextjs.org/docs/basic-features/image-optimization) you can use an empty image until the theme is resolved:
 
 ```js
 import Image from 'next/image'
@@ -357,6 +370,39 @@ function ThemedImage() {
   }
 
   return <Image src={src} width={400} height={400} />
+}
+
+export default ThemedImage
+```
+
+#### CSS
+
+You can also use CSS to hide or show content based on the current theme. To avoid the hydration mismatch, you'll need to render _both_ versions of the UI, with CSS hiding the unused version. For example:
+
+```jsx
+function ThemedImage() {
+  return (
+    <>
+      {/* When the theme is dark, hide this div */}
+      <div data-hide-on-theme="dark">
+        <Image src="light.png" width={400} height={400} />
+      </div>
+
+      {/* When the theme is light, hide this div */}
+      <div data-hide-on-theme="light">
+        <Image src="dark.png" width={400} height={400} />
+      </div>
+    </>
+  )
+}
+
+export default ThemedImage
+```
+
+```css
+[data-theme='dark'] [data-hide-on-theme='dark'],
+[data-theme='light'] [data-hide-on-theme='light'] {
+  display: none;
 }
 ```
 

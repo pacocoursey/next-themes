@@ -25,7 +25,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
   return <Theme {...props} />
 }
 
-export const Theme: React.FC<ThemeProviderProps> = ({
+const Theme: React.FC<ThemeProviderProps> = ({
   forcedTheme,
   disableTransitionOnChange = false,
   enableSystem = true,

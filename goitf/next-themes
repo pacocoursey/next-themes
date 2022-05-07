@@ -1,0 +1,21 @@
+<script>
+!function(){try {
+  var d=document.documentElement.classList;
+  d.remove('light','dark');
+  var e=localStorage.getItem('theme');
+  if("system"===e||(!e&&true)){
+    var t="(prefers-color-scheme: dark)",m=window.matchMedia(t);
+    if(m.media!==t||m.matches){
+      d.style.colorScheme = 'dark';
+      d.add('dark')
+    }else{
+      d.style.colorScheme = 'light';
+      d.add('light')}
+    }else if(e){
+      d.add(e|| '')
+    }
+    if(e==='light'||e==='dark')
+      d.style.colorScheme=e
+  }catch(e){}
+}()
+</script>

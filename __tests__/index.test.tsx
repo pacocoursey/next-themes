@@ -1,12 +1,13 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, RenderResult, screen, waitFor } from '@testing-library/react'
 import { ThemeProvider, useTheme } from '../src'
 import React, { useEffect } from 'react'
 
 let localStorageMock: { [key: string]: string } = {}
+let storageEventListenerMock = jest.fn()
 
 // HelperComponent to render the theme inside a paragraph-tag and setting a theme via the forceSetTheme prop
 const HelperComponent = ({ forceSetTheme }: { forceSetTheme?: string }) => {
-  const { setTheme, theme, forcedTheme, resolvedTheme, systemTheme } = useTheme()
+  const { setTheme, theme, resolvedTheme, systemTheme } = useTheme()
 
   useEffect(() => {
     if (forceSetTheme) {
@@ -17,7 +18,6 @@ const HelperComponent = ({ forceSetTheme }: { forceSetTheme?: string }) => {
   return (
     <>
       <p data-testid="theme">{theme}</p>
-      <p data-testid="forcedTheme">{forcedTheme}</p>
       <p data-testid="resolvedTheme">{resolvedTheme}</p>
       <p data-testid="systemTheme">{systemTheme}</p>
     </>
@@ -40,14 +40,29 @@ function setDeviceTheme(theme: 'light' | 'dark') {
       dispatchEvent: jest.fn()
     }))
   })
+
+  window.addEventListener('storage', jest.fn())
+}
+
+function makeStorageEvent(key: string, newValue: string, oldValue?: string): StorageEvent {
+  return new StorageEvent('storage', {
+    key,
+    newValue,
+    oldValue
+  })
 }
 
 beforeAll(() => {
   // Create mocks of localStorage getItem and setItem functions
   global.Storage.prototype.getItem = jest.fn((key: string) => localStorageMock[key])
   global.Storage.prototype.setItem = jest.fn((key: string, value: string) => {
+    const oldValue = localStorageMock[key]
     localStorageMock[key] = value
+    // Dispatch window event used to update the theme
+    window.dispatchEvent(makeStorageEvent(key, value, oldValue))
   })
+
+  window.addEventListener('storage', storageEventListenerMock)
 })
 
 beforeEach(() => {
@@ -63,41 +78,49 @@ beforeEach(() => {
 
 describe('defaultTheme', () => {
   test('should return system when no default-theme is set', () => {
-    render(
-      <ThemeProvider>
-        <HelperComponent />
-      </ThemeProvider>
-    )
+    act(() => {
+      render(
+        <ThemeProvider>
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
 
     expect(screen.getByTestId('theme').textContent).toBe('system')
   })
 
   test('should return light when no default-theme is set and enableSystem=false', () => {
-    render(
-      <ThemeProvider enableSystem={false}>
-        <HelperComponent />
-      </ThemeProvider>
-    )
+    act(() => {
+      render(
+        <ThemeProvider enableSystem={false}>
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
 
     expect(screen.getByTestId('theme').textContent).toBe('light')
   })
 
   test('should return light when light is set as default-theme', () => {
-    render(
-      <ThemeProvider defaultTheme="light">
-        <HelperComponent />
-      </ThemeProvider>
-    )
+    act(() => {
+      render(
+        <ThemeProvider defaultTheme="light">
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
 
     expect(screen.getByTestId('theme').textContent).toBe('light')
   })
 
   test('should return dark when dark is set as default-theme', () => {
-    render(
-      <ThemeProvider defaultTheme="dark">
-        <HelperComponent />
-      </ThemeProvider>
-    )
+    act(() => {
+      render(
+        <ThemeProvider defaultTheme="dark">
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
 
     expect(screen.getByTestId('theme').textContent).toBe('dark')
   })
@@ -144,6 +167,30 @@ describe('storage', () => {
 
     expect(global.Storage.prototype.setItem).toBeCalledTimes(1)
     expect(global.Storage.prototype.getItem('theme')).toBe('dark')
+  })
+
+  test('should update theme based on storage event', async () => {
+    localStorageMock['theme'] = 'dark'
+
+    act(() => {
+      render(
+        <ThemeProvider>
+          <HelperComponent />
+        </ThemeProvider>
+      )
+
+      expect(screen.getByTestId('resolvedTheme').textContent).toBe('dark')
+    })
+
+    const event = makeStorageEvent('theme', 'light', 'dark')
+
+    act(() => {
+      window.dispatchEvent(event)
+    })
+
+    // Expect another call to have been made
+    expect(storageEventListenerMock).toHaveBeenCalledWith(event)
+    expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
   })
 })
 
@@ -258,20 +305,22 @@ describe('custom value-mapping', () => {
 })
 
 describe('forcedTheme', () => {
-  test('should render saved theme when no forcedTheme is set', () => {
+  test('should render saved theme when forcedTheme is not set', () => {
     localStorageMock['theme'] = 'dark'
 
-    render(
-      <ThemeProvider>
-        <HelperComponent />
-      </ThemeProvider>
-    )
+    act(() => {
+      render(
+        <ThemeProvider>
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
 
     expect(screen.getByTestId('theme').textContent).toBe('dark')
-    expect(screen.getByTestId('forcedTheme').textContent).toBe('')
+    expect(screen.getByTestId('resolvedTheme').textContent).toBe('dark')
   })
 
-  test('should render light theme when forcedTheme is set to light', () => {
+  test('should render light theme when forcedTheme is set to "light"', () => {
     localStorageMock['theme'] = 'dark'
 
     act(() => {
@@ -282,8 +331,106 @@ describe('forcedTheme', () => {
       )
     })
 
-    expect(screen.getByTestId('theme').textContent).toBe('dark')
-    expect(screen.getByTestId('forcedTheme').textContent).toBe('light')
+    expect(screen.getByTestId('theme').textContent).toBe('forced')
+    expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
+  })
+
+  test('should ignore storage events when forcedTheme is set', () => {
+    localStorageMock['theme'] = 'dark'
+
+    act(() => {
+      render(
+        <ThemeProvider forcedTheme="light">
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
+
+    expect(screen.getByTestId('theme').textContent).toBe('forced')
+    expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
+
+    const event = makeStorageEvent('theme','dark','light')
+
+    act(() => {
+      window.dispatchEvent(event)
+    })
+
+    expect(storageEventListenerMock).toHaveBeenCalledWith(event)
+
+    // Since the theme is forced, the storage event should not be handled
+    expect(screen.getByTestId('theme').textContent).toBe('forced')
+    expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
+  })
+
+  test('should update theme if forcedTheme is unset and a storage event was dispatched while theme was forced', () => {
+    localStorageMock['theme'] = 'system'
+    let wrapper: RenderResult
+
+    act(() => {
+      wrapper = render(
+        <ThemeProvider forcedTheme="light">
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
+
+    expect(screen.getByTestId('theme').textContent).toBe('forced')
+    expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
+
+    const event = makeStorageEvent('theme', 'dark', 'system')
+
+    act(() => {
+      window.dispatchEvent(event)
+    })
+
+    expect(storageEventListenerMock).toHaveBeenCalledWith(event)
+    // Since forceTheme is set, the storage event should be ignored
+    expect(screen.getByTestId('theme').textContent).toBe('forced')
+    expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
+
+    act(() => {
+      wrapper.rerender(
+        <ThemeProvider>
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
+
+    waitFor(() => {
+      // Since forceTheme is unset, we should update the theme
+      // to the value of the previous storage event
+      expect(screen.getByTestId('theme').textContent).toBe('dark')
+      expect(screen.getByTestId('resolvedTheme').textContent).toBe('dark')
+    })
+  })
+
+  test('should be able to set forceTheme at a later point in time', () => {
+    localStorageMock['theme'] = 'light'
+    let wrapper: RenderResult
+
+    act(() => {
+      wrapper = render(
+        <ThemeProvider>
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
+
+    expect(screen.getByTestId('theme').textContent).toBe('light')
+    expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
+
+    act(() => {
+      wrapper.rerender(
+        <ThemeProvider forcedTheme="dark">
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
+
+    waitFor(() => {
+      expect(screen.getByTestId('theme').textContent).toBe('forced')
+      expect(screen.getByTestId('resolvedTheme').textContent).toBe('dark')
+    })
   })
 })
 
@@ -300,7 +447,6 @@ describe('system', () => {
     })
 
     expect(screen.getByTestId('theme').textContent).toBe('system')
-    expect(screen.getByTestId('forcedTheme').textContent).toBe('')
     expect(screen.getByTestId('resolvedTheme').textContent).toBe('dark')
   })
 
@@ -316,7 +462,6 @@ describe('system', () => {
     })
 
     expect(screen.getByTestId('theme').textContent).toBe('light')
-    expect(screen.getByTestId('forcedTheme').textContent).toBe('')
     expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
     expect(screen.getByTestId('systemTheme').textContent).toBe('dark')
   })
@@ -333,7 +478,6 @@ describe('system', () => {
     })
 
     expect(screen.getByTestId('theme').textContent).toBe('light')
-    expect(screen.getByTestId('forcedTheme').textContent).toBe('')
     expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
     expect(screen.getByTestId('systemTheme').textContent).toBe('')
   })

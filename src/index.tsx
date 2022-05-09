@@ -38,8 +38,13 @@ const Theme: React.FC<ThemeProviderProps> = ({
   children,
   nonce
 }) => {
-  const [theme, setThemeState] = useState(() => getTheme(storageKey, defaultTheme))
+  const [theme, setThemeState] = useState(
+    () => forcedTheme
+      ? 'forced'
+      : getTheme(storageKey, defaultTheme)
+  )
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
+  const [ignoredThemeUpdate, setIgnoredThemeUpdate] = useState<string | null>(null)
   const attrs = !value ? themes : Object.values(value)
 
   const applyTheme = useCallback(theme => {
@@ -80,7 +85,8 @@ const Theme: React.FC<ThemeProviderProps> = ({
   const setTheme = useCallback(
     theme => {
       setThemeState(theme)
-
+      // When a theme is forced it should not be possible to override it.
+      if (forcedTheme) return
       // Save to storage
       try {
         localStorage.setItem(storageKey, theme)
@@ -121,6 +127,11 @@ const Theme: React.FC<ThemeProviderProps> = ({
         return
       }
 
+      if (forcedTheme && e.newValue) {
+        setIgnoredThemeUpdate(e.newValue)
+        return
+      }
+
       // If default theme set, use it if localstorage === null (happens on local storage manual deletion)
       const theme = e.newValue || defaultTheme
       setTheme(theme)
@@ -130,8 +141,18 @@ const Theme: React.FC<ThemeProviderProps> = ({
     return () => window.removeEventListener('storage', handleStorage)
   }, [setTheme])
 
-  // Whenever theme or forcedTheme changes, apply it
   useEffect(() => {
+    if (forcedTheme && theme !== 'forced') {
+      setTheme('forced')
+    }
+
+    if (!forcedTheme && ignoredThemeUpdate) {
+      setTheme(ignoredThemeUpdate) // Apply theme sent with storage-event
+      applyTheme(ignoredThemeUpdate) // Apply the theme
+      setIgnoredThemeUpdate(null) // reset tracker
+      return
+    }
+
     applyTheme(forcedTheme ?? theme)
   }, [forcedTheme, theme])
 
@@ -140,8 +161,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
       value={{
         theme,
         setTheme,
-        forcedTheme,
-        resolvedTheme: theme === 'system' ? resolvedTheme : theme,
+        resolvedTheme: forcedTheme ?? theme === 'system' ? resolvedTheme : theme,
         themes: enableSystem ? [...themes, 'system'] : themes,
         systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
       }}

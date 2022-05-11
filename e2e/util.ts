@@ -9,6 +9,11 @@ export async function checkAppliedTheme(page: Page,theme: string) {
     ).toBe(`color-scheme: ${theme};`);
 }
 
+export async function checkStoredTheme(page: Page, expectedTheme: string) {
+    const localStorage = await page.evaluate(() => window.localStorage)
+    expect(localStorage?.theme).toBe(expectedTheme)
+}
+
 type MakeBrowserContextOptions = {
     baseURL?: string,
     colorScheme?: 'light' | 'dark' | 'no-preference',

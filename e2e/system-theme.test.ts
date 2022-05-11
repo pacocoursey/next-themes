@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { checkAppliedTheme } from './util'
+import { checkAppliedTheme, makeBrowserContext } from './util'
 
 test.describe('system theme test-suite', () => {
 
@@ -9,17 +9,10 @@ test.describe('system theme test-suite', () => {
       expectedTheme: string
     ) {
         test(`should render ${expectedTheme} theme if preferred-colorscheme is ${preferredColorScheme}`, async ({ browser, baseURL }) => {
-            const context = await browser.newContext({
+            const context = await makeBrowserContext(browser, {
                 colorScheme: preferredColorScheme,
-                storageState: {
-                    cookies: [],
-                    origins: [
-                        {
-                            origin: baseURL ?? 'http://localhost:3000',
-                            localStorage: [{ name: 'theme', value: 'system' }],
-                        }
-                    ]
-                }
+                baseURL,
+                localStorage: [{ name: 'theme', value: 'system' }]
             })
 
             const page = await context.newPage()

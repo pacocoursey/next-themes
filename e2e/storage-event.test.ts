@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 import { checkAppliedTheme, makeBrowserContext } from './util'
 
 test.describe('storage-events test-suite', async () => {
-  test('should switch theme if stored theme value is updated', async ({ browser, baseURL }) => {
+  test('should switch theme if stored theme value is updated in a different tab', async ({ browser, baseURL }) => {
     const context = await makeBrowserContext(browser, {
       colorScheme: 'light',
       baseURL: baseURL,
@@ -28,7 +28,7 @@ test.describe('storage-events test-suite', async () => {
 
   })
 
-  test('should ignore storage event if on page with forced-theme', async ({ browser, baseURL }) => {
+  test('should apply ignored storage-event once page with forced-theme is left', async ({ browser, baseURL }) => {
     const context = await makeBrowserContext(browser, {
       colorScheme: 'light',
       baseURL: baseURL,

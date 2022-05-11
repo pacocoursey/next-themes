@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { checkAppliedTheme, makeBrowserContext } from './util'
+import { checkAppliedTheme, checkStoredTheme, makeBrowserContext } from './util'
 
 test.describe('system theme test-suite', () => {
 
@@ -18,8 +18,7 @@ test.describe('system theme test-suite', () => {
             const page = await context.newPage()
             await page.goto(pagePath)
 
-            const localStorage = await page.evaluate(() => window.localStorage)
-            expect(localStorage?.theme).toBe('system')
+            await checkStoredTheme(page, 'system')
             await checkAppliedTheme(page, expectedTheme)
         })
     }

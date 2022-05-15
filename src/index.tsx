@@ -35,10 +35,10 @@ const Theme: React.FC<ThemeProviderProps> = ({
     forcedTheme ? 'forced' : getTheme(storageKey, defaultTheme)
   )
   const [resolvedTheme, setResolvedTheme] = React.useState(() => getTheme(storageKey))
-  const [ignoredThemeUpdate, setIgnoredThemeUpdate] = React.useState<string | null>(null)
   const attrs = !value ? themes : Object.values(value)
   const themeColorEl = React.useRef<HTMLMetaElement>()
   const rootStyles = React.useRef<CSSStyleDeclaration>()
+  const pendingThemeUpdate = React.useRef<string>()
 
   const resolveCSSColor = (color: string) => {
     // Resolve CSS variable value
@@ -184,7 +184,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
       }
 
       if (forcedTheme && e.newValue) {
-        setIgnoredThemeUpdate(e.newValue)
+        pendingThemeUpdate.current = e.newValue
         return
       }
 
@@ -202,10 +202,10 @@ const Theme: React.FC<ThemeProviderProps> = ({
       setTheme('forced')
     }
 
-    if (!forcedTheme && ignoredThemeUpdate) {
-      setTheme(ignoredThemeUpdate) // Apply theme sent with storage-event
-      applyTheme(ignoredThemeUpdate) // Apply the theme
-      setIgnoredThemeUpdate(null) // reset tracker
+    if (!forcedTheme && pendingThemeUpdate.current) {
+      setTheme(pendingThemeUpdate.current) // Apply theme sent with storage-event
+      applyTheme(pendingThemeUpdate.current) // Apply the theme
+      pendingThemeUpdate.current = undefined
       return
     }
 

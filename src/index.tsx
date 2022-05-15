@@ -1,27 +1,19 @@
-import React, {
-  Fragment,
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  memo
-} from 'react'
+import * as React from 'react'
 import type { UseThemeProps, ThemeProviderProps } from './types'
 
 const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
-const ThemeContext = createContext<UseThemeProps | undefined>(undefined)
+const ThemeContext = React.createContext<UseThemeProps | undefined>(undefined)
 const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
 
-export const useTheme = () => useContext(ThemeContext) ?? defaultContext
+export const useTheme = () => React.useContext(ThemeContext) ?? defaultContext
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
-  const context = useContext(ThemeContext)
+  const context = React.useContext(ThemeContext)
 
   // Ignore nested context providers, just passthrough children
-  if (context) return <Fragment>{props.children}</Fragment>
+  if (context) return <React.Fragment>{props.children}</React.Fragment>
   return <Theme {...props} />
 }
 
@@ -35,14 +27,35 @@ const Theme: React.FC<ThemeProviderProps> = ({
   defaultTheme = enableSystem ? 'system' : 'light',
   attribute = 'data-theme',
   value,
+  themeColor,
   children,
   nonce
 }) => {
-  const [theme, setThemeState] = useState(() => getTheme(storageKey, defaultTheme))
-  const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
+  const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
+  const [resolvedTheme, setResolvedTheme] = React.useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
+  const themeColorEl = React.useRef<HTMLMetaElement>()
+  const rootStyles = React.useRef<CSSStyleDeclaration>()
 
-  const applyTheme = useCallback(theme => {
+  const resolveCSSColor = (color: string) => {
+    // Resolve CSS variable value
+    if (color.startsWith('var(--')) {
+      // Cache if not already
+      if (!rootStyles.current) {
+        rootStyles.current = getComputedStyle(document.documentElement)
+      }
+
+      return rootStyles.current.getPropertyValue(
+        // var(--bg) → --bg
+        color.slice(4, -1)
+      )
+    }
+
+    // Regular CSS color string
+    return color
+  }
+
+  const applyTheme = React.useCallback(theme => {
     let resolved = theme
     if (!resolved) return
 
@@ -67,6 +80,51 @@ const Theme: React.FC<ThemeProviderProps> = ({
       }
     }
 
+    // Must be calculated after changing the attribute/class so that CSS vars are up-to-date
+    if (themeColor) {
+      let shouldInsert = false
+
+      const value = (() => {
+        if (typeof themeColor === 'string') {
+          return resolveCSSColor(themeColor)
+        }
+
+        // Object value
+        return resolveCSSColor(themeColor[resolved])
+      })()
+
+      const el = (() => {
+        // Had the element cached
+        if (themeColorEl.current?.isConnected) {
+          return themeColorEl.current
+        }
+
+        // Meta tag already exists in the dom
+        const found = document.head.querySelector('meta[name="theme-color"]') as HTMLMetaElement
+        if (found) return found
+
+        // Does not exist, create one
+        const meta = document.createElement('meta')
+        meta.setAttribute('name', 'theme-color')
+        shouldInsert = true
+        return meta
+      })()
+
+      // Cache element
+      themeColorEl.current = el
+
+      // CSS variable could be undefined
+      if (value) {
+        // Update the DOM
+        el.removeAttribute('value') // standardize on the content attribute instead of value
+        el.setAttribute('content', value)
+
+        if (shouldInsert) {
+          document.head.appendChild(el)
+        }
+      }
+    }
+
     if (enableColorScheme) {
       const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
       const colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
@@ -77,7 +135,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
     enable?.()
   }, [])
 
-  const setTheme = useCallback(
+  const setTheme = React.useCallback(
     theme => {
       setThemeState(theme)
 
@@ -91,7 +149,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
     [forcedTheme]
   )
 
-  const handleMediaQuery = useCallback(
+  const handleMediaQuery = React.useCallback(
     (e: MediaQueryListEvent | MediaQueryList) => {
       const resolved = getSystemTheme(e)
       setResolvedTheme(resolved)
@@ -104,7 +162,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   )
 
   // Always listen to System preference
-  useEffect(() => {
+  React.useEffect(() => {
     const media = window.matchMedia(MEDIA)
 
     // Intentionally use deprecated listener methods to support iOS & old browsers
@@ -115,7 +173,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   }, [handleMediaQuery])
 
   // localStorage event handling
-  useEffect(() => {
+  React.useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
       if (e.key !== storageKey) {
         return
@@ -131,7 +189,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   }, [setTheme])
 
   // Whenever theme or forcedTheme changes, apply it
-  useEffect(() => {
+  React.useEffect(() => {
     applyTheme(forcedTheme ?? theme)
   }, [forcedTheme, theme])
 
@@ -167,7 +225,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   )
 }
 
-const ThemeScript = memo(
+const ThemeScript = React.memo(
   ({
     forcedTheme,
     storageKey,

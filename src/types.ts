@@ -11,8 +11,8 @@ export interface UseThemeProps {
   theme?: string
   /**
    * If `enableSystem` is true and the active theme is "system", this returns whether the system preference resolved to "dark" or "light".
-   * In case a theme is forced, the forced theme value is returned.
-   * Otherwise, identical to `theme`
+   * If `forcedTheme` is set, the forced theme value is returned.
+   * Otherwise, identical to `theme`.
    */
   resolvedTheme?: string
   /** If enableSystem is true, returns the System theme preference ("dark" or "light"), regardless what the active theme is */

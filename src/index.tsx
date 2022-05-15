@@ -64,7 +64,23 @@ const Theme: React.FC<ThemeProviderProps> = ({
       resolved = getSystemTheme()
     }
 
-    // This happens first so that we do all the DOM reads before writing
+    const name = value ? value[resolved] : resolved
+    const enable = disableTransitionOnChange ? disableAnimation() : null
+    const d = document.documentElement
+
+    if (attribute === 'class') {
+      d.classList.remove(...attrs)
+
+      if (name) d.classList.add(name)
+    } else {
+      if (name) {
+        d.setAttribute(attribute, name)
+      } else {
+        d.removeAttribute(attribute)
+      }
+    }
+
+    // Must be calculated after changing the attribute/class so that CSS vars are up-to-date
     if (themeColor) {
       let shouldInsert = false
 
@@ -106,22 +122,6 @@ const Theme: React.FC<ThemeProviderProps> = ({
         if (shouldInsert) {
           document.head.appendChild(el)
         }
-      }
-    }
-
-    const name = value ? value[resolved] : resolved
-    const enable = disableTransitionOnChange ? disableAnimation() : null
-    const d = document.documentElement
-
-    if (attribute === 'class') {
-      d.classList.remove(...attrs)
-
-      if (name) d.classList.add(name)
-    } else {
-      if (name) {
-        d.setAttribute(attribute, name)
-      } else {
-        d.removeAttribute(attribute)
       }
     }
 

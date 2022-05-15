@@ -12,7 +12,8 @@
   "scripts": {
     "prepublish": "yarn build",
     "build": "microbundle --jsx React.createElement --compress --no-sourcemap",
-    "test": "jest __tests__"
+    "test": "jest __tests__",
+    "test:e2e": "yarn playwright test"
   },
   "dependencies": {},
   "peerDependencies": {
@@ -28,6 +29,7 @@
     "@babel/preset-react": "^7.12.13",
     "@babel/preset-typescript": "^7.13.0",
     "@testing-library/react": "^12.1.5",
+    "@playwright/test": "^1.21.1",
     "@types/jest": "^26.0.21",
     "@types/next": "^9.0.0",
     "@types/react": "^16.9.53",

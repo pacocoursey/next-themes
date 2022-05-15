@@ -31,11 +31,14 @@ const Theme: React.FC<ThemeProviderProps> = ({
   children,
   nonce
 }) => {
-  const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
+  const [theme, setThemeState] = React.useState(() =>
+    forcedTheme ? 'forced' : getTheme(storageKey, defaultTheme)
+  )
   const [resolvedTheme, setResolvedTheme] = React.useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
   const themeColorEl = React.useRef<HTMLMetaElement>()
   const rootStyles = React.useRef<CSSStyleDeclaration>()
+  const pendingThemeUpdate = React.useRef<string>()
 
   const resolveCSSColor = (color: string) => {
     // Resolve CSS variable value
@@ -138,7 +141,8 @@ const Theme: React.FC<ThemeProviderProps> = ({
   const setTheme = React.useCallback(
     theme => {
       setThemeState(theme)
-
+      // When a theme is forced it should not be possible to override it.
+      if (forcedTheme) return
       // Save to storage
       try {
         localStorage.setItem(storageKey, theme)
@@ -179,6 +183,11 @@ const Theme: React.FC<ThemeProviderProps> = ({
         return
       }
 
+      if (forcedTheme && e.newValue) {
+        pendingThemeUpdate.current = e.newValue
+        return
+      }
+
       // If default theme set, use it if localstorage === null (happens on local storage manual deletion)
       const theme = e.newValue || defaultTheme
       setTheme(theme)
@@ -188,8 +197,18 @@ const Theme: React.FC<ThemeProviderProps> = ({
     return () => window.removeEventListener('storage', handleStorage)
   }, [setTheme])
 
-  // Whenever theme or forcedTheme changes, apply it
   React.useEffect(() => {
+    if (forcedTheme && theme !== 'forced') {
+      setTheme('forced')
+    }
+
+    if (!forcedTheme && pendingThemeUpdate.current) {
+      setTheme(pendingThemeUpdate.current) // Apply theme sent with storage-event
+      applyTheme(pendingThemeUpdate.current) // Apply the theme
+      pendingThemeUpdate.current = undefined
+      return
+    }
+
     applyTheme(forcedTheme ?? theme)
   }, [forcedTheme, theme])
 
@@ -198,8 +217,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
       value={{
         theme,
         setTheme,
-        forcedTheme,
-        resolvedTheme: theme === 'system' ? resolvedTheme : theme,
+        resolvedTheme: forcedTheme ?? theme === 'system' ? resolvedTheme : theme,
         themes: enableSystem ? [...themes, 'system'] : themes,
         systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
       }}

@@ -36,6 +36,8 @@ export interface ThemeProviderProps {
   attribute?: string | 'class'
   /** Mapping of theme name to HTML attribute value. Object where key is the theme name and value is the attribute value */
   value?: ValueObject
+  /** Mapping of theme name to theme-color meta tag. CSS color string, or object where key is the theme name and value is the meta tag value */
+  themeColor?: string | ValueObject
   /** Nonce string to pass to the inline script for CSP headers */
   nonce?: string
 

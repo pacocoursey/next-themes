@@ -1,7 +1,6 @@
 import * as React from 'react'
 import type { UseThemeProps, ThemeProviderProps, ValueObject } from './types'
 
-const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
 const ThemeContext = React.createContext<UseThemeProps | undefined>(undefined)
@@ -31,12 +30,15 @@ const Theme: React.FC<ThemeProviderProps> = ({
   children,
   nonce
 }) => {
-  const [theme, setThemeState] = React.useState(() => (forcedTheme ? 'forced' : getTheme(storageKey, defaultTheme)))
-  const [resolvedTheme, setResolvedTheme] = React.useState(() => getTheme(storageKey))
-  const attrs = !value ? themes : Object.values(value)
+  const [themeState, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
+  const [systemTheme, setSystemTheme] = React.useState<'light' | 'dark'>()
   const themeColorEl = React.useRef<HTMLMetaElement>()
   const rootStyles = React.useRef<CSSStyleDeclaration>()
-  const pendingThemeUpdate = React.useRef<string>()
+  const scriptCache = React.useRef<string>()
+
+  const theme = forcedTheme ? 'forced' : themeState
+  const resolvedTheme = forcedTheme ?? themeState === 'system' ? systemTheme : themeState
+  const attr = resolvedTheme && value ? value[resolvedTheme] : resolvedTheme
 
   const resolveCSSColor = (color: string) => {
     // Resolve CSS variable value
@@ -56,170 +58,106 @@ const Theme: React.FC<ThemeProviderProps> = ({
     return color
   }
 
-  const applyTheme = React.useCallback(theme => {
-    let resolved = theme
-    if (!resolved) return
+  const handleThemeColor = () => {
+    if (!attr || !themeColor) return
 
-    // If theme is system, resolve it before setting theme
-    if (theme === 'system' && enableSystem) {
-      resolved = getSystemTheme()
-    }
+    let shouldInsert = false
 
-    const name = value ? value[resolved] : resolved
-    const enable = disableTransitionOnChange ? disableAnimation() : null
-    const d = document.documentElement
+    const value = (() => {
+      if (typeof themeColor === 'string') {
+        return resolveCSSColor(themeColor)
+      }
 
-    if (attribute === 'class') {
-      d.classList.remove(...attrs)
+      // Object value
+      return resolveCSSColor(themeColor[attr])
+    })()
 
-      if (name) d.classList.add(name)
-    } else {
-      if (name) {
-        d.setAttribute(attribute, name)
-      } else {
-        d.removeAttribute(attribute)
+    const el = (() => {
+      // Had the element cached
+      if (themeColorEl.current?.isConnected) {
+        return themeColorEl.current
+      }
+
+      // Meta tag already exists in the dom
+      const found = document.head.querySelector('meta[name="theme-color"]') as HTMLMetaElement
+      if (found) return found
+
+      // Does not exist, create one
+      const meta = document.createElement('meta')
+      meta.setAttribute('name', 'theme-color')
+      shouldInsert = true
+      return meta
+    })()
+
+    // Cache element
+    themeColorEl.current = el
+
+    // CSS variable could be undefined
+    if (value) {
+      // Update the DOM
+      el.removeAttribute('value') // standardize on the content attribute instead of value
+      el.setAttribute('content', value)
+
+      if (shouldInsert) {
+        document.head.appendChild(el)
       }
     }
-
-    // Must be calculated after changing the attribute/class so that CSS vars are up-to-date
-    if (themeColor) {
-      let shouldInsert = false
-
-      const value = (() => {
-        if (typeof themeColor === 'string') {
-          return resolveCSSColor(themeColor)
-        }
-
-        // Object value
-        return resolveCSSColor(themeColor[resolved])
-      })()
-
-      const el = (() => {
-        // Had the element cached
-        if (themeColorEl.current?.isConnected) {
-          return themeColorEl.current
-        }
-
-        // Meta tag already exists in the dom
-        const found = document.head.querySelector('meta[name="theme-color"]') as HTMLMetaElement
-        if (found) return found
-
-        // Does not exist, create one
-        const meta = document.createElement('meta')
-        meta.setAttribute('name', 'theme-color')
-        shouldInsert = true
-        return meta
-      })()
-
-      // Cache element
-      themeColorEl.current = el
-
-      // CSS variable could be undefined
-      if (value) {
-        // Update the DOM
-        el.removeAttribute('value') // standardize on the content attribute instead of value
-        el.setAttribute('content', value)
-
-        if (shouldInsert) {
-          document.head.appendChild(el)
-        }
-      }
-    }
-
-    if (enableColorScheme) {
-      const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
-      const colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
-      // @ts-ignore
-      d.style.colorScheme = colorScheme
-    }
-
-    enable?.()
-  }, [])
+  }
 
   const setTheme = React.useCallback(
     theme => {
       setThemeState(theme)
-      // When a theme is forced it should not be possible to override it.
-      if (forcedTheme) return
-      // Save to storage
-      try {
-        localStorage.setItem(storageKey, theme)
-      } catch (e) {
-        // Unsupported
+
+      if (!forcedTheme) {
+        try {
+          localStorage.setItem(storageKey, theme)
+        } catch (e) {}
       }
     },
     [forcedTheme]
   )
 
-  const handleMediaQuery = React.useCallback(
-    (e: MediaQueryListEvent | MediaQueryList) => {
-      const resolved = getSystemTheme(e)
-      setResolvedTheme(resolved)
-
-      if (theme === 'system' && enableSystem && !forcedTheme) {
-        applyTheme('system')
-      }
-    },
-    [theme, forcedTheme]
-  )
-
-  // Always listen to System preference
+  // When the theme is switched, update the DOM accordingly
   React.useEffect(() => {
-    const media = window.matchMedia(MEDIA)
+    const enable = disableTransitionOnChange ? disableTransition() : null
 
-    // Intentionally use deprecated listener methods to support iOS & old browsers
-    media.addListener(handleMediaQuery)
-    handleMediaQuery(media)
+    // Update the DOM
+    if (forcedTheme) ff(forcedTheme)
+    else if (enableSystem) sf(defaultTheme, storageKey)
+    else rf(defaultTheme, storageKey)
 
-    return () => media.removeListener(handleMediaQuery)
-  }, [handleMediaQuery])
+    if (themeColor) handleThemeColor()
+
+    enable?.()
+  }, [resolvedTheme, forcedTheme, theme])
 
   // localStorage event handling
   React.useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
-      if (e.key !== storageKey) {
-        return
-      }
-
-      if (forcedTheme && e.newValue) {
-        pendingThemeUpdate.current = e.newValue
-        return
-      }
-
-      // If default theme set, use it if localstorage === null (happens on local storage manual deletion)
+      if (e.key !== storageKey) return
+      // When storage is null (after manual deletion), use default theme
       const theme = e.newValue || defaultTheme
       setTheme(theme)
     }
 
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
-  }, [setTheme])
+  }, [forcedTheme])
 
-  // React.useEffect(() => {
-  //   if (forcedTheme && theme !== 'forced') {
-  //     setTheme('forced')
-  //   }
+  // Listen to system preference if enableSystem
+  React.useEffect(() => {
+    if (!enableSystem) return
 
-  //   if (!forcedTheme && pendingThemeUpdate.current) {
-  //     setTheme(pendingThemeUpdate.current) // Apply theme sent with storage-event
-  //     applyTheme(pendingThemeUpdate.current) // Apply the theme
-  //     pendingThemeUpdate.current = undefined
-  //     return
-  //   }
-
-  //   applyTheme(forcedTheme ?? theme)
-  // }, [forcedTheme, theme])
-
-  /** Update DOM */
-  const ud = (d: HTMLElement, v: ValueObject, a: string, c: string) => {
-    return (t: string) => {
-      var r = v[t] || t
-      if (a === 'class') d.classList.add(r)
-      else d.setAttribute(a, r)
-      // @ts-ignore
-      if (c && (r === 'light' || r === 'dark')) d.style.colorScheme = r
+    function handle(e: MediaQueryList | MediaQueryListEvent) {
+      setSystemTheme(getSystemTheme(e))
     }
-  }
+
+    // Intentionally use deprecated listener methods to support iOS & old browsers
+    const media = window.matchMedia(MEDIA)
+    media.addListener(handle)
+    handle(media)
+    return () => media.removeListener(handle)
+  }, [theme])
 
   /** Forced function */
   const ff = (t: string) => {
@@ -228,33 +166,59 @@ const Theme: React.FC<ThemeProviderProps> = ({
   }
 
   /** System function */
-  const sf = (_: string, __: string) => {
-    alert('not implemented')
+  const sf = (fallback: string, key: string) => {
+    try {
+      var stored = localStorage.getItem(key)
+
+      if (stored === 'system') {
+        // @ts-ignore
+        window.__ntu(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      } else {
+        // @ts-ignore
+        window.__ntu(stored || fallback)
+      }
+    } catch (_) {}
   }
 
   /** Regular function */
-  const rf = (t: string, k: string) => {
+  const rf = (fallback: string, key: string) => {
     try {
-      var s = localStorage.getItem(k)
+      var stored = localStorage.getItem(key)
       // @ts-ignore
-      window.__ntu(s || t)
+      window.__ntu(stored || fallback)
     } catch (_) {}
   }
 
   const script = (() => {
     if (typeof window === 'undefined') {
+      /** Update DOM */
+      const ud = (d: HTMLElement, v: ValueObject, a: string, c: string) => {
+        return (t: string) => {
+          var r = v[t] || t
+          if (a === 'class') d.classList.add(r)
+          else d.setAttribute(a, r)
+          const colorScheme = r === 'light' || r === 'dark' ? r : ''
+          // @ts-ignore
+          if (c) d.style.colorScheme = colorScheme
+        }
+      }
+
       const fn = forcedTheme ? ff : enableSystem ? sf : rf
+      const args = forcedTheme ? [forcedTheme] : [defaultTheme, storageKey]
 
       const a = `var __ntu=(${ud.toString()})(document.documentElement,${JSON.stringify(
         value ?? {}
       )},'${attribute}',${enableColorScheme})`
-      const b = `(${fn.toString()})('${forcedTheme ?? theme ?? defaultTheme}','${storageKey}')`
+      const b = `(${fn.toString()})(${args.map(a => `'${a}'`).join(',')})`
 
       return `${a};${b}`
     }
 
-    // TODO: no need to query this every re-render... it could be cached once
-    return document.getElementById('next-themes-script')?.innerHTML || ''
+    if (!scriptCache.current) {
+      scriptCache.current = document.getElementById('next-themes-script')?.innerHTML || ''
+    }
+
+    return scriptCache.current
   })()
 
   return (
@@ -262,129 +226,16 @@ const Theme: React.FC<ThemeProviderProps> = ({
       value={{
         theme,
         setTheme,
-        resolvedTheme: forcedTheme ?? theme === 'system' ? resolvedTheme : theme,
-        themes: enableSystem ? [...themes, 'system'] : themes,
-        systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
+        systemTheme,
+        resolvedTheme,
+        themes: enableSystem ? [...themes, 'system'] : themes
       }}
     >
       <script id="next-themes-script" nonce={nonce} dangerouslySetInnerHTML={{ __html: script }} />
-      {/* <ThemeScript
-        {...{
-          forcedTheme,
-          disableTransitionOnChange,
-          enableSystem,
-          enableColorScheme,
-          storageKey,
-          themes,
-          defaultTheme,
-          attribute,
-          value,
-          children,
-          attrs,
-          nonce
-        }}
-      /> */}
       {children}
     </ThemeContext.Provider>
   )
 }
-
-// const ThemeScript = React.memo(
-//   ({
-//     forcedTheme,
-//     storageKey,
-//     attribute,
-//     enableSystem,
-//     enableColorScheme,
-//     defaultTheme,
-//     value,
-//     attrs,
-//     nonce
-//   }: ThemeProviderProps & { attrs: string[]; defaultTheme: string }) => {
-//     const defaultSystem = defaultTheme === 'system'
-
-//     // Code-golfing the amount of characters in the script
-//     const optimization = (() => {
-//       if (attribute === 'class') {
-//         const removeClasses = `c.remove(${attrs.map((t: string) => `'${t}'`).join(',')})`
-
-//         return `var d=document.documentElement,c=d.classList;${removeClasses};`
-//       } else {
-//         return `var d=document.documentElement,n='${attribute}',s='setAttribute';`
-//       }
-//     })()
-
-//     const fallbackColorScheme = (() => {
-//       if (!enableColorScheme) {
-//         return ''
-//       }
-
-//       const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
-
-//       if (fallback) {
-//         return `if(e==='light'||e==='dark'||!e)d.style.colorScheme=e||'${defaultTheme}'`
-//       } else {
-//         return `if(e==='light'||e==='dark')d.style.colorScheme=e`
-//       }
-//     })()
-
-//     const updateDOM = (name: string, literal: boolean = false, setColorScheme = true) => {
-//       const resolvedName = value ? value[name] : name
-//       const val = literal ? name + `|| ''` : `'${resolvedName}'`
-//       let text = ''
-
-//       // MUCH faster to set colorScheme alongside HTML attribute/class
-//       // as it only incurs 1 style recalculation rather than 2
-//       // This can save over 250ms of work for pages with big DOM
-//       if (enableColorScheme && setColorScheme && !literal && colorSchemes.includes(name)) {
-//         text += `d.style.colorScheme = '${name}';`
-//       }
-
-//       if (attribute === 'class') {
-//         if (literal || resolvedName) {
-//           text += `c.add(${val})`
-//         } else {
-//           text += `null`
-//         }
-//       } else {
-//         if (resolvedName) {
-//           text += `d[s](n,${val})`
-//         }
-//       }
-
-//       return text
-//     }
-
-//     const scriptSrc = (() => {
-//       if (forcedTheme) {
-//         return `!function(){${optimization}${updateDOM(forcedTheme)}}()`
-//       }
-
-//       if (enableSystem) {
-//         return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if('system'===e||(!e&&${defaultSystem})){var t='${MEDIA}',m=window.matchMedia(t);if(m.media!==t||m.matches){${updateDOM(
-//           'dark'
-//         )}}else{${updateDOM('light')}}}else if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(
-//           value ? `x[e]` : 'e',
-//           true
-//         )}}${
-//           !defaultSystem ? `else{` + updateDOM(defaultTheme, false, false) + '}' : ''
-//         }${fallbackColorScheme}}catch(e){}}()`
-//       }
-
-//       return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if(e){${
-//         value ? `var x=${JSON.stringify(value)};` : ''
-//       }${updateDOM(value ? `x[e]` : 'e', true)}}else{${updateDOM(
-//         defaultTheme,
-//         false,
-//         false
-//       )};}${fallbackColorScheme}}catch(t){}}();`
-//     })()
-
-//     return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
-//   },
-//   // Never re-render this component
-//   () => true
-// )
 
 // Helpers
 const getTheme = (key: string, fallback?: string) => {
@@ -398,7 +249,7 @@ const getTheme = (key: string, fallback?: string) => {
   return theme || fallback
 }
 
-const disableAnimation = () => {
+const disableTransition = () => {
   const css = document.createElement('style')
   css.appendChild(
     document.createTextNode(
@@ -420,7 +271,5 @@ const disableAnimation = () => {
 
 const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
   if (!e) e = window.matchMedia(MEDIA)
-  const isDark = e.matches
-  const systemTheme = isDark ? 'dark' : 'light'
-  return systemTheme
+  return e.matches ? 'dark' : 'light'
 }

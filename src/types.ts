@@ -1,4 +1,4 @@
-interface ValueObject {
+export interface ValueObject {
   [themeName: string]: string
 }
 

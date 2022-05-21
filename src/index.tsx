@@ -48,10 +48,12 @@ const Theme: React.FC<ThemeProviderProps> = ({
         rootStyles.current = getComputedStyle(document.documentElement)
       }
 
-      return rootStyles.current.getPropertyValue(
-        // var(--bg) → --bg
-        color.slice(4, -1)
-      )
+      return rootStyles.current
+        .getPropertyValue(
+          // var(--bg) → --bg
+          color.slice(4, -1)
+        )
+        .trim()
     }
 
     // Regular CSS color string

@@ -298,10 +298,10 @@ import { useTheme } from 'next-themes'
 
 // Do NOT use this! It will throw a hydration mismatch error.
 const ThemeSwitch = () => {
-  const { resolvedTheme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
 
   return (
-    <select value={resolvedTheme} onChange={e => setTheme(e.target.value)}>
+    <select value={theme} onChange={e => setTheme(e.target.value)}>
       <option value="system">System</option>
       <option value="dark">Dark</option>
       <option value="light">Light</option>
@@ -320,7 +320,7 @@ import { useTheme } from 'next-themes'
 
 const ThemeSwitch = () => {
   const [mounted, setMounted] = useState(false)
-  const { resolvedTheme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
 
   // useEffect only runs on the client, so now we can safely show the UI
   useEffect(() => {
@@ -332,7 +332,7 @@ const ThemeSwitch = () => {
   }
 
   return (
-    <select value={resolvedTheme} onChange={e => setTheme(e.target.value)}>
+    <select value={theme} onChange={e => setTheme(e.target.value)}>
       <option value="system">System</option>
       <option value="dark">Dark</option>
       <option value="light">Light</option>

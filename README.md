@@ -131,10 +131,10 @@ The [Live Example](https://next-themes-example.vercel.app/) shows next-themes in
 
 ### Use System preference by default
 
-The `defaultTheme` is "light". If you want to respect the System preference instead, set it to "system":
+For versions above v0.0.12, the `defaultTheme` is automatically set to "system", so to use System preference you can simply use:
 
 ```js
-<ThemeProvider defaultTheme="system">
+<ThemeProvider>
 ```
 
 ### Ignore System preference

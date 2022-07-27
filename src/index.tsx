@@ -13,27 +13,54 @@ const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
 const ThemeContext = createContext<UseThemeProps | undefined>(undefined)
-const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
+const defaultContext: UseThemeProps = { setTheme: _ => { }, themes: [] }
 
 export const useTheme = () => useContext(ThemeContext) ?? defaultContext
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
-  const context = useContext(ThemeContext)
-
-  // Ignore nested context providers, just passthrough children
-  if (context) return <Fragment>{props.children}</Fragment>
-  return <Theme {...props} />
-}
-
-const Theme: React.FC<ThemeProviderProps> = ({
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   forcedTheme,
   disableTransitionOnChange = false,
   enableSystem = true,
   enableColorScheme = true,
   storageKey = 'theme',
-  themes = ['light', 'dark'],
+  themes = enableSystem ? ['light', 'dark', 'system'] : ['light', 'dark'],
   defaultTheme = enableSystem ? 'system' : 'light',
   attribute = 'data-theme',
+  value,
+  children,
+  nonce
+}) => {
+  const context = useContext(ThemeContext)
+
+  // Ignore nested context providers, just passthrough children
+  if (context) return <Fragment>{children}</Fragment>
+  return (
+    <Theme
+      forcedTheme={forcedTheme}
+      disableTransitionOnChange={disableTransitionOnChange}
+      enableSystem={enableSystem}
+      enableColorScheme={enableColorScheme}
+      storageKey={storageKey}
+      themes={themes}
+      defaultTheme={defaultTheme}
+      attribute={attribute}
+      value={value}
+      nonce={nonce}
+    >
+      {children}
+    </Theme>
+  )
+}
+
+const Theme: React.FC<ThemeProviderProps> = ({
+  forcedTheme,
+  disableTransitionOnChange,
+  enableSystem,
+  enableColorScheme,
+  storageKey,
+  themes,
+  defaultTheme,
+  attribute,
   value,
   children,
   nonce
@@ -143,24 +170,21 @@ const Theme: React.FC<ThemeProviderProps> = ({
         forcedTheme,
         resolvedTheme: theme === 'system' ? resolvedTheme : theme,
         themes: enableSystem ? [...themes, 'system'] : themes,
-        systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
+        systemTheme: (enableSystem ? resolvedTheme as 'light' | 'dark' : undefined)
       }}
     >
       <ThemeScript
-        {...{
-          forcedTheme,
-          disableTransitionOnChange,
-          enableSystem,
-          enableColorScheme,
-          storageKey,
-          themes,
-          defaultTheme,
-          attribute,
-          value,
-          children,
-          attrs,
-          nonce
-        }}
+        forcedTheme={forcedTheme}
+        disableTransitionOnChange={disableTransitionOnChange}
+        enableSystem={enableSystem}
+        enableColorScheme={enableColorScheme}
+        storageKey={storageKey}
+        themes={themes}
+        defaultTheme={defaultTheme}
+        attribute={attribute}
+        value={value}
+        attrs={attrs}
+        nonce={nonce}
       />
       {children}
     </ThemeContext.Provider>

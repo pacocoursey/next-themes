@@ -1,4 +1,4 @@
-# next-themes ![next-themes minzip package size](https://img.shields.io/bundlephobia/minzip/next-themes) ![Version](https://img.shields.io/npm/v/next-themes.svg?colorB=green)
+# next-themes ![next-themes minzip package size](https://img.shields.io/bundlephobia/minzip/next-themes) [![Version](https://img.shields.io/npm/v/next-themes.svg?colorB=green)](https://www.npmjs.com/package/next-themes)
 
 An abstraction for themes in your Next.js app.
 

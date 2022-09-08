@@ -14,9 +14,18 @@ const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
 const ThemeContext = createContext<UseThemeProps | undefined>(undefined)
-const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
 
-export const useTheme = () => useContext(ThemeContext) ?? defaultContext
+export const useTheme = () => {
+  const context = useContext(ThemeContext)
+  if(typeof context === 'undefined') {
+    const err = new Error('Missing a parent component named <ThemeProvider />')
+    if(Error.captureStackTrace) {
+      Error.captureStackTrace(err, useTheme)
+    }
+    throw err
+  }
+  return context
+}
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
   const context = useContext(ThemeContext)

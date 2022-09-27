@@ -8,6 +8,7 @@ import React, {
   useMemo,
   memo
 } from 'react'
+import type { CSSProperties, HTMLProps } from 'react'
 import type { UseThemeProps, ThemeProviderProps } from './types'
 
 const colorSchemes = ['light', 'dark']
@@ -34,6 +35,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   enableSystem = true,
   enableColorScheme = true,
   storageKey = 'theme',
+  cookieName,
   themes = defaultThemes,
   defaultTheme = enableSystem ? 'system' : 'light',
   attribute = 'data-theme',
@@ -52,6 +54,10 @@ const Theme: React.FC<ThemeProviderProps> = ({
     // If theme is system, resolve it before setting theme
     if (theme === 'system' && enableSystem) {
       resolved = getSystemTheme()
+    }
+
+    if (cookieName) {
+      document.cookie = `${encodeURIComponent(cookieName)}=${encodeURIComponent(resolved)};path=/;max-age=31536000`
     }
 
     const name = value ? value[resolved] : resolved
@@ -305,4 +311,47 @@ const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
   const isDark = e.matches
   const systemTheme = isDark ? 'dark' : 'light'
   return systemTheme
+}
+
+
+let Cookies: {
+  get: (name: string) => string | null;
+}
+try {
+  if (isServer) {
+    Cookies = require('next/dist/client/components/hooks-server').cookies()
+  }
+} catch(e) {
+  console.log(e)
+  Cookies = { get: (_: string) => null }
+}
+
+export const getThemeName = (cookieName: string, defaultTheme = 'light') => Cookies.get(cookieName) || defaultTheme
+
+// Properties for rending <html> on the server in a way that will match client after hydration
+export const getThemeProps = ({
+  attribute = 'data-theme',
+  cookieName,
+  defaultTheme = 'light',
+  enableColorScheme = true,
+  value,
+}: ThemeProviderProps & { cookieName: string }) => {
+  const props: HTMLProps<HTMLHtmlElement> = {}
+
+  const resolved = getThemeName(cookieName, defaultTheme)
+  const name = value ? value[resolved] : resolved
+
+  if (attribute === 'class') {
+    if (name) props.className = name
+  } else {
+    (props as Record<string, string>)[attribute] = name
+  }
+
+  if (enableColorScheme) {
+    const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
+    const colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
+    props.style = { colorScheme } as CSSProperties
+  }
+
+  return props
 }

@@ -6,9 +6,10 @@ import React, {
   useEffect,
   useState,
   useMemo,
-  memo
+  memo,
+  cloneElement
 } from 'react'
-import type { CSSProperties, HTMLProps } from 'react'
+import type { CSSProperties, HTMLProps, ReactElement } from 'react'
 import type { UseThemeProps, ThemeProviderProps } from './types'
 
 const colorSchemes = ['light', 'dark']
@@ -331,11 +332,11 @@ export const getThemeName = (cookieName: string, defaultTheme = 'light') => Cook
 // Properties for rending <html> on the server in a way that will match client after hydration
 export const getThemeProps = ({
   attribute = 'data-theme',
-  cookieName,
+  cookieName = '',
   defaultTheme = 'light',
   enableColorScheme = true,
   value,
-}: ThemeProviderProps & { cookieName: string }) => {
+}: ThemeProviderProps) => {
   const props: HTMLProps<HTMLHtmlElement> = {}
 
   const resolved = getThemeName(cookieName, defaultTheme)
@@ -354,4 +355,14 @@ export const getThemeProps = ({
   }
 
   return props
+}
+
+// Wraps an <html> element on the server to apply themes before reaching the client
+export const ServerThemeProvider: React.FC<ThemeProviderProps> = ({ children, ...props }) => {
+  if (!children || (children as { type: string }).type !== 'html') {
+    throw new Error('<ServerThemeProvider> must contain the <html> element.');
+  }
+  
+  const resolvedProps = getThemeProps(props)
+  return cloneElement(children as ReactElement, resolvedProps)
 }

@@ -1,5 +1,5 @@
 {
-  "name": "next-themes",
+  "name": "@wits/next-themes",
   "version": "0.2.1",
   "main": "./dist/index.js",
   "module": "./dist/index.module.js",
@@ -43,7 +43,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/pacocoursey/next-themes.git"
+    "url": "https://github.com/wits/next-themes.git"
   },
   "prettier": {
     "semi": false,

@@ -327,10 +327,8 @@ try {
   Cookies = { get: (_: string) => null }
 }
 
-export const getThemeName = (cookieName: string, defaultTheme = 'light') => Cookies.get(cookieName) || defaultTheme
-
 // Properties for rending <html> on the server in a way that will match client after hydration
-export const getThemeProps = ({
+const getThemeHtmlProps = ({
   attribute = 'data-theme',
   cookieName = '',
   defaultTheme = 'light',
@@ -339,7 +337,7 @@ export const getThemeProps = ({
 }: ThemeProviderProps) => {
   const props: HTMLProps<HTMLHtmlElement> = {}
 
-  const resolved = getThemeName(cookieName, defaultTheme)
+  const resolved = Cookies.get(cookieName) || defaultTheme
   const name = value ? value[resolved] : resolved
 
   if (attribute === 'class') {
@@ -360,9 +358,9 @@ export const getThemeProps = ({
 // Wraps an <html> element on the server to apply themes before reaching the client
 export const ServerThemeProvider: React.FC<ThemeProviderProps> = ({ children, ...props }) => {
   if (!children || (children as { type: string }).type !== 'html') {
-    throw new Error('<ServerThemeProvider> must contain the <html> element.');
+    throw new Error('<ServerThemeProvider> must contain the <html> element.')
   }
   
-  const resolvedProps = getThemeProps(props)
+  const resolvedProps = getThemeHtmlProps(props)
   return cloneElement(children as ReactElement, resolvedProps)
 }

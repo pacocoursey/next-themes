@@ -9,13 +9,16 @@ import React, {
   memo,
   cloneElement
 } from 'react'
-import type { CSSProperties, HTMLProps, ReactElement } from 'react'
+import type { Context, CSSProperties, HTMLProps, ReactElement } from 'react'
 import type { UseThemeProps, ThemeProviderProps } from './types'
 
 const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
-const ThemeContext = createContext<UseThemeProps | undefined>(undefined)
+let ThemeContext: Context<UseThemeProps | undefined>
+try {
+  ThemeContext = createContext<UseThemeProps | undefined>(undefined)
+} catch (e) {}
 const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
 
 export const useTheme = () => useContext(ThemeContext) ?? defaultContext

@@ -319,11 +319,8 @@ let Cookies: {
   get: (name: string) => string | null;
 }
 try {
-  if (isServer) {
-    Cookies = require('next/dist/client/components/hooks-server').cookies()
-  }
-} catch(e) {
-  console.log(e)
+  if (isServer) Cookies = require('next/headers').cookies()
+} catch(e) { 
   Cookies = { get: (_: string) => null }
 }
 

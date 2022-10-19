@@ -9,7 +9,7 @@ import React, {
   memo,
   cloneElement
 } from 'react'
-import type { Context, CSSProperties, HTMLProps, ReactElement } from 'react'
+import type { Context, CSSProperties, HTMLProps, ReactElement, ReactNodeArray } from 'react'
 import type { UseThemeProps, ThemeProviderProps } from './types'
 
 const colorSchemes = ['light', 'dark']
@@ -327,7 +327,7 @@ try {
   Cookies = { get: (_: string) => null }
 }
 
-// Properties for rending <html> on the server in a way that will match client after hydration
+// Properties for rendering <html> on the server in a way that will match client after hydration
 const getThemeHtmlProps = ({
   attribute = 'data-theme',
   cookieName = '',
@@ -357,7 +357,7 @@ const getThemeHtmlProps = ({
 
 // Wraps an <html> element on the server to apply themes before reaching the client
 export const ServerThemeProvider: React.FC<ThemeProviderProps> = ({ children, ...props }) => {
-  if (!children || (children as { type: string }).type !== 'html') {
+  if (!children || (children as ReactElement).type !== 'html') {
     throw new Error('<ServerThemeProvider> must contain the <html> element.')
   }
   const child = children as ReactElement
@@ -376,6 +376,43 @@ export const ServerThemeProvider: React.FC<ThemeProviderProps> = ({ children, ..
       ...originalStyle,
     }
   }
+
+  let newKids: ReactNodeArray
+  if (!original.children) {
+    newKids = []
+  } else if (!Array.isArray(original.children)) {
+    newKids = [original.children]
+  } else {
+    newKids = [...original.children]
+  }
+  let headIndex = newKids.findIndex(x => x && typeof x === 'object' && (x as ReactElement).type === 'head')
+  let head: ReactElement
+  if (headIndex !== -1) {
+    head = newKids.splice(headIndex, 1)[0] as ReactElement
+  } else {
+    headIndex = 0
+    head = <head />
+  }
+  let headChildren: ReactNodeArray
+  if (!head.props?.children) {
+    headChildren = []
+  } else if (!Array.isArray(head.props.children)) {
+    headChildren = [head.props.children]
+  } else {
+    headChildren = [...head.props.children]
+  }
+  const attrs = !props.value ? (props.themes || defaultThemes) : Object.values(props.value)
+  const defaultTheme = props.enableSystem ? 'system' : 'light'
+  resolved.children = [
+    ...newKids.slice(0, headIndex),
+    cloneElement(head, {
+      children: [
+        ...headChildren,
+        <ThemeScript attrs={attrs} defaultTheme={defaultTheme} {...props} />
+      ]
+    }),
+    ...newKids.slice(headIndex),
+  ]
 
   return cloneElement(child, resolved)
 }

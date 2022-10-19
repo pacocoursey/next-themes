@@ -360,7 +360,22 @@ export const ServerThemeProvider: React.FC<ThemeProviderProps> = ({ children, ..
   if (!children || (children as { type: string }).type !== 'html') {
     throw new Error('<ServerThemeProvider> must contain the <html> element.')
   }
-  
-  const resolvedProps = getThemeHtmlProps(props)
-  return cloneElement(children as ReactElement, resolvedProps)
+  const child = children as ReactElement
+  const original = child.props
+  const resolved = getThemeHtmlProps(props)
+  if (original.className && resolved.className) {
+    resolved.className = `${original.className} ${resolved.className}`
+  }
+  if (original.style && resolved.style) {
+    let originalStyle = original.style
+    if (typeof originalStyle === 'string') {
+      originalStyle = Object.fromEntries(originalStyle.split(/;\s*/).map(x => x.split(/\s*:\s*/)))
+    }
+    resolved.style = {
+      ...resolved.style,
+      ...originalStyle,
+    }
+  }
+
+  return cloneElement(child, resolved)
 }

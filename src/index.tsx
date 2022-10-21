@@ -168,6 +168,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
           enableSystem,
           enableColorScheme,
           storageKey,
+          cookieName,
           themes,
           defaultTheme,
           attribute,
@@ -186,6 +187,7 @@ const ThemeScript = memo(
   ({
     forcedTheme,
     storageKey,
+    cookieName,
     attribute,
     enableSystem,
     enableColorScheme,
@@ -242,6 +244,18 @@ const ThemeScript = memo(
       } else {
         if (resolvedName) {
           text += `d[s](n,${val})`
+        }
+      }
+
+      console.log('oh we might just set')
+      if (cookieName) {
+        if ('document' in globalThis) {
+          document.cookie = `${encodeURIComponent(cookieName)}=${encodeURIComponent(name)};path=/;max-age=31536000`
+        } else {
+          Cookies.set(cookieName, name, {
+            path: '/',
+            maxAge: 31536000,
+          })
         }
       }
 
@@ -320,11 +334,12 @@ const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
 
 let Cookies: {
   get: (name: string) => string | null;
+  set: (name: string, value: unknown, options: Record<string, unknown>) => void;
 }
 try {
   if (isServer) Cookies = require('next/headers').cookies()
 } catch(e) { 
-  Cookies = { get: (_: string) => null }
+  Cookies = { get: (_: string) => null, set: (..._) => null }
 }
 
 // Properties for rendering <html> on the server in a way that will match client after hydration
@@ -385,33 +400,43 @@ export const ServerThemeProvider: React.FC<ThemeProviderProps> = ({ children, ..
   } else {
     newKids = [...original.children]
   }
-  let headIndex = newKids.findIndex(x => x && typeof x === 'object' && (x as ReactElement).type === 'head')
-  let head: ReactElement
-  if (headIndex !== -1) {
-    head = newKids.splice(headIndex, 1)[0] as ReactElement
+  let bodyIndex = newKids.findIndex(x => x && typeof x === 'object' && (x as ReactElement).type === 'body')
+  let body: ReactElement
+  if (bodyIndex !== -1) {
+    body = newKids.splice(bodyIndex, 1)[0] as ReactElement
   } else {
-    headIndex = 0
-    head = <head />
+    bodyIndex = newKids.length
+    body = <body />
   }
-  let headChildren: ReactNodeArray
-  if (!head.props?.children) {
-    headChildren = []
-  } else if (!Array.isArray(head.props.children)) {
-    headChildren = [head.props.children]
+  let bodyChildren: ReactNodeArray
+  if (!body.props?.children) {
+    bodyChildren = []
+  } else if (!Array.isArray(body.props.children)) {
+    bodyChildren = [body.props.children]
   } else {
-    headChildren = [...head.props.children]
+    bodyChildren = [...body.props.children]
   }
   const attrs = !props.value ? (props.themes || defaultThemes) : Object.values(props.value)
-  const defaultTheme = props.enableSystem ? 'system' : 'light'
+  const defaultTheme = props.enableSystem !== false ? 'system' : 'light'
   resolved.children = [
-    ...newKids.slice(0, headIndex),
-    cloneElement(head, {
+    ...newKids.slice(0, bodyIndex),
+    cloneElement(body, {
       children: [
-        ...headChildren,
-        <ThemeScript attrs={attrs} defaultTheme={defaultTheme} {...props} />
+        ...bodyChildren,
+        <ThemeScript {...{
+          attrs,
+          defaultTheme,
+          disableTransitionOnChange: false,
+          enableSystem: true,
+          enableColorScheme: true,
+          storageKey: 'theme',
+          themes: defaultThemes,
+          attribute: 'data-theme',
+          ...props,
+        }} />,
       ]
     }),
-    ...newKids.slice(headIndex),
+    ...newKids.slice(bodyIndex),
   ]
 
   return cloneElement(child, resolved)

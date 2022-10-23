@@ -247,16 +247,8 @@ const ThemeScript = memo(
         }
       }
 
-      console.log('oh we might just set')
-      if (cookieName) {
-        if ('document' in globalThis) {
-          document.cookie = `${encodeURIComponent(cookieName)}=${encodeURIComponent(name)};path=/;max-age=31536000`
-        } else {
-          Cookies.set(cookieName, name, {
-            path: '/',
-            maxAge: 31536000,
-          })
-        }
+      if ((literal || resolvedName) && cookieName) {
+        text += `;document.cookie='${encodeURIComponent(cookieName)}=${encodeURIComponent(name)};path=/;max-age=31536000'`
       }
 
       return text
@@ -334,12 +326,11 @@ const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
 
 let Cookies: {
   get: (name: string) => string | null;
-  set: (name: string, value: unknown, options: Record<string, unknown>) => void;
 }
 try {
   if (isServer) Cookies = require('next/headers').cookies()
 } catch(e) { 
-  Cookies = { get: (_: string) => null, set: (..._) => null }
+  Cookies = { get: (_: string) => null }
 }
 
 // Properties for rendering <html> on the server in a way that will match client after hydration

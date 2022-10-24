@@ -30,7 +30,7 @@ export interface ThemeProviderProps {
   enableColorScheme?: boolean
   /** Key used to store theme setting in localStorage */
   storageKey?: string
-  /** Name used to store active theme as a cookie (for use in React server components). If undefined, no cookies will be set */
+  /** Name used to store active theme as a cookie (for use in React Server Components). If undefined, no cookies will be set */
   cookieName?: string
   /** Default theme name (for v0.0.12 and lower the default was light). If `enableSystem` is false, the default theme is light */
   defaultTheme?: string

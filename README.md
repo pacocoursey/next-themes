@@ -67,6 +67,44 @@ That's it, your Next.js app fully supports dark mode, including System preferenc
 }
 ```
 
+### Server component
+
+If you're using server components (in the `/app` directory), you'll need to modify your root layout slightly to get dark mode working. A simple layout looks like this:
+
+```js
+// app/layout.js
+
+function RootLayout({ children }) {
+  return (
+    <html>
+      <head />
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+To add dark mode, just wrap the `<html>` element in a `ServerThemeProvider`, like this:
+
+```js
+import { ServerThemeProvider } from 'next-themes'
+
+function RootLayout({ children }) {
+  return (
+    <ServerThemeProvider>
+      <html>
+        <head />
+        <body>{children}</body>
+      </html>
+    </ServerThemeProvider>
+  )
+}
+```
+
+> **Note!** This is not a direct replacement for the `<ThemeProvider>`, although it does support the same properties for configuration.
+>
+> If you want to create UI for setting the theme, you should still wrap that UI inside of a `<ThemeProvider>`, and make sure that that component has the `'use client'` directive at the start of its file.
+
 ### useTheme
 
 Your UI will need to know the current theme and be able to change it. The `useTheme` hook provides theme information:

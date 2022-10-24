@@ -368,7 +368,7 @@ export const ServerThemeProvider: React.FC<ThemeProviderProps> = ({ children, ..
   }
   const child = children as ReactElement
   const original = child.props
-  const resolved = getThemeHtmlProps(props)
+  const resolved = getThemeHtmlProps({ cookieName: 'theme', ...props })
   if (original.className && resolved.className) {
     resolved.className = `${original.className} ${resolved.className}`
   }
@@ -421,6 +421,7 @@ export const ServerThemeProvider: React.FC<ThemeProviderProps> = ({ children, ..
           enableSystem: true,
           enableColorScheme: true,
           storageKey: 'theme',
+          cookieName: 'theme',
           themes: defaultThemes,
           attribute: 'data-theme',
           ...props,

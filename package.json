@@ -1,5 +1,5 @@
 {
-  "name": "@wits/next-themes",
+  "name": "next-themes",
   "version": "0.2.7",
   "main": "./dist/index.js",
   "module": "./dist/index.module.js",

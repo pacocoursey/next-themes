@@ -336,7 +336,7 @@ try {
 // Properties for rendering <html> on the server in a way that will match client after hydration
 const getThemeHtmlProps = ({
   attribute = 'data-theme',
-  cookieName = '',
+  cookieName = 'theme',
   defaultTheme = 'light',
   enableColorScheme = true,
   value,
@@ -368,7 +368,7 @@ export const ServerThemeProvider: React.FC<ThemeProviderProps> = ({ children, ..
   }
   const child = children as ReactElement
   const original = child.props
-  const resolved = getThemeHtmlProps({ cookieName: 'theme', ...props })
+  const resolved = getThemeHtmlProps(props)
   if (original.className && resolved.className) {
     resolved.className = `${original.className} ${resolved.className}`
   }

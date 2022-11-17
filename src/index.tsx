@@ -324,14 +324,11 @@ const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
 }
 
 
-let Cookies: {
-  get: (name: string) => string | null;
-}
+let getCookie: ((name: string) => string | null) | undefined
 try {
-  if (isServer) Cookies = require('next/headers').cookies()
-} catch(e) { 
-  Cookies = { get: (_: string) => null }
-}
+  const cookies = require('next/headers').cookies();
+  getCookie = (name: string) => cookies.get(name).value;
+} catch(e) {}
 
 // Properties for rendering <html> on the server in a way that will match client after hydration
 const getThemeHtmlProps = ({
@@ -343,7 +340,7 @@ const getThemeHtmlProps = ({
 }: ThemeProviderProps) => {
   const props: HTMLProps<HTMLHtmlElement> = {}
 
-  const resolved = Cookies.get(cookieName) || defaultTheme
+  const resolved = getCookie?.(cookieName) || defaultTheme
   const name = value ? value[resolved] : resolved
 
   if (attribute === 'class') {

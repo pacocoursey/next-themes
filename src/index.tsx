@@ -336,7 +336,6 @@ const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
   return systemTheme
 }
 
-
 let getCookie: ((name: string) => string | null) | undefined
 try {
   const cookies = require('next/headers').cookies();

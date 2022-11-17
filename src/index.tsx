@@ -31,6 +31,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
   return <Theme {...props} />
 }
 
+let script: (code: string, nonce?: string) => JSX.Element
+try {
+  const _Script = require('next/script');
+  script = (code: string, nonce?: string) => (
+    <_Script strategy='beforeInteractive' nonce={nonce} id='next-themes-script'>{`${code}`}</_Script>
+  )
+} catch(e) {
+  script = (code: string, nonce?: string) => (
+    <script nonce={nonce} dangerouslySetInnerHTML={{ __html: code }} />
+  )
+}
+
 const defaultThemes = ['light', 'dark'];
 
 const Theme: React.FC<ThemeProviderProps> = ({
@@ -278,7 +290,8 @@ const ThemeScript = memo(
       )};}${fallbackColorScheme}}catch(t){}}();`
     })()
 
-    return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
+    // return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
+    return script(scriptSrc, nonce);
   },
   // Never re-render this component
   () => true

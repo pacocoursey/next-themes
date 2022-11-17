@@ -31,6 +31,27 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
   return <Theme {...props} />
 }
 
+let Cookies: {
+  get: (name: string) => { value: string } | null
+}
+try {
+  Cookies = require('next/headers').cookies()
+} catch(e) { 
+  Cookies = { get: (_: string) => null }
+}
+
+let script: (code: string, nonce?: string) => JSX.Element
+try {
+  const _Script = require('next/script');
+  script = (code: string, nonce?: string) => (
+    <_Script beforeInteractive nonce={nonce} id='next-themes-script'>{`${code}`}</_Script>
+  )
+} catch(e) {
+  script = (code: string, nonce?: string) => (
+    <script nonce={nonce} dangerouslySetInnerHTML={{ __html: code }} />
+  )
+}
+
 const defaultThemes = ['light', 'dark'];
 
 const Theme: React.FC<ThemeProviderProps> = ({
@@ -278,7 +299,8 @@ const ThemeScript = memo(
       )};}${fallbackColorScheme}}catch(t){}}();`
     })()
 
-    return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
+    // return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
+    return script(scriptSrc, nonce);
   },
   // Never re-render this component
   () => true
@@ -323,16 +345,6 @@ const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
   return systemTheme
 }
 
-
-let Cookies: {
-  get: (name: string) => string | null;
-}
-try {
-  if (isServer) Cookies = require('next/headers').cookies()
-} catch(e) { 
-  Cookies = { get: (_: string) => null }
-}
-
 // Properties for rendering <html> on the server in a way that will match client after hydration
 const getThemeHtmlProps = ({
   attribute = 'data-theme',
@@ -343,7 +355,7 @@ const getThemeHtmlProps = ({
 }: ThemeProviderProps) => {
   const props: HTMLProps<HTMLHtmlElement> = {}
 
-  const resolved = Cookies.get(cookieName) || defaultTheme
+  const resolved = Cookies.get(cookieName)?.value || defaultTheme
   const name = value ? value[resolved] : resolved
 
   if (attribute === 'class') {

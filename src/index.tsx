@@ -44,7 +44,7 @@ let script: (code: string, nonce?: string) => JSX.Element
 try {
   const _Script = require('next/script');
   script = (code: string, nonce?: string) => (
-    <_Script beforeInteractive nonce={nonce} id='next-themes-script'>{`${code}`}</_Script>
+    <_Script strategy='beforeInteractive' nonce={nonce} id='next-themes-script'>{`${code}`}</_Script>
   )
 } catch(e) {
   script = (code: string, nonce?: string) => (

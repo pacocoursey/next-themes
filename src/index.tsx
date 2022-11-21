@@ -265,12 +265,8 @@ const ThemeScript = memo(
         }
       }
 
-      if (cookieName) {
-        text += `;d.__nextThemesCookie=${JSON.stringify(cookieName)}`;
-      }
-
       if ((literal || resolvedName) && cookieName) {
-        text += `;document.cookie='${encodeURIComponent(cookieName)}=${encodeURIComponent(name)};path=/;max-age=31536000'`
+        text += `;document.cookie=\`${encodeURIComponent(cookieName)}=${name.includes('e') ? `\${encodeURIComponent(${name})}` : encodeURIComponent(name)};path=/;max-age=31536000\``
       }
 
       return text
@@ -282,7 +278,9 @@ const ThemeScript = memo(
       }
 
       if (enableSystem) {
-        return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if('system'===e||(!e&&${defaultSystem})){var t='${MEDIA}',m=window.matchMedia(t);if(m.media!==t||m.matches){${updateDOM(
+        return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');${
+          cookieName ? `d.__nextThemesCookie=${JSON.stringify(cookieName)};` : ''
+        }if('system'===e||(!e&&${defaultSystem})){var t='${MEDIA}',m=window.matchMedia(t);if(m.media!==t||m.matches){${updateDOM(
           'dark'
         )}}else{${updateDOM('light')}}}else if(e){${
           value ? `var x=${JSON.stringify(value)};` : ''

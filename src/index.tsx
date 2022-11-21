@@ -51,7 +51,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   enableSystem = true,
   enableColorScheme = true,
   storageKey = 'theme',
-  cookieName,
+  cookieName: _cookieName,
   themes = defaultThemes,
   defaultTheme = enableSystem ? 'system' : 'light',
   attribute = 'data-theme',
@@ -62,6 +62,12 @@ const Theme: React.FC<ThemeProviderProps> = ({
   const [theme, setThemeState] = useState(() => getTheme(storageKey, defaultTheme))
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
+
+  let cookieName = _cookieName
+  if (!cookieName && 'document' in globalThis) {
+    // @ts-ignore
+    cookieName = globalThis.document.documentElement?.__nextThemesCookie || null;
+  }
 
   const applyTheme = useCallback(theme => {
     let resolved = theme
@@ -180,7 +186,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
           enableSystem,
           enableColorScheme,
           storageKey,
-          cookieName,
+          cookieName: _cookieName,
           themes,
           defaultTheme,
           attribute,
@@ -257,6 +263,10 @@ const ThemeScript = memo(
         if (resolvedName) {
           text += `d[s](n,${val})`
         }
+      }
+
+      if (cookieName) {
+        text += `;d.__nextThemesCookie=${JSON.stringify(cookieName)}`;
       }
 
       if ((literal || resolvedName) && cookieName) {

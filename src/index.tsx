@@ -262,7 +262,7 @@ const ThemeScript = memo(
       )};}${fallbackColorScheme}}catch(t){}}();`
     })()
 
-    return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
+    return <script data-cfasync='false' nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
   },
   // Never re-render this component
   () => true

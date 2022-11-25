@@ -2,6 +2,10 @@ interface ValueObject {
   [themeName: string]: string
 }
 
+interface ScriptAttributeObject {
+  [attributeName: string]: string
+}
+
 export interface UseThemeProps {
   /** List of all available theme names */
   themes: string[]
@@ -38,6 +42,8 @@ export interface ThemeProviderProps {
   value?: ValueObject
   /** Nonce string to pass to the inline script for CSP headers */
   nonce?: string
+  /** Object of attributes and their values to pass to the inline script */
+  scriptAttribute?: ScriptAttributeObject
 
   children?: React.ReactNode
 }

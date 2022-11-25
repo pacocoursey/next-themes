@@ -39,7 +39,8 @@ const Theme: React.FC<ThemeProviderProps> = ({
   attribute = 'data-theme',
   value,
   children,
-  nonce
+  nonce,
+  scriptAttribute
 }) => {
   const [theme, setThemeState] = useState(() => getTheme(storageKey, defaultTheme))
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
@@ -164,7 +165,8 @@ const Theme: React.FC<ThemeProviderProps> = ({
           value,
           children,
           attrs,
-          nonce
+          nonce,
+          scriptAttribute
         }}
       />
       {children}
@@ -182,7 +184,8 @@ const ThemeScript = memo(
     defaultTheme,
     value,
     attrs,
-    nonce
+    nonce,
+    scriptAttribute
   }: ThemeProviderProps & { attrs: string[]; defaultTheme: string }) => {
     const defaultSystem = defaultTheme === 'system'
 
@@ -262,7 +265,7 @@ const ThemeScript = memo(
       )};}${fallbackColorScheme}}catch(t){}}();`
     })()
 
-    return <script data-cfasync='false' nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
+    return <script {...scriptAttribute} nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
   },
   // Never re-render this component
   () => true

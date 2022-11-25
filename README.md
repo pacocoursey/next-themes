@@ -111,7 +111,7 @@ All your theme configuration is passed to ThemeProvider.
 - `value`: Optional mapping of theme name to attribute value
   - value is an `object` where key is the theme name and value is the attribute value ([example](#differing-dom-attribute-and-theme-name))
 - `nonce`: Optional nonce passed to the injected `script` tag, used to allow-list the next-themes script in your CSP
-- `scriptAttribute`: Optional object used to pass custom pair of attributes and their values to the injected `script` ([example](#using-with-cloudflare-rocket-loader))
+- `scriptAttribute`: Optional object used to pass custom pairs of attributes and their values to the injected `script` ([example](#using-with-cloudflare-rocket-loader))
 
 ### useTheme
 
@@ -224,7 +224,7 @@ document.documentElement.getAttribute('data-theme')
 
 ### Using with Cloudflare Rocket Loader
 
-[Rocket Loader](https://developers.cloudflare.com/fundamentals/speed/rocket-loader/) is a Cloudflare optimization that defers the loading of inline and external scripts to prioritizes the website content. Since next-themes relies on a script injection to avoid screen flashing on page load, Rocket Loader breaks this functionality. Individual scripts [can be ignored](https://developers.cloudflare.com/fundamentals/speed/rocket-loader/ignore-javascripts/) by adding the `data-cfasync="false"` attribute to the script tag:
+[Rocket Loader](https://developers.cloudflare.com/fundamentals/speed/rocket-loader/) is a Cloudflare optimization that defers the loading of inline and external scripts to prioritize the website content. Since next-themes relies on a script injection to avoid screen flashing on page load, Rocket Loader breaks this functionality. Individual scripts [can be ignored](https://developers.cloudflare.com/fundamentals/speed/rocket-loader/ignore-javascripts/) by adding the `data-cfasync="false"` attribute to the script tag:
 
 ```js
 <ThemeProvider scriptAttribute={{'data-cfasync': 'false'}}>

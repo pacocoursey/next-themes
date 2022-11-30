@@ -31,18 +31,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
   return <Theme {...props} />
 }
 
-let script: (code: string, nonce?: string) => JSX.Element
-try {
-  const _Script = require('next/script');
-  script = (code: string, nonce?: string) => (
-    <_Script strategy='beforeInteractive' nonce={nonce} id='next-themes-script'>{`${code}`}</_Script>
-  )
-} catch(e) {
-  script = (code: string, nonce?: string) => (
-    <script nonce={nonce} dangerouslySetInnerHTML={{ __html: code }} />
-  )
-}
-
 const defaultThemes = ['light', 'dark'];
 
 const Theme: React.FC<ThemeProviderProps> = ({
@@ -298,8 +286,7 @@ const ThemeScript = memo(
       )};}${fallbackColorScheme}}catch(t){}}();`
     })()
 
-    // return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
-    return script(scriptSrc, nonce);
+    return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
   },
   // Never re-render this component
   () => true
@@ -430,7 +417,6 @@ export const ServerThemeProvider: React.FC<ThemeProviderProps> = ({ children, ..
     ...newKids.slice(0, bodyIndex),
     cloneElement(body, {
       children: [
-        ...bodyChildren,
         <ThemeScript {...{
           attrs,
           defaultTheme,
@@ -443,6 +429,7 @@ export const ServerThemeProvider: React.FC<ThemeProviderProps> = ({ children, ..
           attribute: 'data-theme',
           ...props,
         }} />,
+        ...bodyChildren,
       ]
     }),
     ...newKids.slice(bodyIndex),

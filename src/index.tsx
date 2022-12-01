@@ -333,8 +333,8 @@ const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
 
 let getCookie: ((name: string) => string | null) | undefined
 try {
-  const cookies = require('next/headers').cookies();
-  getCookie = (name: string) => cookies.get(name)?.value;
+  const { cookies } = require('next/headers');
+  getCookie = (name: string) => cookies?.().get(name)?.value;
 } catch(e) {}
 
 // Properties for rendering <html> on the server in a way that will match client after hydration

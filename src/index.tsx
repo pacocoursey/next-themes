@@ -230,7 +230,7 @@ const ThemeScript = memo(
           text += `null`
         }
       } else {
-        if (resolvedName) {
+        if (resolvedName || literal) {
           text += `d[s](n,${val})`
         }
       }

@@ -402,6 +402,41 @@ export default ThemeSwitch
 
 To avoid [Layout Shift](https://web.dev/cls/), consider rendering a skeleton/placeholder until mounted on the client side.
 
+##### useThemeSwitcher
+
+The easiest way without `LayoutShift` problem is simply aplying it with a custom hook like this example:
+
+```js
+import { useState, useEffect } from 'react'
+import { useTheme } from 'next-themes'
+
+const useThemeSwitcher = () => {
+  const [mode, setMode] = useState("");
+  const { theme, setTheme } = useTheme();
+
+  useEffect(() => {
+    setMode(theme);
+  }, [theme]);
+
+  return [mode, setTheme];
+};
+
+const ThemeSwitcher = () => {
+  const [theme, setTheme] = useThemeSwitcher();
+
+  return (
+    <select value={theme} onChange={e => setTheme(e.target.value)}>
+      <option value="system">System</option>
+      <option value="dark">Dark</option>
+      <option value="light">Light</option>
+    </select>
+  )
+}
+
+export default ThemeSwitcher
+
+```
+
 #### Images
 
 Showing different images based on the current theme also suffers from the hydration mismatch problem. With [`next/image`](https://nextjs.org/docs/basic-features/image-optimization) you can use an empty image until the theme is resolved:

@@ -1,0 +1,49 @@
+
+> next-themes@0.2.0 test /Users/maier/00_Projects/next-themes/packages/next-themes
+> jest __tests__
+
+watchman warning:  Recrawled this watch 111 times, most recently because:
+MustScanSubDirs UserDroppedTo resolve, please review the information on
+https://facebook.github.io/watchman/docs/troubleshooting.html#recrawl
+To clear this warning, run:
+`watchman watch-del '/Users/maier/00_Projects/next-themes' ; watchman watch-project '/Users/maier/00_Projects/next-themes'`
+
+PASS __tests__/index.test.tsx
+  defaultTheme
+    ✓ should return system when no default-theme is set (19 ms)
+    ✓ should return light when no default-theme is set and enableSystem=false (6 ms)
+    ✓ should return light when light is set as default-theme (4 ms)
+    ✓ should return dark when dark is set as default-theme (3 ms)
+  provider
+    ✓ ignores nested ThemeProviders (3 ms)
+  storage
+    ✓ should not set localStorage with default value (3 ms)
+    ✓ should set localStorage when switching themes (2 ms)
+  custom storageKey
+    ✓ should save to localStorage with 'theme' key when using default settings (3 ms)
+    ✓ should save to localStorage with 'custom' when setting prop 'storageKey' to 'customKey' (3 ms)
+  custom attribute
+    ✓ should use data-theme attribute when using default (2 ms)
+    ✓ should use class attribute (CSS-class) when attribute="class" (2 ms)
+    ✓ should use "data-example"-attribute when attribute="data-example" (2 ms)
+  custom value-mapping
+    ✓ should use custom value mapping when using value={{pink:"my-pink-theme"}} (2 ms)
+    ✓ should allow missing values (attribute) (2 ms)
+    ✓ should allow missing values (class) (2 ms)
+  forcedTheme
+    ✓ should render saved theme when no forcedTheme is set (4 ms)
+    ✓ should render light theme when forcedTheme is set to light (2 ms)
+  system
+    ✓ resolved theme should be set (2 ms)
+    ✓ system theme should be set, even if theme is not system (1 ms)
+    ✓ system theme should not be set if enableSystem is false (2 ms)
+  color-scheme
+    ✓ does not set color-scheme when disabled (2 ms)
+    ✓ should set color-scheme light when light theme is active (1 ms)
+    ✓ should set color-scheme dark when dark theme is active (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       23 passed, 23 total
+Snapshots:   0 total
+Time:        1.303 s
+Ran all test suites matching /__tests__/i.

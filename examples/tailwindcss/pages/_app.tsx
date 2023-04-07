@@ -1,3 +1,4 @@
+import React from 'react'
 import { ThemeProvider } from 'next-themes'
 import '../styles.css'
 

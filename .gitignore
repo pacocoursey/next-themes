@@ -1,6 +1,4 @@
-.DS_Store
-node_modules/
-dist/
-.next/
-.yalc/
-yalc.lock
+node_modules
+.next
+out
+dist

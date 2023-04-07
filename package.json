@@ -1,20 +1,28 @@
 {
   "name": "next-themes-monorepo",
-  "version": "1.0.0",
+  "version": "0.0.0",
+  "license": "MIT",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
     "start": "turbo run start",
     "test": "turbo run test",
-    "test:e2e": "turbo run test:e2e",
+    "test:e2e": "playwright test",
     "lint": "turbo run lint"
   },
-  "keywords": [],
+  "keywords": [
+    "next",
+    "nextjs",
+    "next.js",
+    "next-themes",
+    "monorepo",
+    "turbo",
+    "playwright"
+  ],
   "author": "",
-  "license": "ISC",
   "devDependencies": {
+    "@playwright/test": "^1.32.2",
     "turbo": "^1.8.8"
   }
 }

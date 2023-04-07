@@ -11,10 +11,14 @@
             ]
         },
         "dev": {
+            "persistent": true,
             "outputs": [
                 ".next/**",
                 "!.next/cache/**"
             ]
+        },
+        "start": {
+            "persistent": true
         },
         "test": {
             "outputs": [

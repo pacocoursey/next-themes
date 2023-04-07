@@ -6,27 +6,14 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Get yarn cache
-        id: yarn-cache
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-
-      - uses: actions/cache@v1
-        with:
-          path: ${{ steps.yarn-cache.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - uses: actions/setup-node@v1
+      - name: Prepare
+        uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: "18.x"
-
-      - name: pnpm install
-        run: pnpm i
+      - run: npm install -g pnpm
+      - run: pnpm install --frozen-lockfile 
         env:
           CI: true
-
-      - name: Run test
+      - name: Run unit-tests
         run: pnpm run test

@@ -1,11 +1,9 @@
-name: E2E - Test
+name: Build
 
 on: push
 
 jobs:
-  test:
-    name: Run Playwright tests
-    timeout-minutes: 5
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Prepare
@@ -15,6 +13,8 @@ jobs:
           node-version: "18.x"
       - run: npm install -g pnpm
       - run: pnpm install --frozen-lockfile
-      - run: npx playwright install --with-deps
-      - name: Run e2e-tests
-        run: pnpm run test:e2e
+        env:
+          CI: true
+
+      - name: Ensure lib & examples build
+        run: pnpm run build

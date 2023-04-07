@@ -1,6 +1,11 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { act, render, screen } from '@testing-library/react'
 import { ThemeProvider, useTheme } from '../src'
 import React, { useEffect } from 'react'
+import { expect, describe, test, beforeAll, beforeEach, jest } from '@jest/globals'
 
 let localStorageMock: { [key: string]: string } = {}
 
@@ -44,9 +49,17 @@ function setDeviceTheme(theme: 'light' | 'dark') {
 
 beforeAll(() => {
   // Create mocks of localStorage getItem and setItem functions
-  global.Storage.prototype.getItem = jest.fn((key: string) => localStorageMock[key])
-  global.Storage.prototype.setItem = jest.fn((key: string, value: string) => {
+  window.localStorage.getItem = jest.fn((key: string) => localStorageMock[key])
+  window.localStorage.setItem = jest.fn((key: string, value: string) => {
     localStorageMock[key] = value
+  })
+  Object.defineProperty(window, 'localStorage', {
+    value: {
+      getItem: jest.fn((key: string) => localStorageMock[key]),
+      setItem: jest.fn((key: string, value: string) => {
+        localStorageMock[key] = value
+      })
+    }
   })
 })
 
@@ -104,7 +117,7 @@ describe('defaultTheme', () => {
 })
 
 describe('provider', () => {
-  it('ignores nested ThemeProviders', () => {
+  test('ignores nested ThemeProviders', () => {
     act(() => {
       render(
         <ThemeProvider defaultTheme="dark">
@@ -129,8 +142,8 @@ describe('storage', () => {
       )
     })
 
-    expect(global.Storage.prototype.setItem).toBeCalledTimes(0)
-    expect(global.Storage.prototype.getItem('theme')).toBeUndefined()
+    expect(window.localStorage.setItem).toBeCalledTimes(0)
+    expect(window.localStorage.getItem('theme')).toBeUndefined()
   })
 
   test('should set localStorage when switching themes', () => {
@@ -142,8 +155,8 @@ describe('storage', () => {
       )
     })
 
-    expect(global.Storage.prototype.setItem).toBeCalledTimes(1)
-    expect(global.Storage.prototype.getItem('theme')).toBe('dark')
+    expect(window.localStorage.setItem).toBeCalledTimes(1)
+    expect(window.localStorage.getItem('theme')).toBe('dark')
   })
 })
 
@@ -157,8 +170,8 @@ describe('custom storageKey', () => {
       )
     })
 
-    expect(global.Storage.prototype.getItem).toHaveBeenCalledWith('theme')
-    expect(global.Storage.prototype.setItem).toHaveBeenCalledWith('theme', 'light')
+    expect(window.localStorage.getItem).toHaveBeenCalledWith('theme')
+    expect(window.localStorage.setItem).toHaveBeenCalledWith('theme', 'light')
   })
 
   test("should save to localStorage with 'custom' when setting prop 'storageKey' to 'customKey'", () => {
@@ -170,8 +183,8 @@ describe('custom storageKey', () => {
       )
     })
 
-    expect(global.Storage.prototype.getItem).toHaveBeenCalledWith('customKey')
-    expect(global.Storage.prototype.setItem).toHaveBeenCalledWith('customKey', 'light')
+    expect(window.localStorage.getItem).toHaveBeenCalledWith('customKey')
+    expect(window.localStorage.setItem).toHaveBeenCalledWith('customKey', 'light')
   })
 })
 
@@ -229,7 +242,7 @@ describe('custom value-mapping', () => {
     })
 
     expect(document.documentElement.getAttribute('data-theme')).toBe('my-pink-theme')
-    expect(global.Storage.prototype.setItem).toHaveBeenCalledWith('theme', 'pink')
+    expect(window.localStorage.setItem).toHaveBeenCalledWith('theme', 'pink')
   })
 
   test('should allow missing values (attribute)', () => {

@@ -18,7 +18,7 @@ const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
 
 export const useTheme = () => useContext(ThemeContext) ?? defaultContext
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
+export const ThemeProvider = (props: ThemeProviderProps) => {
   const context = useContext(ThemeContext)
 
   // Ignore nested context providers, just passthrough children
@@ -28,7 +28,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
 
 const defaultThemes = ['light', 'dark'];
 
-const Theme: React.FC<ThemeProviderProps> = ({
+const Theme = ({
   forcedTheme,
   disableTransitionOnChange = false,
   enableSystem = true,
@@ -40,12 +40,12 @@ const Theme: React.FC<ThemeProviderProps> = ({
   value,
   children,
   nonce
-}) => {
+}: ThemeProviderProps) => {
   const [theme, setThemeState] = useState(() => getTheme(storageKey, defaultTheme))
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
 
-  const applyTheme = useCallback(theme => {
+  const applyTheme = useCallback((theme: string | undefined) => {
     let resolved = theme
     if (!resolved) return
 
@@ -81,7 +81,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   }, [])
 
   const setTheme = useCallback(
-    theme => {
+    (theme: string) => {
       setThemeState(theme)
 
       // Save to storage

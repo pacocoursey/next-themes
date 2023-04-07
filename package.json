@@ -9,7 +9,8 @@
     "start": "turbo run start",
     "test": "turbo run test",
     "test:e2e": "playwright test",
-    "lint": "turbo run lint"
+    "lint": "turbo run lint",
+    "changeset": "changeset"
   },
   "keywords": [
     "next",
@@ -22,6 +23,7 @@
   ],
   "author": "",
   "devDependencies": {
+    "@changesets/cli": "^2.26.1",
     "@playwright/test": "^1.32.2",
     "turbo": "^1.8.8"
   }

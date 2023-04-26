@@ -189,11 +189,9 @@ const ThemeScript = memo(
     // Code-golfing the amount of characters in the script
     const optimization = (() => {
       if (attribute === 'class') {
-        const removeClasses = `c.remove(${JSON.stringify(attrs)})`
-
-        return `var d=document.documentElement,c=d.classList;${removeClasses};`
+        return `var d=document.documentElement,c=d.classList;c.remove(${JSON.stringify(attrs)});`
       } else {
-        return `var d=document.documentElement,n='${attribute}',s='setAttribute';`
+        return `var d=document.documentElement,s='setAttribute',n='${attribute}';`
       }
     })()
 

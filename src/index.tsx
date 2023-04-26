@@ -244,7 +244,7 @@ const ThemeScript = memo(
       }
 
       if (enableSystem) {
-        return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if(e==='system'${defaultSystem ? '||!e' : ''}){var t='${MEDIA}',m=window.matchMedia(t),s=t!==m.media||m.matches?'dark':'light';${updateDOM('s',true)}}else if(e){${
+        return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if(e==='system'${defaultSystem ? '||!e' : ''}){var t='${MEDIA}',m=window.matchMedia(t),x=t!==m.media||m.matches?'dark':'light';${updateDOM('x',true)}}else if(e){${
           value ? `var x=${JSON.stringify(value)};` : ''
         }${updateDOM(value ? `x[e]` : 'e', true)}}${
           !defaultSystem ? `else{` + updateDOM(defaultTheme, false, false) + '}' : ''

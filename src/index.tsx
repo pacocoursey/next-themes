@@ -219,8 +219,8 @@ const ThemeScript = memo(
       // MUCH faster to set colorScheme alongside HTML attribute/class
       // as it only incurs 1 style recalculation rather than 2
       // This can save over 250ms of work for pages with big DOM
-      if (enableColorScheme && setColorScheme && !literal && colorSchemes.includes(name)) {
-        text += `d.style.colorScheme = '${name}';`
+      if (enableColorScheme && setColorScheme) {
+        text += `d.style.colorScheme = ${val};`
       }
 
       if (attribute === 'class') {
@@ -243,21 +243,25 @@ const ThemeScript = memo(
         return `!function(){${optimization}${updateDOM(forcedTheme)}}()`
       }
 
+      const updateDataAttr = `if(e){${value ? `var x=${JSON.stringify(value)};` : ''}${updateDOM(
+        value ? `x[e]` : 'e',
+        true,
+        false
+      )}}`
+      const updateDefaultDataAttr = `else{${updateDOM(defaultTheme, false, false)}}`
+
       if (enableSystem) {
-        return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if(e==='system'${defaultSystem ? '||!e' : ''}){var t='${MEDIA}',m=window.matchMedia(t),x=t!==m.media||m.matches?'dark':'light';${updateDOM('x',true)}}else if(e){${
-          value ? `var x=${JSON.stringify(value)};` : ''
-        }${updateDOM(value ? `x[e]` : 'e', true)}}${
-          !defaultSystem ? `else{` + updateDOM(defaultTheme, false, false) + '}' : ''
+        return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if(e==='system'${
+          defaultSystem ? '||!e' : ''
+        }){var t='${MEDIA}',m=window.matchMedia(t),x=t!==m.media||m.matches?'dark':'light';${updateDOM(
+          'x',
+          true
+        )}}else ${updateDataAttr}${
+          !defaultSystem ? updateDefaultDataAttr : ''
         }${fallbackColorScheme}}catch(e){}}()`
       }
 
-      return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if(e){${
-        value ? `var x=${JSON.stringify(value)};` : ''
-      }${updateDOM(value ? `x[e]` : 'e', true)}}else{${updateDOM(
-        defaultTheme,
-        false,
-        false
-      )};}${fallbackColorScheme}}catch(t){}}();`
+      return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');${updateDataAttr}${updateDefaultDataAttr}${fallbackColorScheme}}catch(t){}}();`
     })()
 
     return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />

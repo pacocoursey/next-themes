@@ -87,14 +87,12 @@ const Theme: React.FC<ThemeProviderProps> = ({
         prevTheme => {
           const _theme = (newTheme instanceof Function) ? newTheme(prevTheme ?? defaultTheme) : prevTheme ?? defaultTheme;
 
-            (async () => {
-              // Save to storage
-              try {
-                localStorage.setItem(storageKey, _theme)
-              } catch (e) {
-                // Unsupported
-              }
-            })()
+          // Save to storage
+          try {
+            localStorage.setItem(storageKey, _theme)
+          } catch (e) {
+            // Unsupported
+          }
 
           return _theme
         }

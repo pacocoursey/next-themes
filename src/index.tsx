@@ -14,7 +14,7 @@ const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
 const ThemeContext = createContext<UseThemeProps | undefined>(undefined)
-const defaultContext: UseThemeProps = { setTheme: _ => { }, themes: [] }
+const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
 
 export const useTheme = () => useContext(ThemeContext) ?? defaultContext
 
@@ -255,17 +255,20 @@ const ThemeScript = memo(
       if (enableSystem) {
         return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if('system'===e||(!e&&${defaultSystem})){var t='${MEDIA}',m=window.matchMedia(t);if(m.media!==t||m.matches){${updateDOM(
           'dark'
-        )}}else{${updateDOM('light')}}}else if(e){${value ? `var x=${JSON.stringify(value)};` : ''
-          }${updateDOM(value ? `x[e]` : 'e', true)}}${!defaultSystem ? `else{` + updateDOM(defaultTheme, false, false) + '}' : ''
-          }${fallbackColorScheme}}catch(e){}}()`
+        )}}else{${updateDOM('light')}}}else if(e){${
+          value ? `var x=${JSON.stringify(value)};` : ''
+        }${updateDOM(value ? `x[e]` : 'e', true)}}${
+          !defaultSystem ? `else{` + updateDOM(defaultTheme, false, false) + '}' : ''
+        }${fallbackColorScheme}}catch(e){}}()`
       }
 
-      return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if(e){${value ? `var x=${JSON.stringify(value)};` : ''
-        }${updateDOM(value ? `x[e]` : 'e', true)}}else{${updateDOM(
-          defaultTheme,
-          false,
-          false
-        )};}${fallbackColorScheme}}catch(t){}}();`
+      return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if(e){${
+        value ? `var x=${JSON.stringify(value)};` : ''
+      }${updateDOM(value ? `x[e]` : 'e', true)}}else{${updateDOM(
+        defaultTheme,
+        false,
+        false
+      )};}${fallbackColorScheme}}catch(t){}}();`
     })()
 
     return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
@@ -297,7 +300,7 @@ const disableAnimation = () => {
 
   return () => {
     // Force restyle
-    ; (() => window.getComputedStyle(document.body))()
+    ;(() => window.getComputedStyle(document.body))()
 
     // Wait for next tick before removing
     setTimeout(() => {

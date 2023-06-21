@@ -13,7 +13,7 @@
     "prepublish": "yarn build",
     "build": "microbundle --jsx React.createElement --compress --no-sourcemap",
     "test": "jest __tests__",
-    "test:e2e": "playwright test"
+    "test:e2e": "yarn playwright test"
   },
   "dependencies": {},
   "peerDependencies": {

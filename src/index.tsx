@@ -85,7 +85,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
 
       setThemeState(
         prevTheme => {
-          const _theme = (newTheme instanceof Function) ? newTheme(prevTheme ?? defaultTheme) : prevTheme ?? defaultTheme;
+          const _theme = (typeof newTheme === 'function') ? newTheme(prevTheme ?? defaultTheme) : prevTheme ?? defaultTheme;
 
           // Save to storage
           try {

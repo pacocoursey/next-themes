@@ -5,8 +5,8 @@ import React, { useEffect } from 'react'
 let localStorageMock: { [key: string]: string } = {}
 
 // HelperComponent to render the theme inside a paragraph-tag and setting a theme via the forceSetTheme prop
-const HelperComponent = ({ forceSetTheme }: { forceSetTheme?: string }) => {
-  const { setTheme, theme, forcedTheme, resolvedTheme, systemTheme } = useTheme()
+function HelperComponent<T extends string = string>({ forceSetTheme }: { forceSetTheme?: T }) {
+  const { setTheme, theme, forcedTheme, resolvedTheme, systemTheme } = useTheme<T>()
 
   useEffect(() => {
     if (forceSetTheme) {

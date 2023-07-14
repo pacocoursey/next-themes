@@ -1,27 +1,25 @@
-interface ValueObject {
-  [themeName: string]: string
-}
+type ValueObject<T extends string = string> = { [Key in T]?: string }
 
-export interface UseThemeProps {
+export interface UseThemeProps<T extends string = string> {
   /** List of all available theme names */
-  themes: string[]
+  themes: T[]
   /** Forced theme name for the current page */
-  forcedTheme?: string
+  forcedTheme?: T
   /** Update the theme */
   setTheme: (theme: string) => void
   /** Active theme name */
-  theme?: string
+  theme?: T
   /** If `enableSystem` is true and the active theme is "system", this returns whether the system preference resolved to "dark" or "light". Otherwise, identical to `theme` */
-  resolvedTheme?: string
+  resolvedTheme?: T
   /** If enableSystem is true, returns the System theme preference ("dark" or "light"), regardless what the active theme is */
   systemTheme?: 'dark' | 'light'
 }
 
-export interface ThemeProviderProps {
+export interface ThemeProviderProps<T extends string = string> {
   /** List of all available theme names */
-  themes?: string[]
+  themes?: T[]
   /** Forced theme name for the current page */
-  forcedTheme?: string
+  forcedTheme?: T
   /** Whether to switch between dark and light themes based on prefers-color-scheme */
   enableSystem?: boolean
   /** Disable all CSS transitions when switching themes */
@@ -35,7 +33,7 @@ export interface ThemeProviderProps {
   /** HTML attribute modified based on the active theme. Accepts `class` and `data-*` (meaning any data attribute, `data-mode`, `data-color`, etc.) */
   attribute?: string | 'class'
   /** Mapping of theme name to HTML attribute value. Object where key is the theme name and value is the attribute value */
-  value?: ValueObject
+  value?: ValueObject<T>
   /** Nonce string to pass to the inline script for CSP headers */
   nonce?: string
 

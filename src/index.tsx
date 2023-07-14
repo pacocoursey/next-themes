@@ -16,9 +16,11 @@ const isServer = typeof window === 'undefined'
 const ThemeContext = createContext<UseThemeProps | undefined>(undefined)
 const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
 
-export const useTheme = () => useContext(ThemeContext) ?? defaultContext
+export function useTheme<T extends string = string>(): UseThemeProps<T> {
+  return (useContext(ThemeContext) ?? defaultContext) as UseThemeProps<T>
+}
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
+export function ThemeProvider<T extends string = string>(props: ThemeProviderProps<T>) {
   const context = useContext(ThemeContext)
 
   // Ignore nested context providers, just passthrough children
@@ -26,7 +28,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
   return <Theme {...props} />
 }
 
-const defaultThemes = ['light', 'dark'];
+const defaultThemes = ['light', 'dark']
 
 const Theme: React.FC<ThemeProviderProps> = ({
   forcedTheme,
@@ -43,7 +45,10 @@ const Theme: React.FC<ThemeProviderProps> = ({
 }) => {
   const [theme, setThemeState] = useState(() => getTheme(storageKey, defaultTheme))
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
-  const attrs = !value ? themes : Object.values(value)
+  // The typings for the valueObject allow to pass undefined, which in fact makes
+  // the document element to be added an undefined class which is not ideal, so we are filtering them
+  // Types could be improved to avoid allowing that?
+  const attrs = !value ? themes : (Object.values(value).filter(str => str) as string[])
 
   const applyTheme = useCallback(theme => {
     let resolved = theme
@@ -138,19 +143,20 @@ const Theme: React.FC<ThemeProviderProps> = ({
     applyTheme(forcedTheme ?? theme)
   }, [forcedTheme, theme])
 
-  const providerValue = useMemo(() => ({
-    theme,
-    setTheme,
-    forcedTheme,
-    resolvedTheme: theme === 'system' ? resolvedTheme : theme,
-    themes: enableSystem ? [...themes, 'system'] : themes,
-    systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
-  }), [theme, setTheme, forcedTheme, resolvedTheme, enableSystem, themes]);
+  const providerValue = useMemo(
+    () => ({
+      theme,
+      setTheme,
+      forcedTheme,
+      resolvedTheme: theme === 'system' ? resolvedTheme : theme,
+      themes: enableSystem ? [...themes, 'system'] : themes,
+      systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
+    }),
+    [theme, setTheme, forcedTheme, resolvedTheme, enableSystem, themes]
+  )
 
   return (
-    <ThemeContext.Provider
-      value={providerValue}
-    >
+    <ThemeContext.Provider value={providerValue}>
       <ThemeScript
         {...{
           forcedTheme,

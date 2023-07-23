@@ -12,6 +12,7 @@ An abstraction for themes in your Next.js app.
 - ✅ Force pages to specific themes
 - ✅ Class or data attribute selector
 - ✅ `useTheme` hook
+- ✅ No hydration error in AppDir
 
 Check out the [Live Example](https://next-themes-example.vercel.app/) to try it for yourself.
 
@@ -80,9 +81,10 @@ Adding dark mode support still only takes a few lines of code. Start by creating
 'use client'
 
 import { ThemeProvider } from 'next-themes'
+import type { ThemeProviderProps } from "next-themes/dist/types";
 
-export function Providers({ children }) {
-  return <ThemeProvider>{children}</ThemeProvider>
+export function Providers({ children, ...props }: ThemeProviderProps) {
+  return <ThemeProvider {...props}>{children}</ThemeProvider>
 }
 ```
 
@@ -94,18 +96,38 @@ Then add the `<Providers>` component to your layout _inside_ of the `<body>`.
 import { Providers } from './providers'
 
 export default function Layout({ children }) {
+  // just add it as it is
+  const storageKey = "theme";
+  const cookieStore = cookies();
+  let myTheme = cookieStore.get(storageKey)?.value;
+  const attributeType = cookieStore.get("attributeType")?.value;
+  myTheme = myTheme || "light";
+
   return (
-    <html suppressHydrationWarning>
+    <html
+      lang="en"
+      data-theme={myTheme}
+      style={{ colorScheme: myTheme }}
+      className={`${attributeType || ""}`}
+    >
       <head />
       <body>
-        <Providers>{children}</Providers>
+        <Providers
+          defaultTheme={myTheme}
+          storageKey={storageKey}
+          // ...some more props
+        >
+          {children}
+        </Providers>
       </body>
     </html>
   )
 }
 ```
 
-> **Note!** If you do not add [suppressHydrationWarning](https://reactjs.org/docs/dom-elements.html#suppresshydrationwarning:~:text=It%20only%20works%20one%20level%20deep) to your `<html>` you will get warnings because `next-themes` updates that element. This property only applies one level deep, so it won't block hydration warnings on other elements.
+> <del>**Note!** If you do not add [suppressHydrationWarning](https://reactjs.org/docs/dom-elements.html#suppresshydrationwarning:~:text=It%20only%20works%20one%20level%20deep) to your `<html>` you will get warnings because `next-themes` updates that element. This property only applies one level deep, so it won't block hydration warnings on other elements.</del>
+
+> suppressHydrationWarning is not required any more! Also using theme from useTheme hook will also not cause hydration error.
 
 ### HTML & CSS
 

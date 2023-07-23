@@ -8,6 +8,7 @@ import React, {
   useMemo,
   memo
 } from 'react'
+import {cookieManager} from "./cookie-helper"
 import type { UseThemeProps, ThemeProviderProps } from './types'
 
 const colorSchemes = ['light', 'dark']
@@ -87,6 +88,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
       // Save to storage
       try {
         localStorage.setItem(storageKey, theme)
+        cookieManager.setCookie(storageKey, theme || defaultTheme);
       } catch (e) {
         // Unsupported
       }
@@ -105,6 +107,15 @@ const Theme: React.FC<ThemeProviderProps> = ({
     },
     [theme, forcedTheme]
   )
+
+  useEffect(() => {
+    cookieManager.setCookie("attribute", attribute);
+  }, [attribute])
+
+  useEffect(() => {
+    if (!cookieManager.getCookie(storageKey))
+      cookieManager.setCookie(storageKey, theme || defaultTheme);
+  }, [])
 
   // Always listen to System preference
   useEffect(() => {
@@ -146,6 +157,8 @@ const Theme: React.FC<ThemeProviderProps> = ({
     themes: enableSystem ? [...themes, 'system'] : themes,
     systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
   }), [theme, setTheme, forcedTheme, resolvedTheme, enableSystem, themes]);
+
+  if (!theme) setTheme(defaultTheme);
 
   return (
     <ThemeContext.Provider

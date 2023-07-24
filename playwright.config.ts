@@ -6,7 +6,7 @@ const config: PlaywrightTestConfig = {
   reporter: process.env.CI ? 'github' : 'list',
   testDir: './e2e',
   webServer: {
-    command: 'yarn run start --filter=with-tailwindcss...',
+    command: 'yarn run start --filter=example...',
     port: 3000,
     reuseExistingServer: !process.env.CI,
     stdout: 'ignore',
@@ -15,7 +15,7 @@ const config: PlaywrightTestConfig = {
   },
   use: {
     trace: 'on-first-retry',
-    baseURL: process.env.CI ? process.env.BASE_URL : 'http://localhost:3000'
+    baseURL: 'http://localhost:3000'
   },
   projects: [
     {

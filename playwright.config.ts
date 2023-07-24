@@ -10,7 +10,8 @@ const config: PlaywrightTestConfig = {
     port: 3000,
     reuseExistingServer: !process.env.CI,
     stdout: 'ignore',
-    stderr: 'pipe'
+    stderr: 'pipe',
+    timeout: 120 * 1000
   },
   use: {
     trace: 'on-first-retry',

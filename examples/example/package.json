@@ -5,7 +5,7 @@
   "license": "MIT",
   "dependencies": {
     "next": "^12.1.6",
-    "next-themes": "beta",
+    "next-themes": "*",
     "react": "^18.1.0",
     "react-dom": "^18.1.0"
   }

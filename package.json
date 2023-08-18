@@ -1,7 +1,6 @@
 {
   "name": "next-themes",
   "private": true,
-  "version": "0.2.0",
   "workspaces": [
     "packages/*",
     "examples/*"
@@ -14,11 +13,10 @@
     "test": "turbo test",
     "test:e2e": "yarn playwright test"
   },
-  "dependencies": {},
   "devDependencies": {
     "@playwright/test": "^1.21.1",
     "prettier": "^2.2.1",
-    "turbo": "^1.10.9"
+    "turbo": "^1.10.12"
   },
   "repository": {
     "type": "git",

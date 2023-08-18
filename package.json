@@ -1,10 +1,6 @@
 {
   "name": "root",
   "private": true,
-  "workspaces": [
-    "packages/*",
-    "examples/*"
-  ],
   "scripts": {
     "prepublish": "yarn build --filter=next-themes",
     "build": "turbo build",

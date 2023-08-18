@@ -18,5 +18,10 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/pacocoursey/next-themes.git"
-  }
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=8"
+  },
+  "packageManager": "pnpm@8.6.3"
 }

@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '18'
-      - run: yarn
+      - run: pnpm
       - run: npx playwright install --with-deps
       - name: Run tests
-        run: yarn test:e2e
+        run: pnpm test:e2e

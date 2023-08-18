@@ -8,7 +8,7 @@ export interface UseThemeProps {
   /** Forced theme name for the current page */
   forcedTheme?: string | undefined
   /** Update the theme */
-  setTheme: (theme: string) => void
+  setTheme: React.Dispatch<React.SetStateAction<string>>
   /** Active theme name */
   theme?: string | undefined
   /** If `enableSystem` is true and the active theme is "system", this returns whether the system preference resolved to "dark" or "light". Otherwise, identical to `theme` */

@@ -10,7 +10,7 @@ const Index = () => {
   return (
     <div>
       <h1>next-themes Example</h1>
-      <select value={theme} onChange={e => setTheme(e.target.value)} data-test-id='theme-selector'>
+      <select value={theme} onChange={e => setTheme(e.target.value)} data-test-id="theme-selector">
         <option value="system">System</option>
         {mounted && (
           <>

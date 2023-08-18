@@ -11,7 +11,8 @@
     "start": "turbo start",
     "dev": "turbo dev",
     "test": "turbo test",
-    "test:e2e": "yarn playwright test"
+    "test:e2e": "yarn playwright test",
+    "lint": "prettier . --write"
   },
   "devDependencies": {
     "@playwright/test": "^1.21.1",

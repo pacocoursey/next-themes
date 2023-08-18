@@ -82,19 +82,15 @@ const Theme: React.FC<ThemeProviderProps> = ({
 
   const setTheme = useCallback(
     theme => {
-      setThemeState(prevTheme => {
-        const currentTheme = prevTheme ?? defaultTheme
-        const newTheme = typeof theme === 'function' ? theme(currentTheme) : currentTheme
+      const newTheme = typeof theme === 'function' ? theme(theme) : theme
+      setThemeState(newTheme)
 
-        // Save to storage
-        try {
-          localStorage.setItem(storageKey, newTheme)
-        } catch (e) {
-          // Unsupported
-        }
-
-        return newTheme
-      })
+      // Save to storage
+      try {
+        localStorage.setItem(storageKey, newTheme)
+      } catch (e) {
+        // Unsupported
+      }
     },
     [forcedTheme]
   )

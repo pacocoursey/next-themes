@@ -26,7 +26,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
   return <Theme {...props} />
 }
 
-const defaultThemes = ['light', 'dark'];
+const defaultThemes = ['light', 'dark']
 
 const Theme: React.FC<ThemeProviderProps> = ({
   forcedTheme,
@@ -82,14 +82,19 @@ const Theme: React.FC<ThemeProviderProps> = ({
 
   const setTheme = useCallback(
     theme => {
-      setThemeState(theme)
+      setThemeState(prevTheme => {
+        const currentTheme = prevTheme ?? defaultTheme
+        const newTheme = typeof theme === 'function' ? theme(currentTheme) : currentTheme
 
-      // Save to storage
-      try {
-        localStorage.setItem(storageKey, theme)
-      } catch (e) {
-        // Unsupported
-      }
+        // Save to storage
+        try {
+          localStorage.setItem(storageKey, newTheme)
+        } catch (e) {
+          // Unsupported
+        }
+
+        return newTheme
+      })
     },
     [forcedTheme]
   )
@@ -138,19 +143,20 @@ const Theme: React.FC<ThemeProviderProps> = ({
     applyTheme(forcedTheme ?? theme)
   }, [forcedTheme, theme])
 
-  const providerValue = useMemo(() => ({
-    theme,
-    setTheme,
-    forcedTheme,
-    resolvedTheme: theme === 'system' ? resolvedTheme : theme,
-    themes: enableSystem ? [...themes, 'system'] : themes,
-    systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
-  }), [theme, setTheme, forcedTheme, resolvedTheme, enableSystem, themes]);
+  const providerValue = useMemo(
+    () => ({
+      theme,
+      setTheme,
+      forcedTheme,
+      resolvedTheme: theme === 'system' ? resolvedTheme : theme,
+      themes: enableSystem ? [...themes, 'system'] : themes,
+      systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
+    }),
+    [theme, setTheme, forcedTheme, resolvedTheme, enableSystem, themes]
+  )
 
   return (
-    <ThemeContext.Provider
-      value={providerValue}
-    >
+    <ThemeContext.Provider value={providerValue}>
       <ThemeScript
         {...{
           forcedTheme,

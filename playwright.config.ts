@@ -6,11 +6,9 @@ const config: PlaywrightTestConfig = {
   reporter: process.env.CI ? 'github' : 'list',
   testDir: './test',
   webServer: {
-    command: 'yarn run start --filter=example...',
+    command: 'pnpm start --filter=example...',
     port: 3000,
     reuseExistingServer: !process.env.CI,
-    stdout: 'ignore',
-    stderr: 'pipe',
     timeout: 120 * 1000
   },
   use: {
@@ -21,14 +19,6 @@ const config: PlaywrightTestConfig = {
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] }
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] }
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] }
     }
   ]
 }

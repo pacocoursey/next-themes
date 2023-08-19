@@ -8,15 +8,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - uses: pnpm/action-setup@v2
         with:
           version: 8
+
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
           cache: 'pnpm'
+
       - run: pnpm install
         env:
           CI: true
+
       - name: Run tests
         run: pnpm test

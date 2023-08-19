@@ -1,5 +1,4 @@
 {
-  "name": "root",
   "private": true,
   "scripts": {
     "prepublish": "pnpm build --filter=next-themes",

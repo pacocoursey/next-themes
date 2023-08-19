@@ -4,18 +4,19 @@ on: push
 
 jobs:
   test:
+    name: Run Unit Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v3
         with:
           node-version: 18.x
-
-      - name: pnpm install
-        run: pnpm
+          cache: 'pnpm'
+      - run: pnpm install
         env:
           CI: true
-
-      - name: Run test
+      - name: Run tests
         run: pnpm test

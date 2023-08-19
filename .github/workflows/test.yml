@@ -4,29 +4,23 @@ on: push
 
 jobs:
   test:
+    name: Run Unit Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Get yarn cache
-        id: yarn-cache
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-
-      - uses: actions/cache@v1
+      - uses: pnpm/action-setup@v2
         with:
-          path: ${{ steps.yarn-cache.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+          version: 8
 
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: 18.x
+          cache: 'pnpm'
 
-      - name: yarn install
-        run: yarn
+      - run: pnpm install
         env:
           CI: true
 
-      - name: Run test
-        run: yarn test
+      - name: Run tests
+        run: pnpm test

@@ -1,27 +1,26 @@
 {
-  "name": "next-themes",
   "private": true,
-  "version": "0.2.0",
-  "workspaces": [
-    "packages/*",
-    "examples/*"
-  ],
   "scripts": {
-    "prepublish": "yarn build --filter=next-themes",
+    "prepublish": "pnpm build --filter=next-themes",
     "build": "turbo build",
     "start": "turbo start",
     "dev": "turbo dev",
     "test": "turbo test",
-    "test:e2e": "yarn playwright test"
+    "test:e2e": "pnpm playwright test",
+    "lint": "prettier . --write"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@playwright/test": "^1.21.1",
+    "@playwright/test": "^1.37.1",
     "prettier": "^2.2.1",
-    "turbo": "^1.10.9"
+    "turbo": "^1.10.12"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/pacocoursey/next-themes.git"
-  }
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=8"
+  },
+  "packageManager": "pnpm@8.6.3"
 }

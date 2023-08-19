@@ -19,6 +19,6 @@ jobs:
       - run: pnpm install
         env:
           CI: true
-      - run: pnpm exec playwright install --with-deps
+      - run: npx playwright install --with-deps
       - name: Run tests
         run: pnpm test:e2e

@@ -7,7 +7,12 @@ export interface UseThemeProps {
   themes: string[]
   /** Update the theme */
   setTheme: React.Dispatch<React.SetStateAction<string>>
-  /** Active theme name */
+  /** Active theme name
+   * 'system' is a special theme name that indicates the theme should be based on the user's system preference
+   * 'system' is only returned if `enableSystem` is `true` (which is the default)
+   * 'forced' is a special theme name that indicates that a theme was passed using the `forcedTheme` prop.
+   * The forced theme value can be accessed using the `resolvedTheme` property.
+   */
   theme?: string
   /**
    * If `enableSystem` is true and the active theme is "system", this returns whether the system preference resolved to "dark" or "light".

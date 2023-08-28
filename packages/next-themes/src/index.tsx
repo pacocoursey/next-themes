@@ -17,13 +17,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
   return <Theme {...props} />
 }
 
+const defaultThemes = ['light', 'dark']
+
 const Theme: React.FC<ThemeProviderProps> = ({
   forcedTheme,
   disableTransitionOnChange = false,
   enableSystem = true,
   enableColorScheme = true,
   storageKey = 'theme',
-  themes = ['light', 'dark'],
+  themes = defaultThemes,
   defaultTheme = enableSystem ? 'system' : 'light',
   attribute = 'data-theme',
   value,
@@ -211,6 +213,18 @@ const Theme: React.FC<ThemeProviderProps> = ({
 
     applyTheme(forcedTheme ?? theme)
   }, [forcedTheme, theme])
+
+  const providerValue = React.useMemo(
+    () => ({
+      theme,
+      setTheme,
+      forcedTheme,
+      resolvedTheme: theme === 'system' ? resolvedTheme : theme,
+      themes: enableSystem ? [...themes, 'system'] : themes,
+      systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
+    }),
+    [theme, setTheme, forcedTheme, resolvedTheme, enableSystem, themes]
+  )
 
   return (
     <ThemeContext.Provider

@@ -6,7 +6,7 @@ export interface UseThemeProps {
   /** List of all available theme names */
   themes: string[]
   /** Update the theme */
-  setTheme: (theme: string) => void
+  setTheme: React.Dispatch<React.SetStateAction<string>>
   /** Active theme name */
   theme?: string
   /**
@@ -16,32 +16,32 @@ export interface UseThemeProps {
    */
   resolvedTheme?: string
   /** If enableSystem is true, returns the System theme preference ("dark" or "light"), regardless what the active theme is */
-  systemTheme?: 'dark' | 'light'
+  systemTheme?: 'dark' | 'light' | undefined
 }
 
 export interface ThemeProviderProps {
   /** List of all available theme names */
-  themes?: string[]
+  themes?: string[] | undefined
   /** Forced theme name for the current page */
-  forcedTheme?: string
+  forcedTheme?: string | undefined
   /** Whether to switch between dark and light themes based on prefers-color-scheme */
-  enableSystem?: boolean
+  enableSystem?: boolean | undefined
   /** Disable all CSS transitions when switching themes */
-  disableTransitionOnChange?: boolean
+  disableTransitionOnChange?: boolean | undefined
   /** Whether to indicate to browsers which color scheme is used (dark or light) for built-in UI like inputs and buttons */
-  enableColorScheme?: boolean
+  enableColorScheme?: boolean | undefined
   /** Key used to store theme setting in localStorage */
-  storageKey?: string
+  storageKey?: string | undefined
   /** Default theme name (for v0.0.12 and lower the default was light). If `enableSystem` is false, the default theme is light */
-  defaultTheme?: string
+  defaultTheme?: string | undefined
   /** HTML attribute modified based on the active theme. Accepts `class` and `data-*` (meaning any data attribute, `data-mode`, `data-color`, etc.) */
-  attribute?: string | 'class'
+  attribute?: string | 'class' | undefined
   /** Mapping of theme name to HTML attribute value. Object where key is the theme name and value is the attribute value */
   value?: ValueObject
   /** Mapping of theme name to theme-color meta tag. CSS color string, or object where key is the theme name and value is the meta tag value */
   themeColor?: string | ValueObject
   /** Nonce string to pass to the inline script for CSP headers */
-  nonce?: string
+  nonce?: string | undefined
 
   children?: React.ReactNode
 }

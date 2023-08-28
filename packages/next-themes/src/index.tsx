@@ -219,7 +219,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
       theme,
       setTheme,
       forcedTheme,
-      resolvedTheme: theme === 'system' ? resolvedTheme : theme,
+      resolvedTheme: forcedTheme ?? theme === 'system' ? resolvedTheme : theme,
       themes: enableSystem ? [...themes, 'system'] : themes,
       systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
     }),

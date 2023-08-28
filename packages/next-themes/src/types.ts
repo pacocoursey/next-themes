@@ -20,6 +20,9 @@ export interface UseThemeProps {
    * Otherwise, identical to `theme`.
    */
   resolvedTheme?: string
+  /** Forced theme name for the current page */
+  forcedTheme?: string | undefined
+  /** Update the theme */
   /** If enableSystem is true, returns the System theme preference ("dark" or "light"), regardless what the active theme is */
   systemTheme?: 'dark' | 'light' | undefined
 }

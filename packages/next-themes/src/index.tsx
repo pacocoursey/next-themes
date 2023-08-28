@@ -142,12 +142,15 @@ const Theme: React.FC<ThemeProviderProps> = ({
 
   const setTheme = React.useCallback(
     theme => {
-      setThemeState(theme)
+      const newTheme = typeof theme === 'function' ? theme(theme) : theme
+      setThemeState(newTheme)
+
       // When a theme is forced it should not be possible to override it.
       if (forcedTheme) return
+
       // Save to storage
       try {
-        localStorage.setItem(storageKey, theme)
+        localStorage.setItem(storageKey, newTheme)
       } catch (e) {
         // Unsupported
       }

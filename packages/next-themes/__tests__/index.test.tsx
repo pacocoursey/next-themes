@@ -282,7 +282,7 @@ describe('forcedTheme', () => {
       )
     })
 
-    expect(screen.getByTestId('theme').textContent).toBe('dark')
+    expect(screen.getByTestId('theme').textContent).toBe('forced')
     expect(screen.getByTestId('forcedTheme').textContent).toBe('light')
   })
 })

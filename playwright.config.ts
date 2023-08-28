@@ -1,28 +1,26 @@
-import { PlaywrightTestConfig, devices } from '@playwright/test';
+import { PlaywrightTestConfig, devices } from '@playwright/test'
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? 'github' : 'list',
-  testDir: './e2e',
+  testDir: './test',
+  webServer: {
+    command: 'pnpm start --filter=example...',
+    port: 3000,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000
+  },
   use: {
     trace: 'on-first-retry',
-    baseURL: process.env.CI ? process.env.BASE_URL : 'http://localhost:3000',
+    baseURL: 'http://localhost:3000'
   },
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-  ],
-};
+      use: { ...devices['Desktop Chrome'] }
+    }
+  ]
+}
 
-export default config;
+export default config

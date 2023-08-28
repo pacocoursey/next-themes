@@ -1,10 +1,11 @@
-# next-themes ![next-themes minzip package size](https://img.shields.io/bundlephobia/minzip/next-themes/beta) ![Version](https://img.shields.io/npm/v/next-themes/beta.svg?colorB=green)
+# next-themes ![next-themes minzip package size](https://img.shields.io/bundlephobia/minzip/next-themes) [![Version](https://img.shields.io/npm/v/next-themes.svg?colorB=green)](https://www.npmjs.com/package/next-themes)
 
 An abstraction for themes in your Next.js app.
 
 - ✅ Perfect dark mode in 2 lines of code
 - ✅ System setting with prefers-color-scheme
 - ✅ Themed browser UI with color-scheme
+- ✅ Support for Next.js 13 `appDir`
 - ✅ No flash on load (both SSR and SSG)
 - ✅ Sync theme across tabs and windows
 - ✅ Disable flashing when changing themes
@@ -23,6 +24,8 @@ $ yarn add next-themes
 ```
 
 ## Use
+
+### With pages/
 
 You'll need a [Custom `App`](https://nextjs.org/docs/advanced-features/custom-app) to use next-themes. The simplest `_app` looks like this:
 
@@ -52,6 +55,60 @@ function MyApp({ Component, pageProps }) {
 export default MyApp
 ```
 
+### With app/
+
+You'll need to update your `app/layout.jsx` to use next-themes. The simplest `layout` looks like this:
+
+```js
+// app/layout.jsx
+
+export default function Layout({ children }) {
+  return (
+    <html>
+      <head />
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+Adding dark mode support still only takes a few lines of code. Start by creating a new [providers component](https://beta.nextjs.org/docs/rendering/server-and-client-components#rendering-third-party-context-providers-in-server-components) in its own file:
+
+```js
+// app/providers.jsx
+
+'use client'
+
+import { ThemeProvider } from 'next-themes'
+
+export function Providers({ children }) {
+  return <ThemeProvider>{children}</ThemeProvider>
+}
+```
+
+Then add the `<Providers>` component to your layout _inside_ of the `<body>`.
+
+```js
+// app/layout.jsx
+
+import { Providers } from './providers'
+
+export default function Layout({ children }) {
+  return (
+    <html suppressHydrationWarning>
+      <head />
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  )
+}
+```
+
+> **Note!** If you do not add [suppressHydrationWarning](https://reactjs.org/docs/dom-elements.html#suppresshydrationwarning:~:text=It%20only%20works%20one%20level%20deep) to your `<html>` you will get warnings because `next-themes` updates that element. This property only applies one level deep, so it won't block hydration warnings on other elements.
+
+### HTML & CSS
+
 That's it, your Next.js app fully supports dark mode, including System preference with `prefers-color-scheme`. The theme is also immediately synced between tabs. By default, next-themes modifies the `data-theme` attribute on the `html` element, which you can easily use to style your app:
 
 ```css
@@ -66,6 +123,8 @@ That's it, your Next.js app fully supports dark mode, including System preferenc
   --foreground: white;
 }
 ```
+
+> **Note!** If you set the attribute of your Theme Provider to class for Tailwind next-themes will modify the `class` attribute on the `html` element. See [With Tailwind](###with-tailwind).
 
 ### useTheme
 
@@ -118,12 +177,12 @@ useTheme takes no parameters, but returns:
 
 - `theme`: Active theme name
 - `setTheme(name)`: Function to update the theme
-- `forcedTheme`: Forced page theme or falsy. If `forcedTheme` is set, you should disable any theme switching UI
 - `resolvedTheme`: Returns the effective theme color of the page.
   - If `enableSystem` is true and the active theme is "system", this returns whether the system preference resolved to "dark" or "light".
   - If `forcedTheme` is set, the name of the forced theme is returned.
   - Otherwise identical to `theme`.
 - `systemTheme`: If `enableSystem` is true, represents the System theme preference ("dark" or "light"), regardless what the active theme is
+- `forcedTheme`: Forced page theme or falsy. If `forcedTheme` is set, you should disable any theme switching UI
 - `themes`: The list of themes passed to `ThemeProvider` (with "system" appended, if `enableSystem` is true)
 
 Not too bad, right? Let's see how to use these properties with examples:
@@ -134,10 +193,10 @@ The [Live Example](https://next-themes-example.vercel.app/) shows next-themes in
 
 ### Use System preference by default
 
-The `defaultTheme` is "light". If you want to respect the System preference instead, set it to "system":
+For versions above v0.0.12, the `defaultTheme` is automatically set to "system", so to use System preference you can simply use:
 
 ```js
-<ThemeProvider defaultTheme="system">
+<ThemeProvider>
 ```
 
 ### Ignore System preference
@@ -301,10 +360,10 @@ import { useTheme } from 'next-themes'
 
 // Do NOT use this! It will throw a hydration mismatch error.
 const ThemeSwitch = () => {
-  const { resolvedTheme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
 
   return (
-    <select value={resolvedTheme} onChange={e => setTheme(e.target.value)}>
+    <select value={theme} onChange={e => setTheme(e.target.value)}>
       <option value="system">System</option>
       <option value="dark">Dark</option>
       <option value="light">Light</option>
@@ -323,7 +382,7 @@ import { useTheme } from 'next-themes'
 
 const ThemeSwitch = () => {
   const [mounted, setMounted] = useState(false)
-  const { resolvedTheme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
 
   // useEffect only runs on the client, so now we can safely show the UI
   useEffect(() => {
@@ -335,7 +394,7 @@ const ThemeSwitch = () => {
   }
 
   return (
-    <select value={resolvedTheme} onChange={e => setTheme(e.target.value)}>
+    <select value={theme} onChange={e => setTheme(e.target.value)}>
       <option value="system">System</option>
       <option value="dark">Dark</option>
       <option value="light">Light</option>

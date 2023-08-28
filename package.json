@@ -11,6 +11,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.37.1",
+    "@types/jest": "^26.0.21",
+    "@types/node": "^20.5.7",
     "prettier": "^2.2.1",
     "turbo": "^1.10.12"
   },

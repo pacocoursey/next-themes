@@ -1,4 +1,4 @@
-# next-themes ![next-themes minzip package size](https://img.shields.io/bundlephobia/minzip/next-themes/beta) ![Version](https://img.shields.io/npm/v/next-themes/beta.svg?colorB=green)
+# next-themes ![next-themes minzip package size](https://img.shields.io/bundlephobia/minzip/next-themes) [![Version](https://img.shields.io/npm/v/next-themes.svg?colorB=green)](https://www.npmjs.com/package/next-themes)
 
 An abstraction for themes in your Next.js app.
 
@@ -177,12 +177,12 @@ useTheme takes no parameters, but returns:
 
 - `theme`: Active theme name
 - `setTheme(name)`: Function to update the theme
-- `forcedTheme`: Forced page theme or falsy. If `forcedTheme` is set, you should disable any theme switching UI
 - `resolvedTheme`: Returns the effective theme color of the page.
   - If `enableSystem` is true and the active theme is "system", this returns whether the system preference resolved to "dark" or "light".
   - If `forcedTheme` is set, the name of the forced theme is returned.
   - Otherwise identical to `theme`.
 - `systemTheme`: If `enableSystem` is true, represents the System theme preference ("dark" or "light"), regardless what the active theme is
+- `forcedTheme`: Forced page theme or falsy. If `forcedTheme` is set, you should disable any theme switching UI
 - `themes`: The list of themes passed to `ThemeProvider` (with "system" appended, if `enableSystem` is true)
 
 Not too bad, right? Let's see how to use these properties with examples:

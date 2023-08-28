@@ -227,15 +227,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   )
 
   return (
-    <ThemeContext.Provider
-      value={{
-        theme,
-        setTheme,
-        resolvedTheme: forcedTheme ?? theme === 'system' ? resolvedTheme : theme,
-        themes: enableSystem ? [...themes, 'system'] : themes,
-        systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
-      }}
-    >
+    <ThemeContext.Provider value={providerValue}>
       <ThemeScript
         {...{
           forcedTheme,

@@ -246,7 +246,7 @@ const ThemeScript = memo(
       }
 
       if (enableSystem) {
-        return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if('system'===e||(!e&&${defaultSystem})){var t='${MEDIA}',m=window.matchMedia(t);if(m.media!==t||m.matches){${updateDOM(
+        return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if('system'===e||(!e&&${defaultSystem})){var t='${MEDIA}',m=window.matchMedia(t);if(m.media===t||m.matches){${updateDOM(
           'dark'
         )}}else{${updateDOM('light')}}}else if(e){${
           value ? `var x=${JSON.stringify(value)};` : ''

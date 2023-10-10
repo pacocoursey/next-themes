@@ -264,7 +264,10 @@ const ThemeScript = memo(
       )};}${fallbackColorScheme}}catch(t){}}();`
     })()
 
-    return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
+    // Don't render nonce on client
+    // https://github.com/kentcdodds/nonce-hydration-issues
+    const isServer = typeof window === 'undefined';
+    return <script nonce={isServer ? nonce : ''} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
   },
   // Never re-render this component
   () => true

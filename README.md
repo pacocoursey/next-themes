@@ -91,11 +91,13 @@ Then add the `<Providers>` component to your layout _inside_ of the `<body>`.
 ```js
 // app/layout.jsx
 
-import { Providers } from './providers'
+const ThemeProvider = dynamic(() => import('../component/theme-provider'), {
+  ssr: false
+})
 
 export default function Layout({ children }) {
   return (
-    <html suppressHydrationWarning>
+    <html>
       <head />
       <body>
         <Providers>{children}</Providers>
@@ -105,7 +107,7 @@ export default function Layout({ children }) {
 }
 ```
 
-> **Note!** If you do not add [suppressHydrationWarning](https://reactjs.org/docs/dom-elements.html#suppresshydrationwarning:~:text=It%20only%20works%20one%20level%20deep) to your `<html>` you will get warnings because `next-themes` updates that element. This property only applies one level deep, so it won't block hydration warnings on other elements.
+> **Note!** [Dynamically importing](https://nextjs.org/docs/app/building-your-application/optimizing/lazy-loading#nextdynamic) the ThemeProvider is required to avoid a server/client hydration error. Doing so, avoid adding [suppressHydrationWarning](https://reactjs.org/docs/dom-elements.html#suppresshydrationwarning:~:text=It%20only%20works%20one%20level%20deep) to your `<html>`.
 
 ### HTML & CSS
 
@@ -145,10 +147,6 @@ const ThemeChanger = () => {
   )
 }
 ```
-
-> **Warning!** The above code is hydration _unsafe_ and will throw a hydration mismatch warning when rendering with SSG or SSR. This is because we cannot know the `theme` on the server, so it will always be `undefined` until mounted on the client.
->
-> You should delay rendering any theme toggling UI until mounted on the client. See the [example](#avoid-hydration-mismatch).
 
 ## API
 
@@ -348,7 +346,9 @@ function MyApp({ Component, pageProps }) {
 
 ### Avoid Hydration Mismatch
 
-Because we cannot know the `theme` on the server, many of the values returned from `useTheme` will be `undefined` until mounted on the client. This means if you try to render UI based on the current theme before mounting on the client, you will see a hydration mismatch error.
+**If you're using the app router, dynamically importing the provider resolves the issue. See [App](###-With-app)**
+
+If, for some reason, you cannot dynamically import the provider in the layout file. You might want to test one of the following solutions. Hydration issues are caused because we cannot know the `theme` on the server, many of the values returned from `useTheme` will be `undefined` until mounted on the client. This means if you try to render UI based on the current theme before mounting on the client, you will see a hydration mismatch error.
 
 The following code sample is **unsafe**:
 
@@ -512,6 +512,9 @@ In Next.js dev mode, the page may still flash. When you build your app in produc
 ---
 
 **Why do I get server/client mismatch error?**
+
+When using the app router, you should dynamically import the ThemeProvider in your layout file. [See](###-With-app/)
+Dynamically importing the theme in the layout file should not result in any hydration issues. If you are still encountering this error, make sure you are dynamically importing the ThemeProvider.
 
 When using `useTheme`, you will use see a hydration mismatch error when rendering UI that relies on the current theme. This is because many of the values returned by `useTheme` are undefined on the server, since we can't read `localStorage` until mounting on the client. See the [example](#avoid-hydration-mismatch) for how to fix this error.
 

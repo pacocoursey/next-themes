@@ -7,5 +7,8 @@ export default defineConfig({
   format: ['esm', 'cjs'],
   loader: {
     '.js': 'jsx'
-  }
+  },
+  banner: {
+    js: `"use client";`,
+ },
 })

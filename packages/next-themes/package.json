@@ -10,8 +10,8 @@
   ],
   "scripts": {
     "prepublish": "pnpm build",
-    "build": "tsup src",
-    "dev": "tsup src --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "test": "jest __tests__"
   },
   "peerDependencies": {

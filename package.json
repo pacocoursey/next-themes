@@ -10,9 +10,9 @@
     "lint": "prettier . --write"
   },
   "devDependencies": {
-    "@playwright/test": "^1.37.1",
-    "prettier": "^2.2.1",
-    "turbo": "^1.10.12"
+    "@playwright/test": "^1.40.1",
+    "prettier": "^2.8.8",
+    "turbo": "^1.11.2"
   },
   "repository": {
     "type": "git",

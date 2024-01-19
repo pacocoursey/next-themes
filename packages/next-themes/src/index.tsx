@@ -1,3 +1,5 @@
+'use client'
+
 import React, {
   Fragment,
   createContext,
@@ -45,7 +47,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
 
-  const applyTheme = useCallback(theme => {
+  const applyTheme = useCallback((theme: string) => {
     let resolved = theme
     if (!resolved) return
 
@@ -81,8 +83,8 @@ const Theme: React.FC<ThemeProviderProps> = ({
   }, [])
 
   const setTheme = useCallback(
-    theme => {
-      const newTheme = typeof theme === 'function' ? theme(theme) : theme
+    (t: any) => {
+      const newTheme = typeof t === 'function' ? t(theme) : t
       setThemeState(newTheme)
 
       // Save to storage
@@ -136,7 +138,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
 
   // Whenever theme or forcedTheme changes, apply it
   useEffect(() => {
-    applyTheme(forcedTheme ?? theme)
+    applyTheme(forcedTheme ?? (theme as string))
   }, [forcedTheme, theme])
 
   const providerValue = useMemo(
@@ -152,7 +154,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   )
 
   return (
-    <ThemeContext.Provider value={providerValue}>
+    <ThemeContext.Provider value={providerValue as any}>
       <ThemeScript
         {...{
           forcedTheme,

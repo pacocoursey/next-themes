@@ -1,8 +1,11 @@
 {
-  "name": "next-themes",
+  "name": "@juliusmarminge/next-themes",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "prepublish": "bunchee",
     "build": "bunchee",

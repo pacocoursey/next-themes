@@ -83,6 +83,12 @@ const Theme: React.FC<ThemeProviderProps> = ({
   const setTheme = useCallback(
     theme => {
       const newTheme = typeof theme === 'function' ? theme(theme) : theme
+
+      if (!themes.includes(newTheme) && newTheme !== 'system') {
+        console.error('Invalid theme detected: ', newTheme)
+        return
+      }
+
       setThemeState(newTheme)
 
       // Save to storage

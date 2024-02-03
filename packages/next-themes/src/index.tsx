@@ -45,7 +45,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
 
-  const applyTheme = useCallback((theme: any) => {
+  const applyTheme = useCallback((theme: string) => {
     let resolved = theme
     if (!resolved) return
 

@@ -402,6 +402,22 @@ const ThemeSwitch = () => {
 export default ThemeSwitch
 ```
 
+or lazy load the component setting ssr to false:
+```js
+import dynamic from "next/dynamic";
+
+const ThemeSwitch = dynamic(() => import("./ThemeSwitch"), { ssr: false });
+
+const ThemePage = () => {
+  return (
+    <div>
+      <ThemeSwitch />
+    </div>
+  );
+};
+
+export default ThemePage
+```
 To avoid [Layout Shift](https://web.dev/cls/), consider rendering a skeleton/placeholder until mounted on the client side.
 
 #### Images

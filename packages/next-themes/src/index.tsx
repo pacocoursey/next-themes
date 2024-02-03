@@ -81,7 +81,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   }, [])
 
   const setTheme = useCallback(
-    (theme: any) => {
+    (theme: string) => {
       const newTheme = typeof theme === 'function' ? theme(theme) : theme
       setThemeState(newTheme)
 

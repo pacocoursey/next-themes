@@ -14,7 +14,7 @@ const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
 const ThemeContext = createContext<UseThemeProps | undefined>(undefined)
-const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
+const defaultContext: UseThemeProps = { setTheme: _ => {}, setSystemPrefixResolve: _ => {}, themes: [] }
 
 export const useTheme = () => useContext(ThemeContext) ?? defaultContext
 
@@ -32,6 +32,8 @@ const Theme: React.FC<ThemeProviderProps> = ({
   forcedTheme,
   disableTransitionOnChange = false,
   enableSystem = true,
+  defaultSystemPrefixResolve,
+  prefixResolveKey = 'theme-prefix',
   enableColorScheme = true,
   storageKey = 'theme',
   themes = defaultThemes,
@@ -42,6 +44,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   nonce
 }) => {
   const [theme, setThemeState] = useState(() => getTheme(storageKey, defaultTheme))
+  const [themePrefix, setThemePrefixState] = useState(() => getTheme(prefixResolveKey, defaultSystemPrefixResolve))
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
 
@@ -51,7 +54,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
 
     // If theme is system, resolve it before setting theme
     if (theme === 'system' && enableSystem) {
-      resolved = getSystemTheme()
+      resolved = getSystemTheme(undefined, themes, themePrefix)
     }
 
     const name = value ? value[resolved] : resolved
@@ -95,9 +98,24 @@ const Theme: React.FC<ThemeProviderProps> = ({
     [forcedTheme]
   )
 
+  const setSystemPrefixResolve = useCallback(
+    theme => {
+      const newThemePrefix = typeof theme === 'function' ? theme(theme) : theme
+      setThemePrefixState(newThemePrefix)
+
+      // Save to storage
+      try {
+        localStorage.setItem(prefixResolveKey, newThemePrefix)
+      } catch (e) {
+        // Unsupported
+      }
+    },
+    [forcedTheme]
+  )
+
   const handleMediaQuery = useCallback(
     (e: MediaQueryListEvent | MediaQueryList) => {
-      const resolved = getSystemTheme(e)
+      const resolved = getSystemTheme(e, themes, themePrefix)
       setResolvedTheme(resolved)
 
       if (theme === 'system' && enableSystem && !forcedTheme) {
@@ -143,12 +161,13 @@ const Theme: React.FC<ThemeProviderProps> = ({
     () => ({
       theme,
       setTheme,
+      setSystemPrefixResolve,
       forcedTheme,
       resolvedTheme: theme === 'system' ? resolvedTheme : theme,
       themes: enableSystem ? [...themes, 'system'] : themes,
       systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
     }),
-    [theme, setTheme, forcedTheme, resolvedTheme, enableSystem, themes]
+    [theme, setTheme, setSystemPrefixResolve, forcedTheme, resolvedTheme, enableSystem, themes]
   )
 
   return (
@@ -302,9 +321,18 @@ const disableAnimation = () => {
   }
 }
 
-const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
+const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent, themes?: string[], themePrefix?: string, ) => {
   if (!e) e = window.matchMedia(MEDIA)
   const isDark = e.matches
-  const systemTheme = isDark ? 'dark' : 'light'
+
+  let systemTheme = isDark ? `${themePrefix ? themePrefix + '-' : ''}dark` : `${themePrefix ? themePrefix + '-' : ''}light`
+  if (themePrefix && themes) {
+    // if themePrefix is set, we need to check if the theme exists in the themes array
+    systemTheme = themes.includes(systemTheme) ? systemTheme : isDark ? 'dark' : 'light'
+  } else {
+    // if themePrefix is not set, we can just return the system theme
+    systemTheme = isDark ? 'dark' : 'light'
+  }
+  
   return systemTheme
 }

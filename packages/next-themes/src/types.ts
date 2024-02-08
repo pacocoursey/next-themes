@@ -9,6 +9,8 @@ export interface UseThemeProps {
   forcedTheme?: string | undefined
   /** Update the theme */
   setTheme: React.Dispatch<React.SetStateAction<string>>
+  /** Update the preferred system prefix resolve for a theme  */
+  setSystemPrefixResolve: React.Dispatch<React.SetStateAction<string>>
   /** Active theme name */
   theme?: string | undefined
   /** If `enableSystem` is true and the active theme is "system", this returns whether the system preference resolved to "dark" or "light". Otherwise, identical to `theme` */
@@ -24,6 +26,10 @@ export interface ThemeProviderProps {
   forcedTheme?: string | undefined
   /** Whether to switch between dark and light themes based on prefers-color-scheme */
   enableSystem?: boolean | undefined
+  /** Default theme prefix to use when resolving a theme based on prefers-color-scheme  */
+  defaultSystemPrefixResolve? : string
+  /** Key used to store resolve theme prefix setting in localStorage */
+  prefixResolveKey? : string
   /** Disable all CSS transitions when switching themes */
   disableTransitionOnChange?: boolean | undefined
   /** Whether to indicate to browsers which color scheme is used (dark or light) for built-in UI like inputs and buttons */

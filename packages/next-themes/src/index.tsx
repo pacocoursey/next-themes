@@ -14,7 +14,11 @@ const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
 const ThemeContext = createContext<UseThemeProps | undefined>(undefined)
-const defaultContext: UseThemeProps = { setTheme: _ => {}, setSystemPrefixResolve: _ => {}, themes: [] }
+const defaultContext: UseThemeProps = {
+  setTheme: _ => {},
+  setSystemPrefixResolve: _ => {},
+  themes: []
+}
 
 export const useTheme = () => useContext(ThemeContext) ?? defaultContext
 
@@ -32,7 +36,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   forcedTheme,
   disableTransitionOnChange = false,
   enableSystem = true,
-  defaultSystemPrefixResolve,
+  defaultSystemPrefixResolve = '',
   prefixResolveKey = 'theme-prefix',
   enableColorScheme = true,
   storageKey = 'theme',
@@ -44,17 +48,21 @@ const Theme: React.FC<ThemeProviderProps> = ({
   nonce
 }) => {
   const [theme, setThemeState] = useState(() => getTheme(storageKey, defaultTheme))
-  const [themePrefix, setThemePrefixState] = useState(() => getTheme(prefixResolveKey, defaultSystemPrefixResolve))
+  const [themePrefix, setThemePrefixState] = useState(() =>
+    getTheme(prefixResolveKey, defaultSystemPrefixResolve)
+  )
   const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
 
-  const applyTheme = useCallback(theme => {
+  const applyTheme = useCallback((theme, newThemePrefix?) => {
     let resolved = theme
+    let resolvedPrefix = newThemePrefix ?? themePrefix
     if (!resolved) return
 
     // If theme is system, resolve it before setting theme
     if (theme === 'system' && enableSystem) {
-      resolved = getSystemTheme(undefined, themes, themePrefix)
+      resolved = getSystemTheme(undefined, themes, resolvedPrefix)
+      setResolvedTheme(resolved)
     }
 
     const name = value ? value[resolved] : resolved
@@ -75,7 +83,12 @@ const Theme: React.FC<ThemeProviderProps> = ({
 
     if (enableColorScheme) {
       const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
-      const colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
+      const colorScheme = resolved.includes('light')
+        ? 'light'
+        : resolved.includes('dark')
+        ? 'dark'
+        : fallback
+
       // @ts-ignore
       d.style.colorScheme = colorScheme
     }
@@ -99,9 +112,14 @@ const Theme: React.FC<ThemeProviderProps> = ({
   )
 
   const setSystemPrefixResolve = useCallback(
-    theme => {
-      const newThemePrefix = typeof theme === 'function' ? theme(theme) : theme
+    prefix => {
+      const newThemePrefix = typeof prefix === 'function' ? prefix(prefix) : prefix
+
       setThemePrefixState(newThemePrefix)
+
+      if (theme === 'system' && enableSystem) {
+        applyTheme(theme, newThemePrefix)
+      }
 
       // Save to storage
       try {
@@ -119,7 +137,8 @@ const Theme: React.FC<ThemeProviderProps> = ({
       setResolvedTheme(resolved)
 
       if (theme === 'system' && enableSystem && !forcedTheme) {
-        applyTheme('system')
+        // also uses the prefixResolveKey to get the prefix from localStorage
+        applyTheme('system', localStorage.getItem(prefixResolveKey))
       }
     },
     [theme, forcedTheme]
@@ -162,12 +181,26 @@ const Theme: React.FC<ThemeProviderProps> = ({
       theme,
       setTheme,
       setSystemPrefixResolve,
+      themePrefix,
       forcedTheme,
       resolvedTheme: theme === 'system' ? resolvedTheme : theme,
       themes: enableSystem ? [...themes, 'system'] : themes,
-      systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
+      systemTheme: (enableSystem ? resolvedTheme : undefined) as
+        | 'light'
+        | 'dark'
+        | string
+        | undefined
     }),
-    [theme, setTheme, setSystemPrefixResolve, forcedTheme, resolvedTheme, enableSystem, themes]
+    [
+      theme,
+      setTheme,
+      setSystemPrefixResolve,
+      themePrefix,
+      forcedTheme,
+      resolvedTheme,
+      enableSystem,
+      themes
+    ]
   )
 
   return (
@@ -185,7 +218,8 @@ const Theme: React.FC<ThemeProviderProps> = ({
           value,
           children,
           attrs,
-          nonce
+          nonce,
+          prefixResolveKey
         }}
       />
       {children}
@@ -203,7 +237,8 @@ const ThemeScript = memo(
     defaultTheme,
     value,
     attrs,
-    nonce
+    nonce,
+    prefixResolveKey
   }: ThemeProviderProps & { attrs: string[]; defaultTheme: string }) => {
     const defaultSystem = defaultTheme === 'system'
 
@@ -264,14 +299,47 @@ const ThemeScript = memo(
         return `!function(){${optimization}${updateDOM(forcedTheme)}}()`
       }
 
+      // if (enableSystem) {
+      //   return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if('system'===e||(!e&&${defaultSystem})){var t='${MEDIA}',m=window.matchMedia(t);if(m.media!==t||m.matches){${updateDOM(
+      //     'dark'
+      //   )}}else{${updateDOM('light')}}}else if(e){${
+      //     value ? `var x=${JSON.stringify(value)};` : ''
+      //   }${updateDOM(value ? `x[e]` : 'e', true)}}${
+      //     !defaultSystem ? `else{` + updateDOM(defaultTheme, false, false) + '}' : ''
+      //   }${fallbackColorScheme}}catch(e){}}()`
+      // }
+
       if (enableSystem) {
-        return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if('system'===e||(!e&&${defaultSystem})){var t='${MEDIA}',m=window.matchMedia(t);if(m.media!==t||m.matches){${updateDOM(
-          'dark'
-        )}}else{${updateDOM('light')}}}else if(e){${
-          value ? `var x=${JSON.stringify(value)};` : ''
-        }${updateDOM(value ? `x[e]` : 'e', true)}}${
-          !defaultSystem ? `else{` + updateDOM(defaultTheme, false, false) + '}' : ''
-        }${fallbackColorScheme}}catch(e){}}()`
+        return `
+          !function() {
+              try {
+                  ${optimization}
+                  var e = localStorage.getItem('${storageKey}');
+                  var prefix = localStorage.getItem('${prefixResolveKey}');
+                  var themes = ${JSON.stringify(['deep-dark', 'dark', 'light'])};
+
+                  if ('system' === e || (!e && ${defaultSystem})) {
+                      var t = '${MEDIA}', m = window.matchMedia(t);
+
+                      if (m.media !== t || m.matches) {
+                          ${updateDOM(
+                            "'dark' + (prefix && themes.includes('dark') ? '-' + prefix : '')"
+                          )}
+                      } else {
+                          ${updateDOM(
+                            "'light' + (prefix && themes.includes('light') ? '-' + prefix : '')"
+                          )}
+                      }
+                  } else if (e) {
+                      ${value ? `var x=${JSON.stringify(value)};` : ''}
+                      ${updateDOM(value ? `x[e]` : 'e', true)}
+                  } ${
+                    !defaultSystem ? `else {${updateDOM(`'${defaultTheme}'`, false, false)}}` : ''
+                  }
+                  ${fallbackColorScheme}
+              } catch(e) {}
+          }()
+      `
       }
 
       return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if(e){${
@@ -321,11 +389,18 @@ const disableAnimation = () => {
   }
 }
 
-const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent, themes?: string[], themePrefix?: string, ) => {
+const getSystemTheme = (
+  e?: MediaQueryList | MediaQueryListEvent,
+  themes?: string[],
+  themePrefix?: string
+) => {
   if (!e) e = window.matchMedia(MEDIA)
   const isDark = e.matches
 
-  let systemTheme = isDark ? `${themePrefix ? themePrefix + '-' : ''}dark` : `${themePrefix ? themePrefix + '-' : ''}light`
+  let systemTheme = isDark
+    ? `${themePrefix ? themePrefix + '-' : ''}dark`
+    : `${themePrefix ? themePrefix + '-' : ''}light`
+
   if (themePrefix && themes) {
     // if themePrefix is set, we need to check if the theme exists in the themes array
     systemTheme = themes.includes(systemTheme) ? systemTheme : isDark ? 'dark' : 'light'
@@ -333,6 +408,6 @@ const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent, themes?: strin
     // if themePrefix is not set, we can just return the system theme
     systemTheme = isDark ? 'dark' : 'light'
   }
-  
+
   return systemTheme
 }

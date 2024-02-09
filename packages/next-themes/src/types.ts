@@ -16,7 +16,7 @@ export interface UseThemeProps {
   /** If `enableSystem` is true and the active theme is "system", this returns whether the system preference resolved to "dark" or "light". Otherwise, identical to `theme` */
   resolvedTheme?: string | undefined
   /** If enableSystem is true, returns the System theme preference ("dark" or "light"), regardless what the active theme is */
-  systemTheme?: 'dark' | 'light' | undefined
+  systemTheme?: 'dark' | 'light' | string | undefined
 }
 
 export interface ThemeProviderProps {
@@ -27,9 +27,9 @@ export interface ThemeProviderProps {
   /** Whether to switch between dark and light themes based on prefers-color-scheme */
   enableSystem?: boolean | undefined
   /** Default theme prefix to use when resolving a theme based on prefers-color-scheme  */
-  defaultSystemPrefixResolve? : string
+  defaultSystemPrefixResolve?: string
   /** Key used to store resolve theme prefix setting in localStorage */
-  prefixResolveKey? : string
+  prefixResolveKey?: string
   /** Disable all CSS transitions when switching themes */
   disableTransitionOnChange?: boolean | undefined
   /** Whether to indicate to browsers which color scheme is used (dark or light) for built-in UI like inputs and buttons */

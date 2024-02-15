@@ -72,7 +72,7 @@ export default function Layout({ children }) {
 }
 ```
 
-Adding dark mode support still only takes a few lines of code. Start by creating a new [providers component](https://beta.nextjs.org/docs/rendering/server-and-client-components#rendering-third-party-context-providers-in-server-components) in its own file:
+Adding dark mode support still only takes a few lines of code. Start by creating a new [providers component](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns#using-context-providers) in its own file:
 
 ```js
 // app/providers.jsx

@@ -1,3 +1,5 @@
+import * as React from 'react'
+
 interface ValueObject {
   [themeName: string]: string
 }
@@ -38,6 +40,6 @@ export interface ThemeProviderProps {
   value?: ValueObject | undefined
   /** Nonce string to pass to the inline script for CSP headers */
   nonce?: string | undefined
-
-  children?: React.ReactNode
+  /** React children */
+  children: React.ReactNode
 }

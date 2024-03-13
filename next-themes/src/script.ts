@@ -11,10 +11,7 @@ export const script = (
   const el = document.documentElement
   const systemThemes = ['light', 'dark']
   const isClass = attribute === 'class'
-  const classes =
-    isClass && value
-      ? themes.map(t => value[t] || t)
-      : themes
+  const classes = isClass && value ? themes.map(t => value[t] || t) : themes
 
   function updateDOM(theme: string) {
     if (isClass) {
@@ -37,18 +34,16 @@ export const script = (
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
 
-  ;(function () {
-    if (forcedTheme) {
-      updateDOM(forcedTheme)
-    } else {
-      try {
-        const themeName = localStorage.getItem(storageKey) || defaultTheme
-        const isSystem = enableSystem && themeName === 'system'
-        const theme = isSystem ? getSystemTheme() : themeName
-        updateDOM(theme)
-      } catch (e) {
-        //
-      }
+  if (forcedTheme) {
+    updateDOM(forcedTheme)
+  } else {
+    try {
+      const themeName = localStorage.getItem(storageKey) || defaultTheme
+      const isSystem = enableSystem && themeName === 'system'
+      const theme = isSystem ? getSystemTheme() : themeName
+      updateDOM(theme)
+    } catch (e) {
+      //
     }
-  })()
+  }
 }

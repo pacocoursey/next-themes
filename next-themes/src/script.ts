@@ -13,10 +13,8 @@ export const script = (
   const systemThemes = ['light', 'dark']
   const isClass = attribute === 'class'
   const classes =
-    isClass && !!value
-      ? themes.map(t => {
-          return value[t] || t
-        })
+    isClass && value
+      ? themes.map(t => value[t] || t)
       : themes
 
   function updateDOM(theme: string) {
@@ -45,11 +43,9 @@ export const script = (
       updateDOM(forcedTheme)
     } else {
       try {
-        const e = localStorage.getItem(storageKey)
-        const themeName = e || defaultTheme
-        const isSystem = enableSystem && themeName === 'system' ? true : false
-
-        const theme = isSystem ? getSystemTheme() : e || defaultTheme
+        const themeName = localStorage.getItem(storageKey) || defaultTheme
+        const isSystem = enableSystem && themeName === 'system'
+        const theme = isSystem ? getSystemTheme() : themeName
         updateDOM(theme)
       } catch (e) {
         //

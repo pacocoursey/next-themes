@@ -1,11 +1,7 @@
 import Link from 'next/link'
 
 const Page = () => {
-  return (
-    <Link href="/">
-      <a>Go back home</a>
-    </Link>
-  )
+  return <Link href="/">Go back home</Link>
 }
 
 Page.theme = 'light'

@@ -1,34 +1,27 @@
-import React, {
-  Fragment,
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  useMemo,
-  memo
-} from 'react'
+'use client'
+
+import * as React from 'react'
 import type { UseThemeProps, ThemeProviderProps } from './types'
 
 const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
-const ThemeContext = createContext<UseThemeProps | undefined>(undefined)
+const ThemeContext = React.createContext<UseThemeProps | undefined>(undefined)
 const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
 
-export const useTheme = () => useContext(ThemeContext) ?? defaultContext
+export const useTheme = () => React.useContext(ThemeContext) ?? defaultContext
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = props => {
-  const context = useContext(ThemeContext)
+export const ThemeProvider = (props: ThemeProviderProps) => {
+  const context = React.useContext(ThemeContext)
 
   // Ignore nested context providers, just passthrough children
-  if (context) return <Fragment>{props.children}</Fragment>
+  if (context) return props.children
   return <Theme {...props} />
 }
 
 const defaultThemes = ['light', 'dark']
 
-const Theme: React.FC<ThemeProviderProps> = ({
+const Theme = ({
   forcedTheme,
   disableTransitionOnChange = false,
   enableSystem = true,
@@ -40,12 +33,12 @@ const Theme: React.FC<ThemeProviderProps> = ({
   value,
   children,
   nonce
-}) => {
-  const [theme, setThemeState] = useState(() => getTheme(storageKey, defaultTheme))
-  const [resolvedTheme, setResolvedTheme] = useState(() => getTheme(storageKey))
+}: ThemeProviderProps) => {
+  const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
+  const [resolvedTheme, setResolvedTheme] = React.useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
 
-  const applyTheme = useCallback(theme => {
+  const applyTheme = React.useCallback(theme => {
     let resolved = theme
     if (!resolved) return
 
@@ -80,7 +73,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
     enable?.()
   }, [])
 
-  const setTheme = useCallback(
+  const setTheme = React.useCallback(
     theme => {
       const newTheme = typeof theme === 'function' ? theme(theme) : theme
       setThemeState(newTheme)
@@ -95,7 +88,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
     [forcedTheme]
   )
 
-  const handleMediaQuery = useCallback(
+  const handleMediaQuery = React.useCallback(
     (e: MediaQueryListEvent | MediaQueryList) => {
       const resolved = getSystemTheme(e)
       setResolvedTheme(resolved)
@@ -108,7 +101,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   )
 
   // Always listen to System preference
-  useEffect(() => {
+  React.useEffect(() => {
     const media = window.matchMedia(MEDIA)
 
     // Intentionally use deprecated listener methods to support iOS & old browsers
@@ -119,7 +112,7 @@ const Theme: React.FC<ThemeProviderProps> = ({
   }, [handleMediaQuery])
 
   // localStorage event handling
-  useEffect(() => {
+  React.useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
       if (e.key !== storageKey) {
         return
@@ -135,11 +128,11 @@ const Theme: React.FC<ThemeProviderProps> = ({
   }, [setTheme])
 
   // Whenever theme or forcedTheme changes, apply it
-  useEffect(() => {
+  React.useEffect(() => {
     applyTheme(forcedTheme ?? theme)
   }, [forcedTheme, theme])
 
-  const providerValue = useMemo(
+  const providerValue = React.useMemo(
     () => ({
       theme,
       setTheme,
@@ -169,12 +162,13 @@ const Theme: React.FC<ThemeProviderProps> = ({
           nonce
         }}
       />
+
       {children}
     </ThemeContext.Provider>
   )
 }
 
-const ThemeScript = memo(
+const ThemeScript = React.memo(
   ({
     forcedTheme,
     storageKey,
@@ -265,9 +259,7 @@ const ThemeScript = memo(
     })()
 
     return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
-  },
-  // Never re-render this component
-  () => true
+  }
 )
 
 // Helpers

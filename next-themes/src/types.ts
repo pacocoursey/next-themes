@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-export interface ValueObject {
+interface ValueObject {
   [themeName: string]: string
 }
 
@@ -43,8 +43,3 @@ export interface ThemeProviderProps {
   /** React children */
   children: React.ReactNode
 }
-
-export type ScriptProps = Pick<
-  ThemeProviderProps,
-  'value' | 'themes' | 'defaultTheme' | 'attribute' | 'enableColorScheme' | 'storageKey'
->

@@ -1,14 +1,37 @@
-import { act, render, screen } from '@testing-library/react'
-import { ThemeProvider, useTheme } from '../src'
-import React, { useEffect } from 'react'
+// @vitest-environment jsdom
 
-let localStorageMock: { [key: string]: string } = {}
+import * as React from 'react'
+import { act, render, screen } from '@testing-library/react'
+import { vi, beforeAll, beforeEach, afterEach, afterAll, describe, test, it, expect } from 'vitest'
+import { cleanup } from '@testing-library/react'
+
+import { ThemeProvider, useTheme } from '../src/index'
+
+let originalLocalStorage: Storage
+const localStorageMock: Storage = (() => {
+  let store: Record<string, string> = {}
+
+  return {
+    getItem: vi.fn((key: string): string => store[key] ?? null),
+    setItem: vi.fn((key: string, value: string): void => {
+      store[key] = value.toString()
+    }),
+    removeItem: vi.fn((key: string): void => {
+      delete store[key]
+    }),
+    clear: vi.fn((): void => {
+      store = {}
+    }),
+    key: vi.fn((index: number): string | null => ''),
+    length: Object.keys(store).length
+  }
+})()
 
 // HelperComponent to render the theme inside a paragraph-tag and setting a theme via the forceSetTheme prop
 const HelperComponent = ({ forceSetTheme }: { forceSetTheme?: string }) => {
   const { setTheme, theme, forcedTheme, resolvedTheme, systemTheme } = useTheme()
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (forceSetTheme) {
       setTheme(forceSetTheme)
     }
@@ -29,36 +52,42 @@ function setDeviceTheme(theme: 'light' | 'dark') {
   // Based on: https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
-    value: jest.fn().mockImplementation(query => ({
+    value: vi.fn().mockImplementation(query => ({
       matches: theme === 'dark' ? true : false,
       media: query,
       onchange: null,
-      addListener: jest.fn(), // Deprecated
-      removeListener: jest.fn(), // Deprecated
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-      dispatchEvent: jest.fn()
+      addListener: vi.fn(), // Deprecated
+      removeListener: vi.fn(), // Deprecated
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn()
     }))
   })
 }
 
 beforeAll(() => {
   // Create mocks of localStorage getItem and setItem functions
-  global.Storage.prototype.getItem = jest.fn((key: string) => localStorageMock[key])
-  global.Storage.prototype.setItem = jest.fn((key: string, value: string) => {
-    localStorageMock[key] = value
-  })
+  originalLocalStorage = window.localStorage
+  window.localStorage = localStorageMock
 })
 
 beforeEach(() => {
-  // Reset global side-effects
+  // Reset window side-effects
   setDeviceTheme('light')
   document.documentElement.style.colorScheme = ''
   document.documentElement.removeAttribute('data-theme')
   document.documentElement.removeAttribute('class')
 
   // Clear the localStorage-mock
-  localStorageMock = {}
+  localStorageMock.clear()
+})
+
+afterEach(() => {
+  cleanup()
+})
+
+afterAll(() => {
+  window.localStorage = originalLocalStorage
 })
 
 describe('defaultTheme', () => {
@@ -129,8 +158,8 @@ describe('storage', () => {
       )
     })
 
-    expect(global.Storage.prototype.setItem).toBeCalledTimes(0)
-    expect(global.Storage.prototype.getItem('theme')).toBeUndefined()
+    expect(window.localStorage.setItem).toBeCalledTimes(0)
+    expect(window.localStorage.getItem('theme')).toBeNull()
   })
 
   test('should set localStorage when switching themes', () => {
@@ -142,8 +171,8 @@ describe('storage', () => {
       )
     })
 
-    expect(global.Storage.prototype.setItem).toBeCalledTimes(1)
-    expect(global.Storage.prototype.getItem('theme')).toBe('dark')
+    expect(window.localStorage.setItem).toBeCalledTimes(1)
+    expect(window.localStorage.getItem('theme')).toBe('dark')
   })
 })
 
@@ -157,8 +186,8 @@ describe('custom storageKey', () => {
       )
     })
 
-    expect(global.Storage.prototype.getItem).toHaveBeenCalledWith('theme')
-    expect(global.Storage.prototype.setItem).toHaveBeenCalledWith('theme', 'light')
+    expect(window.localStorage.getItem).toHaveBeenCalledWith('theme')
+    expect(window.localStorage.setItem).toHaveBeenCalledWith('theme', 'light')
   })
 
   test("should save to localStorage with 'custom' when setting prop 'storageKey' to 'customKey'", () => {
@@ -170,8 +199,8 @@ describe('custom storageKey', () => {
       )
     })
 
-    expect(global.Storage.prototype.getItem).toHaveBeenCalledWith('customKey')
-    expect(global.Storage.prototype.setItem).toHaveBeenCalledWith('customKey', 'light')
+    expect(window.localStorage.getItem).toHaveBeenCalledWith('customKey')
+    expect(window.localStorage.setItem).toHaveBeenCalledWith('customKey', 'light')
   })
 })
 
@@ -215,7 +244,7 @@ describe('custom attribute', () => {
 
 describe('custom value-mapping', () => {
   test('should use custom value mapping when using value={{pink:"my-pink-theme"}}', () => {
-    localStorageMock['theme'] = 'pink'
+    localStorageMock.setItem('theme', 'pink')
 
     act(() => {
       render(
@@ -229,7 +258,7 @@ describe('custom value-mapping', () => {
     })
 
     expect(document.documentElement.getAttribute('data-theme')).toBe('my-pink-theme')
-    expect(global.Storage.prototype.setItem).toHaveBeenCalledWith('theme', 'pink')
+    expect(window.localStorage.setItem).toHaveBeenCalledWith('theme', 'pink')
   })
 
   test('should allow missing values (attribute)', () => {
@@ -259,7 +288,7 @@ describe('custom value-mapping', () => {
 
 describe('forcedTheme', () => {
   test('should render saved theme when no forcedTheme is set', () => {
-    localStorageMock['theme'] = 'dark'
+    localStorageMock.setItem('theme', 'dark')
 
     render(
       <ThemeProvider>
@@ -272,7 +301,7 @@ describe('forcedTheme', () => {
   })
 
   test('should render light theme when forcedTheme is set to light', () => {
-    localStorageMock['theme'] = 'dark'
+    localStorageMock.setItem('theme', 'dark')
 
     act(() => {
       render(

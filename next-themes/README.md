@@ -1,6 +1,6 @@
 # next-themes ![next-themes minzip package size](https://img.shields.io/bundlephobia/minzip/next-themes) [![Version](https://img.shields.io/npm/v/next-themes.svg?colorB=green)](https://www.npmjs.com/package/next-themes)
 
-An abstraction for themes in your Next.js app.
+An abstraction for themes in your React app.
 
 - ✅ Perfect dark mode in 2 lines of code
 - ✅ System setting with prefers-color-scheme
@@ -29,7 +29,7 @@ $ yarn add next-themes
 
 You'll need a [Custom `App`](https://nextjs.org/docs/advanced-features/custom-app) to use next-themes. The simplest `_app` looks like this:
 
-```js
+```jsx
 // pages/_app.js
 
 function MyApp({ Component, pageProps }) {
@@ -41,7 +41,7 @@ export default MyApp
 
 Adding dark mode support takes 2 lines of code:
 
-```js
+```jsx
 import { ThemeProvider } from 'next-themes'
 
 function MyApp({ Component, pageProps }) {
@@ -59,7 +59,7 @@ export default MyApp
 
 You'll need to update your `app/layout.jsx` to use next-themes. The simplest `layout` looks like this:
 
-```js
+```jsx
 // app/layout.jsx
 
 export default function Layout({ children }) {
@@ -74,7 +74,7 @@ export default function Layout({ children }) {
 
 Adding dark mode support still only takes a few lines of code. Start by creating a new [providers component](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns#using-context-providers) in its own file:
 
-```js
+```jsx
 // app/providers.jsx
 
 'use client'
@@ -88,7 +88,7 @@ export function Providers({ children }) {
 
 Then add the `<Providers>` component to your layout _inside_ of the `<body>`.
 
-```js
+```jsx
 // app/layout.jsx
 
 import { Providers } from './providers'
@@ -130,7 +130,7 @@ That's it, your Next.js app fully supports dark mode, including System preferenc
 
 Your UI will need to know the current theme and be able to change it. The `useTheme` hook provides theme information:
 
-```js
+```jsx
 import { useTheme } from 'next-themes'
 
 const ThemeChanger = () => {
@@ -192,7 +192,7 @@ The [Live Example](https://next-themes-example.vercel.app/) shows next-themes in
 
 For versions above v0.0.12, the `defaultTheme` is automatically set to "system", so to use System preference you can simply use:
 
-```js
+```jsx
 <ThemeProvider>
 ```
 
@@ -200,7 +200,7 @@ For versions above v0.0.12, the `defaultTheme` is automatically set to "system",
 
 If you don't want a System theme, disable it via `enableSystem`:
 
-```js
+```jsx
 <ThemeProvider enableSystem={false}>
 ```
 
@@ -208,7 +208,7 @@ If you don't want a System theme, disable it via `enableSystem`:
 
 If your Next.js app uses a class to style the page based on the theme, change the attribute prop to `class`:
 
-```js
+```jsx
 <ThemeProvider attribute="class">
 ```
 
@@ -228,7 +228,7 @@ export default Page
 
 In your `_app`, read the variable and pass it to ThemeProvider:
 
-```js
+```jsx
 function MyApp({ Component, pageProps }) {
   return (
     <ThemeProvider forcedTheme={Component.theme || null}>
@@ -253,7 +253,7 @@ I wrote about [this technique here](https://paco.sh/blog/disable-theme-transitio
 
 To enable this behavior, pass the `disableTransitionOnChange` prop:
 
-```js
+```jsx
 <ThemeProvider disableTransitionOnChange>
 ```
 
@@ -263,7 +263,7 @@ The name of the active theme is used as both the localStorage value and the valu
 
 If we want the DOM to instead render `data-theme="my-pink-theme"` when the theme is "pink", pass the `value` prop:
 
-```js
+```jsx
 <ThemeProvider value={{ pink: 'my-pink-theme' }}>
 ```
 
@@ -284,13 +284,13 @@ document.documentElement.getAttribute('data-theme')
 
 next-themes is designed to support any number of themes! Simply pass a list of themes:
 
-```js
+```jsx
 <ThemeProvider themes={['pink', 'red', 'blue']}>
 ```
 
 > **Note!** When you pass `themes`, the default set of themes ("light" and "dark") are overridden. Make sure you include those if you still want your light and dark themes:
 
-```js
+```jsx
 <ThemeProvider themes={['pink', 'red', 'blue', 'light', 'dark']}>
 ```
 
@@ -316,7 +316,7 @@ body {
 
 Next Themes is completely CSS independent, it will work with any library. For example, with Styled Components you just need to `createGlobalStyle` in your custom App:
 
-```js
+```jsx
 // pages/_app.js
 import { createGlobalStyle } from 'styled-components'
 import { ThemeProvider } from 'next-themes'
@@ -352,7 +352,7 @@ Because we cannot know the `theme` on the server, many of the values returned fr
 
 The following code sample is **unsafe**:
 
-```js
+```jsx
 import { useTheme } from 'next-themes'
 
 // Do NOT use this! It will throw a hydration mismatch error.
@@ -373,7 +373,7 @@ export default ThemeSwitch
 
 To fix this, make sure you only render UI that uses the current theme when the page is mounted on the client:
 
-```js
+```jsx
 import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 
@@ -408,7 +408,7 @@ To avoid [Layout Shift](https://web.dev/cls/), consider rendering a skeleton/pla
 
 Showing different images based on the current theme also suffers from the hydration mismatch problem. With [`next/image`](https://nextjs.org/docs/basic-features/image-optimization) you can use an empty image until the theme is resolved:
 
-```js
+```jsx
 import Image from 'next/image'
 import { useTheme } from 'next-themes'
 
@@ -482,7 +482,7 @@ module.exports = {
 
 Set the attribute for your Theme Provider to class:
 
-```js
+```jsx
 // pages/_app.js
 <ThemeProvider attribute="class">
 ```
@@ -491,7 +491,7 @@ If you're using the `value` prop to specify different attribute values, make sur
 
 That's it! Now you can use dark-mode specific classes:
 
-```js
+```jsx
 <h1 className="text-black dark:text-white">
 ```
 
@@ -531,7 +531,7 @@ Nope. If you have a good reason for supporting this feature, please open an issu
 
 **Can I use this package with Gatsby or CRA?**
 
-Nope.
+Yes, starting from the 0.3.0 version.
 
 ---
 
@@ -549,7 +549,7 @@ If we didn't distinguish between `theme` and `resolvedTheme`, the UI would show 
 
 `resolvedTheme` is then useful for modifying behavior or styles at runtime:
 
-```js
+```jsx
 const { resolvedTheme } = useTheme()
 
 <div style={{ color: resolvedTheme === 'dark' ? white : black }}>

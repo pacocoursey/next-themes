@@ -196,7 +196,7 @@ const ThemeScript = React.memo(
         suppressHydrationWarning
         nonce={typeof window === 'undefined' ? nonce : ''}
         dangerouslySetInnerHTML={{
-          __html: `(${script.toString()})(${JSON.stringify(scriptProps)})`
+          __html: `(${script.toString()})(${JSON.stringify(scriptProps).slice(1, -1)})`
         }}
       />
     )

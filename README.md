@@ -531,7 +531,7 @@ Nope. If you have a good reason for supporting this feature, please open an issu
 
 **Can I use this package with Gatsby or CRA?**
 
-Nope.
+Yes, starting from the 0.3.0 version.
 
 ---
 

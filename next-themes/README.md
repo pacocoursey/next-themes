@@ -42,6 +42,7 @@ export default MyApp
 Adding dark mode support takes 2 lines of code:
 
 ```jsx
+// pages/_app.js
 import { ThemeProvider } from 'next-themes'
 
 function MyApp({ Component, pageProps }) {
@@ -61,7 +62,6 @@ You'll need to update your `app/layout.jsx` to use next-themes. The simplest `la
 
 ```jsx
 // app/layout.jsx
-
 export default function Layout({ children }) {
   return (
     <html>
@@ -72,38 +72,25 @@ export default function Layout({ children }) {
 }
 ```
 
-Adding dark mode support still only takes a few lines of code. Start by creating a new [providers component](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns#using-context-providers) in its own file:
-
-```jsx
-// app/providers.jsx
-
-'use client'
-
-import { ThemeProvider } from 'next-themes'
-
-export function Providers({ children }) {
-  return <ThemeProvider>{children}</ThemeProvider>
-}
-```
-
-Then add the `<Providers>` component to your layout _inside_ of the `<body>`.
+Adding dark mode support takes 2 lines of code:
 
 ```jsx
 // app/layout.jsx
-
-import { Providers } from './providers'
+import { ThemeProvider } from 'next-themes'
 
 export default function Layout({ children }) {
   return (
     <html suppressHydrationWarning>
       <head />
       <body>
-        <Providers>{children}</Providers>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   )
 }
 ```
+
+Note that `ThemeProvider` is a client component, not a server component.
 
 > **Note!** If you do not add [suppressHydrationWarning](https://reactjs.org/docs/dom-elements.html#suppresshydrationwarning:~:text=It%20only%20works%20one%20level%20deep) to your `<html>` you will get warnings because `next-themes` updates that element. This property only applies one level deep, so it won't block hydration warnings on other elements.
 
@@ -537,7 +524,7 @@ Yes, starting from the 0.3.0 version.
 
 **Is the injected script minified?**
 
-Yes, using Terser.
+Yes.
 
 ---
 
@@ -552,7 +539,7 @@ If we didn't distinguish between `theme` and `resolvedTheme`, the UI would show 
 ```jsx
 const { resolvedTheme } = useTheme()
 
-<div style={{ color: resolvedTheme === 'dark' ? white : black }}>
+<div style={{ color: resolvedTheme === 'dark' ? 'white' : 'black' }}>
 ```
 
 If we didn't have `resolvedTheme` and only used `theme`, you'd lose information about the state of your UI (you would only know the theme is "system", and not what it resolved to).

@@ -1,15 +1,13 @@
-export const script = (...args: any[]) => {
-  const [
-    attribute,
-    storageKey,
-    defaultTheme,
-    forcedTheme,
-    themes,
-    value,
-    enableSystem,
-    enableColorScheme
-  ] = args
-
+export const script = (
+  attribute,
+  storageKey,
+  defaultTheme,
+  forcedTheme,
+  themes,
+  value,
+  enableSystem,
+  enableColorScheme
+) => {
   const el = document.documentElement
   const media = `(prefers-color-scheme: dark)`
   const systemThemes = ['light', 'dark']

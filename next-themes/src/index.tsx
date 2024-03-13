@@ -150,15 +150,13 @@ const Theme = ({
       <ThemeScript
         {...{
           forcedTheme,
-          disableTransitionOnChange,
+          storageKey,
+          attribute,
           enableSystem,
           enableColorScheme,
-          storageKey,
-          themes,
           defaultTheme,
-          attribute,
           value,
-          children,
+          themes,
           nonce
         }}
       />
@@ -179,8 +177,8 @@ const ThemeScript = React.memo(
     value,
     themes,
     nonce
-  }: ThemeProviderProps & { defaultTheme: string }) => {
-    const scriptProps = [
+  }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
+    const scriptArgs = JSON.stringify([
       attribute,
       storageKey,
       defaultTheme,
@@ -189,15 +187,13 @@ const ThemeScript = React.memo(
       value,
       enableSystem,
       enableColorScheme
-    ]
+    ]).slice(1, -1)
 
     return (
       <script
         suppressHydrationWarning
         nonce={typeof window === 'undefined' ? nonce : ''}
-        dangerouslySetInnerHTML={{
-          __html: `(${script.toString()})(${JSON.stringify(scriptProps).slice(1, -1)})`
-        }}
+        dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${scriptArgs})` }}
       />
     )
   }

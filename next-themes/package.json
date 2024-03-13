@@ -12,7 +12,7 @@
     "prepublish": "pnpm build",
     "build": "tsup src",
     "dev": "tsup src --watch",
-    "test": "vitest __tests__"
+    "test": "vitest run __tests__"
   },
   "peerDependencies": {
     "react": "^16.8 || ^17 || ^18",

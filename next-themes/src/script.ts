@@ -9,7 +9,6 @@ export const script = (
   enableColorScheme
 ) => {
   const el = document.documentElement
-  const media = `(prefers-color-scheme: dark)`
   const systemThemes = ['light', 'dark']
   const isClass = attribute === 'class'
   const classes =
@@ -35,7 +34,7 @@ export const script = (
   }
 
   function getSystemTheme() {
-    return window.matchMedia(media).matches ? 'dark' : 'light'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
 
   ;(function () {

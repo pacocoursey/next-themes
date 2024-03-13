@@ -549,7 +549,7 @@ If we didn't distinguish between `theme` and `resolvedTheme`, the UI would show 
 
 `resolvedTheme` is then useful for modifying behavior or styles at runtime:
 
-```js
+```jsx
 const { resolvedTheme } = useTheme()
 
 <div style={{ color: resolvedTheme === 'dark' ? white : black }}>

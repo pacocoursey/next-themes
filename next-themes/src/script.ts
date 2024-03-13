@@ -9,14 +9,11 @@ export const script = (
   enableColorScheme
 ) => {
   const el = document.documentElement
-  const media = `(prefers-color-scheme: dark)`
   const systemThemes = ['light', 'dark']
   const isClass = attribute === 'class'
   const classes =
-    isClass && !!value
-      ? themes.map(t => {
-          return value[t] || t
-        })
+    isClass && value
+      ? themes.map(t => value[t] || t)
       : themes
 
   function updateDOM(theme: string) {
@@ -37,7 +34,7 @@ export const script = (
   }
 
   function getSystemTheme() {
-    return window.matchMedia(media).matches ? 'dark' : 'light'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
 
   ;(function () {
@@ -45,11 +42,9 @@ export const script = (
       updateDOM(forcedTheme)
     } else {
       try {
-        const e = localStorage.getItem(storageKey)
-        const themeName = e || defaultTheme
-        const isSystem = enableSystem && themeName === 'system' ? true : false
-
-        const theme = isSystem ? getSystemTheme() : e || defaultTheme
+        const themeName = localStorage.getItem(storageKey) || defaultTheme
+        const isSystem = enableSystem && themeName === 'system'
+        const theme = isSystem ? getSystemTheme() : themeName
         updateDOM(theme)
       } catch (e) {
         //

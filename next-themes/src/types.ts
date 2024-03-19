@@ -21,7 +21,7 @@ export interface UseThemeProps {
 
 export type Attribute = `data-${string}` | 'class'
 
-export interface ThemeProviderProps {
+export interface ThemeProviderProps extends React.PropsWithChildren {
   /** List of all available theme names */
   themes?: string[] | undefined
   /** Forced theme name for the current page */
@@ -42,6 +42,4 @@ export interface ThemeProviderProps {
   value?: ValueObject | undefined
   /** Nonce string to pass to the inline script for CSP headers */
   nonce?: string | undefined
-  /** React children */
-  children: React.ReactNode
 }

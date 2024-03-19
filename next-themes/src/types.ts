@@ -37,7 +37,7 @@ export interface ThemeProviderProps {
   /** Default theme name (for v0.0.12 and lower the default was light). If `enableSystem` is false, the default theme is light */
   defaultTheme?: string | undefined
   /** HTML attribute modified based on the active theme. Accepts `class`, `data-*` (meaning any data attribute, `data-mode`, `data-color`, etc.), or an array which could include both */
-  attribute?: `data-${string}` | 'class' | Attribute[] | undefined
+  attribute?: Attribute | Attribute[] | undefined
   /** Mapping of theme name to HTML attribute value. Object where key is the theme name and value is the attribute value */
   value?: ValueObject | undefined
   /** Nonce string to pass to the inline script for CSP headers */

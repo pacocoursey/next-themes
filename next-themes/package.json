@@ -8,10 +8,17 @@
   "files": [
     "dist"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "prepublish": "pnpm build",
-    "build": "tsup src",
-    "dev": "tsup src --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "test": "vitest run __tests__"
   },
   "peerDependencies": {

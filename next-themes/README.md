@@ -454,7 +454,7 @@ export default ThemedImage
 
 ### With Tailwind
 
-[Visit the live example](https://next-themes-tailwind.vercel.app) • [View the example source code](https://github.com/pacocoursey/next-themes/tree/master/examples/tailwind)
+[Visit the live example](https://next-themes-tailwind.vercel.app) • [View the example source code](https://github.com/flixlix/next-themes/tree/master/examples/tailwind)
 
 > NOTE! Tailwind only supports dark mode in version >2.
 

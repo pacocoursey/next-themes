@@ -1,0 +1,17 @@
+name: Feature request
+description: Feature request for next-themes.
+title: "[Feature request]: "
+labels: ["request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature request!
+  - type: textarea
+    id: functionality
+    attributes:
+      label: What feature would you like to see?
+      description: Specify the feature you would like to see and perhaps what problem it would solve for you.
+      placeholder: "I would like to be able to..."
+    validations:
+      required: true

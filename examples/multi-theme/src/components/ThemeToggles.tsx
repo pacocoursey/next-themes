@@ -26,7 +26,7 @@ function ThemeToggles() {
         {Object.entries(themeMapping).map(([key, value]) => (
           <button
             key={key}
-            className={`px-4 py-2 font-semibold rounded-md ${
+            className={`px-4 py-2 font-semibold rounded-md transition-colors duration-200 ${
               // The theme is only available after the component is mounted.
               mounted && theme == key
                 ? 'border border-primary bg-primary-foreground text-primary'

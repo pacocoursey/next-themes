@@ -90,7 +90,7 @@ const Theme = ({
         // Unsupported
       }
     },
-    [forcedTheme, theme]
+    [theme]
   )
 
   const handleMediaQuery = React.useCallback(

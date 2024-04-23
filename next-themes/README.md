@@ -163,7 +163,7 @@ All your theme configuration is passed to ThemeProvider.
 useTheme takes no parameters, but returns:
 
 - `theme`: Active theme name
-- `setTheme(name)`: Function to update the theme
+- `setTheme(name)`: Function to update the theme. The API is identical to the [set function](https://react.dev/reference/react/useState#setstate) returned by `useState`-hook. Pass the new theme value or use a callback to set the new theme based on the current theme.
 - `forcedTheme`: Forced page theme or falsy. If `forcedTheme` is set, you should disable any theme switching UI
 - `resolvedTheme`: If `enableSystem` is true and the active theme is "system", this returns whether the system preference resolved to "dark" or "light". Otherwise, identical to `theme`
 - `systemTheme`: If `enableSystem` is true, represents the System theme preference ("dark" or "light"), regardless what the active theme is

@@ -404,4 +404,29 @@ describe('setTheme', () => {
     rerender()
     expect(result.current.resolvedTheme).toBe('dark')
   })
+
+  test('setTheme(<function>)', () => {
+    const { result, rerender } = renderHook(() => useTheme(), {
+      wrapper: ({ children }) => <ThemeProvider defaultTheme="light">{children}</ThemeProvider>
+    })
+    expect(result.current?.setTheme).toBeDefined()
+    expect(result.current.theme).toBe('light')
+    expect(result.current.resolvedTheme).toBe('light')
+
+    const toggleTheme = vi.fn((theme: string) => (theme === 'light' ? 'dark' : 'light'))
+
+    result.current.setTheme(toggleTheme)
+    expect(toggleTheme).toBeCalledTimes(1)
+    rerender()
+
+    expect(result.current.theme).toBe('dark')
+    expect(result.current.resolvedTheme).toBe('dark')
+
+    result.current.setTheme(toggleTheme)
+    expect(toggleTheme).toBeCalledTimes(2)
+    rerender()
+
+    expect(result.current.theme).toBe('light')
+    expect(result.current.resolvedTheme).toBe('light')
+  })
 })

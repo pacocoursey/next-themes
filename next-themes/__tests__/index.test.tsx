@@ -429,4 +429,5 @@ describe('setTheme', () => {
     expect(result.current.theme).toBe('light')
     expect(result.current.resolvedTheme).toBe('light')
   })
+
 })

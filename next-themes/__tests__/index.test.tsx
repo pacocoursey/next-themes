@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 
 import * as React from 'react'
-import { act, render, screen } from '@testing-library/react'
+import { act, render, renderHook, screen } from '@testing-library/react'
 import { vi, beforeAll, beforeEach, afterEach, afterAll, describe, test, it, expect } from 'vitest'
 import { cleanup } from '@testing-library/react'
 
 import { ThemeProvider, useTheme } from '../src/index'
+import { ThemeProviderProps } from '../src/types'
 
 let originalLocalStorage: Storage
 const localStorageMock: Storage = (() => {
@@ -90,72 +91,70 @@ afterAll(() => {
   window.localStorage = originalLocalStorage
 })
 
-describe('defaultTheme', () => {
-  test('should return system when no default-theme is set', () => {
-    render(
-      <ThemeProvider>
-        <HelperComponent />
-      </ThemeProvider>
-    )
+function makeWrapper(props: ThemeProviderProps) {
+  return ({ children }: { children: React.ReactNode }) => (
+    <ThemeProvider {...props}>{children}</ThemeProvider>
+  )
+}
 
-    expect(screen.getByTestId('theme').textContent).toBe('system')
+describe('defaultTheme', () => {
+  test('should return system-theme when no default-theme is set', () => {
+    setDeviceTheme('light')
+
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: makeWrapper({})
+    })
+    expect(result.current.theme).toBe('system')
+    expect(result.current.systemTheme).toBe('light')
+    expect(result.current.resolvedTheme).toBe('light')
   })
 
   test('should return light when no default-theme is set and enableSystem=false', () => {
-    render(
-      <ThemeProvider enableSystem={false}>
-        <HelperComponent />
-      </ThemeProvider>
-    )
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: makeWrapper({ enableSystem: false })
+    })
 
-    expect(screen.getByTestId('theme').textContent).toBe('light')
+    expect(result.current.theme).toBe('light')
+    expect(result.current.resolvedTheme).toBe('light')
   })
 
   test('should return light when light is set as default-theme', () => {
-    render(
-      <ThemeProvider defaultTheme="light">
-        <HelperComponent />
-      </ThemeProvider>
-    )
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: makeWrapper({ defaultTheme: 'light' })
+    })
 
-    expect(screen.getByTestId('theme').textContent).toBe('light')
+    expect(result.current.theme).toBe('light')
+    expect(result.current.resolvedTheme).toBe('light')
   })
 
   test('should return dark when dark is set as default-theme', () => {
-    render(
-      <ThemeProvider defaultTheme="dark">
-        <HelperComponent />
-      </ThemeProvider>
-    )
-
-    expect(screen.getByTestId('theme').textContent).toBe('dark')
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: makeWrapper({ defaultTheme: 'dark' })
+    })
+    expect(result.current.theme).toBe('dark')
+    expect(result.current.resolvedTheme).toBe('dark')
   })
 })
 
 describe('provider', () => {
   it('ignores nested ThemeProviders', () => {
-    act(() => {
-      render(
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: ({ children }) => (
         <ThemeProvider defaultTheme="dark">
-          <ThemeProvider defaultTheme="light">
-            <HelperComponent />
-          </ThemeProvider>
+          <ThemeProvider defaultTheme="light">{children}</ThemeProvider>
         </ThemeProvider>
       )
     })
 
-    expect(screen.getByTestId('theme').textContent).toBe('dark')
+    expect(result.current.theme).toBe('dark')
+    expect(result.current.resolvedTheme).toBe('dark')
   })
 })
 
 describe('storage', () => {
   test('should not set localStorage with default value', () => {
-    act(() => {
-      render(
-        <ThemeProvider defaultTheme="dark">
-          <HelperComponent />
-        </ThemeProvider>
-      )
+    renderHook(() => useTheme(), {
+      wrapper: makeWrapper({ defaultTheme: 'dark' })
     })
 
     expect(window.localStorage.setItem).toBeCalledTimes(0)
@@ -163,13 +162,10 @@ describe('storage', () => {
   })
 
   test('should set localStorage when switching themes', () => {
-    act(() => {
-      render(
-        <ThemeProvider>
-          <HelperComponent forceSetTheme="dark" />
-        </ThemeProvider>
-      )
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: makeWrapper({})
     })
+    result.current.setTheme('dark')
 
     expect(window.localStorage.setItem).toBeCalledTimes(1)
     expect(window.localStorage.getItem('theme')).toBe('dark')
@@ -290,47 +286,40 @@ describe('forcedTheme', () => {
   test('should render saved theme when no forcedTheme is set', () => {
     localStorageMock.setItem('theme', 'dark')
 
-    render(
-      <ThemeProvider>
-        <HelperComponent />
-      </ThemeProvider>
-    )
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: makeWrapper({})
+    })
 
-    expect(screen.getByTestId('theme').textContent).toBe('dark')
-    expect(screen.getByTestId('forcedTheme').textContent).toBe('')
+    expect(result.current.theme).toBe('dark')
+    expect(result.current.forcedTheme).toBeUndefined()
   })
 
   test('should render light theme when forcedTheme is set to light', () => {
     localStorageMock.setItem('theme', 'dark')
 
-    act(() => {
-      render(
-        <ThemeProvider forcedTheme="light">
-          <HelperComponent />
-        </ThemeProvider>
-      )
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: makeWrapper({
+        forcedTheme: 'light'
+      })
     })
 
-    expect(screen.getByTestId('theme').textContent).toBe('dark')
-    expect(screen.getByTestId('forcedTheme').textContent).toBe('light')
+    expect(result.current.theme).toBe('dark')
+    expect(result.current.forcedTheme).toBe('light')
   })
 })
 
-describe('system', () => {
+describe('system theme', () => {
   test('resolved theme should be set', () => {
     setDeviceTheme('dark')
 
-    act(() => {
-      render(
-        <ThemeProvider>
-          <HelperComponent />
-        </ThemeProvider>
-      )
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: makeWrapper({})
     })
 
-    expect(screen.getByTestId('theme').textContent).toBe('system')
-    expect(screen.getByTestId('forcedTheme').textContent).toBe('')
-    expect(screen.getByTestId('resolvedTheme').textContent).toBe('dark')
+    expect(result.current.theme).toBe('system')
+    expect(result.current.systemTheme).toBe('dark')
+    expect(result.current.resolvedTheme).toBe('dark')
+    expect(result.current.forcedTheme).toBeUndefined()
   })
 
   test('system theme should be set, even if theme is not system', () => {
@@ -353,18 +342,14 @@ describe('system', () => {
   test('system theme should not be set if enableSystem is false', () => {
     setDeviceTheme('dark')
 
-    act(() => {
-      render(
-        <ThemeProvider defaultTheme="light" enableSystem={false}>
-          <HelperComponent />
-        </ThemeProvider>
-      )
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: makeWrapper({ enableSystem: false, defaultTheme: 'light' })
     })
 
-    expect(screen.getByTestId('theme').textContent).toBe('light')
-    expect(screen.getByTestId('forcedTheme').textContent).toBe('')
-    expect(screen.getByTestId('resolvedTheme').textContent).toBe('light')
-    expect(screen.getByTestId('systemTheme').textContent).toBe('')
+    expect(result.current.theme).toBe('light')
+    expect(result.current.systemTheme).toBeUndefined()
+    expect(result.current.resolvedTheme).toBe('light')
+    expect(result.current.forcedTheme).toBeUndefined()
   })
 })
 
@@ -405,5 +390,18 @@ describe('color-scheme', () => {
 
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
     expect(document.documentElement.style.colorScheme).toBe('dark')
+  })
+})
+
+describe('setTheme', () => {
+  test('setTheme(<literal>)', () => {
+    const { result, rerender } = renderHook(() => useTheme(), {
+      wrapper: ({ children }) => <ThemeProvider defaultTheme="light">{children}</ThemeProvider>
+    })
+    expect(result.current?.setTheme).toBeDefined()
+    expect(result.current.resolvedTheme).toBe('light')
+    result.current.setTheme('dark')
+    rerender()
+    expect(result.current.resolvedTheme).toBe('dark')
   })
 })

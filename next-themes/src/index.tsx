@@ -1,8 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import type { UseThemeProps, ThemeProviderProps } from './types'
 import { script } from './script'
+import type { Attribute, ThemeProviderProps, UseThemeProps } from './types'
 
 const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
@@ -76,15 +76,16 @@ const Theme = ({
     const enable = disableTransitionOnChange ? disableAnimation() : null
     const d = document.documentElement
 
-    if (attribute === 'class') {
-      d.classList.remove(...attrs)
-
-      if (name) d.classList.add(name)
-    } else {
-      if (name) {
-        d.setAttribute(attribute, name)
-      } else {
-        d.removeAttribute(attribute)
+    const handleAttribute = (attr: Attribute) => {
+      if (attr === 'class') {
+        d.classList.remove(...attrs)
+        if (name) d.classList.add(name)
+      } else if (attr.startsWith('data-')) {
+        if (name) {
+          d.setAttribute(attr, name)
+        } else {
+          d.removeAttribute(attr)
+        }
       }
     }
 
@@ -132,6 +133,8 @@ const Theme = ({
         }
       }
     }
+    if (Array.isArray(attribute)) attribute.forEach(handleAttribute)
+    else handleAttribute(attribute)
 
     if (enableColorScheme) {
       const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
@@ -144,8 +147,8 @@ const Theme = ({
   }, [])
 
   const setTheme = React.useCallback(
-    theme => {
-      const newTheme = typeof theme === 'function' ? theme(theme) : theme
+    value => {
+      const newTheme = typeof value === 'function' ? value(theme) : value
       setThemeState(newTheme)
 
       // When a theme is forced it should not be possible to override it.
@@ -158,7 +161,7 @@ const Theme = ({
         // Unsupported
       }
     },
-    [forcedTheme]
+    [theme]
   )
 
   const handleMediaQuery = React.useCallback(

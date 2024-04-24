@@ -79,8 +79,8 @@ const Theme = ({
   }, [])
 
   const setTheme = React.useCallback(
-    theme => {
-      const newTheme = typeof theme === 'function' ? theme(theme) : theme
+    value => {
+      const newTheme = typeof value === 'function' ? value(theme) : value
       setThemeState(newTheme)
 
       // Save to storage
@@ -90,7 +90,7 @@ const Theme = ({
         // Unsupported
       }
     },
-    [forcedTheme]
+    [theme]
   )
 
   const handleMediaQuery = React.useCallback(

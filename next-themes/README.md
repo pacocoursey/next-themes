@@ -452,35 +452,61 @@ export default ThemedImage
 }
 ```
 
-### With Tailwind
+### With TailwindCSS
 
 [Visit the live example](https://next-themes-tailwind.vercel.app) • [View the example source code](https://github.com/pacocoursey/next-themes/tree/master/examples/tailwind)
 
 > NOTE! Tailwind only supports dark mode in version >2.
 
-In your `tailwind.config.js`, set the dark mode property to class:
+In your `tailwind.config.js`, set the dark mode property to `selector`:
 
 ```js
 // tailwind.config.js
 module.exports = {
-  darkMode: 'class'
+  darkMode: 'selector'
 }
 ```
 
+_Note: If you are using an older version of tailwindcss < 3.4.1 use `'class'` instead of `'selector'`_
+
 Set the attribute for your Theme Provider to class:
 
-```jsx
-// pages/_app.js
+```tsx
+// pages/_app.tsx
 <ThemeProvider attribute="class">
 ```
 
-If you're using the `value` prop to specify different attribute values, make sure your dark theme explicitly uses the "dark" value, as required by Tailwind.
+If you're using the value prop to specify different attribute values, make sure your dark theme explicitly uses the "dark" value, as required by Tailwind.
 
 That's it! Now you can use dark-mode specific classes:
 
-```jsx
+```tsx
 <h1 className="text-black dark:text-white">
 ```
+
+#### Using a custom selector (tailwindcss > 3.4.1)
+
+Tailwind also allows you to use a [custom selector](https://tailwindcss.com/docs/dark-mode#customizing-the-selector) for dark-mode as of v3.4.1.
+
+In that case, your `tailwind.config.js` would look like this:
+
+```js
+// tailwind.config.js
+module.exports = {
+  // data-mode is used as an example, next-themes supports using any data attribute
+  darkMode: ['selector', '[data-mode="dark"]']
+  …
+}
+```
+
+Now set the attribute for your ThemeProvider to `data-mode`:
+
+```tsx
+// pages/_app.tsx
+<ThemeProvider attribute="data-mode">
+```
+
+With this setup, you can now use Tailwind's dark mode classes, as in the previous example:
 
 ## Discussion
 

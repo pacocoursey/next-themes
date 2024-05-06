@@ -7,9 +7,13 @@
     "dev": "turbo dev",
     "test": "turbo test",
     "test:e2e": "pnpm playwright test",
-    "lint": "prettier . --write"
+    "lint": "prettier . --write",
+    "changeset": "changeset",
+    "release": "changeset version"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.27.1",
     "@playwright/test": "^1.37.1",
     "@testing-library/react": "^14.2.1",
     "@types/node": "20.5.7",

@@ -281,6 +281,8 @@ next-themes is designed to support any number of themes! Simply pass a list of t
 <ThemeProvider themes={['pink', 'red', 'blue', 'light', 'dark']}>
 ```
 
+For an example on how to use this, check out the [multi-theme example](./examples/multi-theme/README.md)
+
 ### Without CSS variables
 
 This library does not rely on your theme styling using CSS variables. You can hard-code the values in your CSS, and everything will work as expected (without any flashing):

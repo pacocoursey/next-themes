@@ -160,7 +160,7 @@ const Theme = ({
       <ThemeScript
         {...{
           forcedTheme,
-          storage,
+          storageConfig,
           storageKey,
           attribute,
           enableSystem,

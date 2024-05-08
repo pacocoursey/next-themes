@@ -33,10 +33,16 @@ const Theme = ({
   attribute = 'data-theme',
   value,
   children,
-  nonce
+  nonce,
+  storage: storageConfig = 'localStorage'
 }: ThemeProviderProps) => {
-  const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
-  const [resolvedTheme, setResolvedTheme] = React.useState(() => getTheme(storageKey))
+  const storage = React.useMemo(() => {
+    if (storageConfig === 'sessionStorage') return window.sessionStorage
+    return window.localStorage
+  }, [storageConfig])
+
+  const [theme, setThemeState] = React.useState(() => getTheme(storageKey, storage, defaultTheme))
+  const [resolvedTheme, setResolvedTheme] = React.useState(() => getTheme(storageKey, storage))
   const attrs = !value ? themes : Object.values(value)
 
   const applyTheme = React.useCallback(theme => {
@@ -85,7 +91,7 @@ const Theme = ({
 
       // Save to storage
       try {
-        localStorage.setItem(storageKey, newTheme)
+        storage.setItem(storageKey, newTheme)
       } catch (e) {
         // Unsupported
       }
@@ -204,11 +210,11 @@ const ThemeScript = React.memo(
 )
 
 // Helpers
-const getTheme = (key: string, fallback?: string) => {
+const getTheme = (key: string, storage: Storage, fallback?: string) => {
   if (isServer) return undefined
   let theme
   try {
-    theme = localStorage.getItem(key) || undefined
+    theme = storage.getItem(key) || undefined
   } catch (e) {
     // Unsupported
   }

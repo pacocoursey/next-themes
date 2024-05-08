@@ -157,6 +157,7 @@ All your theme configuration is passed to ThemeProvider.
 - `value`: Optional mapping of theme name to attribute value
   - value is an `object` where key is the theme name and value is the attribute value ([example](#differing-dom-attribute-and-theme-name))
 - `nonce`: Optional nonce passed to the injected `script` tag, used to allow-list the next-themes script in your CSP
+- `storage`: Optional storage configuration. Defaults to 'localStorage'. Can be set to 'localStorage', 'sessionStorage' or a custom storage object with `getItem`, `setItem`, and `removeItem` methods.
 
 ### useTheme
 

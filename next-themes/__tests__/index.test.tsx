@@ -291,6 +291,7 @@ describe('forcedTheme', () => {
     })
 
     expect(result.current.theme).toBe('dark')
+    expect(result.current.resolvedTheme).toBe('dark')
     expect(result.current.forcedTheme).toBeUndefined()
   })
 
@@ -303,8 +304,9 @@ describe('forcedTheme', () => {
       })
     })
 
-    expect(result.current.theme).toBe('dark')
+    expect(result.current.theme).toBe('forced')
     expect(result.current.forcedTheme).toBe('light')
+    expect(result.current.resolvedTheme).toBe('light')
   })
 })
 
@@ -429,5 +431,4 @@ describe('setTheme', () => {
     expect(result.current.theme).toBe('light')
     expect(result.current.resolvedTheme).toBe('light')
   })
-
 })

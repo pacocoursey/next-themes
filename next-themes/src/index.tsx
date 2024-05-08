@@ -32,12 +32,36 @@ const Theme = ({
   defaultTheme = enableSystem ? 'system' : 'light',
   attribute = 'data-theme',
   value,
+  themeColor,
   children,
   nonce
 }: ThemeProviderProps) => {
-  const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
+  const [theme, setThemeState] = React.useState(() =>
+    forcedTheme ? 'forced' : getTheme(storageKey, defaultTheme)
+  )
   const [resolvedTheme, setResolvedTheme] = React.useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
+  const themeColorEl = React.useRef<HTMLMetaElement>()
+  const rootStyles = React.useRef<CSSStyleDeclaration>()
+  const pendingThemeUpdate = React.useRef<string>()
+
+  const resolveCSSColor = (color: string) => {
+    // Resolve CSS variable value
+    if (color.startsWith('var(--')) {
+      // Cache if not already
+      if (!rootStyles.current) {
+        rootStyles.current = getComputedStyle(document.documentElement)
+      }
+
+      return rootStyles.current.getPropertyValue(
+        // var(--bg) → --bg
+        color.slice(4, -1)
+      )
+    }
+
+    // Regular CSS color string
+    return color
+  }
 
   const applyTheme = React.useCallback(theme => {
     let resolved = theme
@@ -65,6 +89,50 @@ const Theme = ({
       }
     }
 
+    // Must be calculated after changing the attribute/class so that CSS vars are up-to-date
+    if (themeColor) {
+      let shouldInsert = false
+
+      const value = (() => {
+        if (typeof themeColor === 'string') {
+          return resolveCSSColor(themeColor)
+        }
+
+        // Object value
+        return resolveCSSColor(themeColor[resolved])
+      })()
+
+      const el = (() => {
+        // Had the element cached
+        if (themeColorEl.current?.isConnected) {
+          return themeColorEl.current
+        }
+
+        // Meta tag already exists in the dom
+        const found = document.head.querySelector('meta[name="theme-color"]') as HTMLMetaElement
+        if (found) return found
+
+        // Does not exist, create one
+        const meta = document.createElement('meta')
+        meta.setAttribute('name', 'theme-color')
+        shouldInsert = true
+        return meta
+      })()
+
+      // Cache element
+      themeColorEl.current = el
+
+      // CSS variable could be undefined
+      if (value) {
+        // Update the DOM
+        el.removeAttribute('value') // standardize on the content attribute instead of value
+        el.setAttribute('content', value)
+
+        if (shouldInsert) {
+          document.head.appendChild(el)
+        }
+      }
+    }
     if (Array.isArray(attribute)) attribute.forEach(handleAttribute)
     else handleAttribute(attribute)
 
@@ -82,6 +150,9 @@ const Theme = ({
     value => {
       const newTheme = typeof value === 'function' ? value(theme) : value
       setThemeState(newTheme)
+
+      // When a theme is forced it should not be possible to override it.
+      if (forcedTheme) return
 
       // Save to storage
       try {
@@ -123,6 +194,11 @@ const Theme = ({
         return
       }
 
+      if (forcedTheme && e.newValue) {
+        pendingThemeUpdate.current = e.newValue
+        return
+      }
+
       // If default theme set, use it if localstorage === null (happens on local storage manual deletion)
       const theme = e.newValue || defaultTheme
       setTheme(theme)
@@ -132,8 +208,18 @@ const Theme = ({
     return () => window.removeEventListener('storage', handleStorage)
   }, [setTheme])
 
-  // Whenever theme or forcedTheme changes, apply it
   React.useEffect(() => {
+    if (forcedTheme) {
+      setTheme('forced')
+    }
+
+    if (!forcedTheme && pendingThemeUpdate.current) {
+      setTheme(pendingThemeUpdate.current) // Apply theme sent with storage-event
+      applyTheme(pendingThemeUpdate.current) // Apply the theme
+      pendingThemeUpdate.current = undefined
+      return
+    }
+
     applyTheme(forcedTheme ?? theme)
   }, [forcedTheme, theme])
 
@@ -142,7 +228,7 @@ const Theme = ({
       theme,
       setTheme,
       forcedTheme,
-      resolvedTheme: theme === 'system' ? resolvedTheme : theme,
+      resolvedTheme: forcedTheme ?? theme === 'system' ? resolvedTheme : theme,
       themes: enableSystem ? [...themes, 'system'] : themes,
       systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
     }),

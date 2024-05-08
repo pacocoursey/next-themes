@@ -7,26 +7,11 @@ import { cleanup } from '@testing-library/react'
 
 import { ThemeProvider, useTheme } from '../src/index'
 import { ThemeProviderProps } from '../src/types'
+import { setDeviceTheme } from './mocks/device-theme'
+import { makeBrowserStorageMock } from './mocks/storage'
 
 let originalLocalStorage: Storage
-const localStorageMock: Storage = (() => {
-  let store: Record<string, string> = {}
-
-  return {
-    getItem: vi.fn((key: string): string => store[key] ?? null),
-    setItem: vi.fn((key: string, value: string): void => {
-      store[key] = value.toString()
-    }),
-    removeItem: vi.fn((key: string): void => {
-      delete store[key]
-    }),
-    clear: vi.fn((): void => {
-      store = {}
-    }),
-    key: vi.fn((index: number): string | null => ''),
-    length: Object.keys(store).length
-  }
-})()
+const localStorageMock: Storage = makeBrowserStorageMock()
 
 // HelperComponent to render the theme inside a paragraph-tag and setting a theme via the forceSetTheme prop
 const HelperComponent = ({ forceSetTheme }: { forceSetTheme?: string }) => {
@@ -46,24 +31,6 @@ const HelperComponent = ({ forceSetTheme }: { forceSetTheme?: string }) => {
       <p data-testid="systemTheme">{systemTheme}</p>
     </>
   )
-}
-
-function setDeviceTheme(theme: 'light' | 'dark') {
-  // Create a mock of the window.matchMedia function
-  // Based on: https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
-  Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    value: vi.fn().mockImplementation(query => ({
-      matches: theme === 'dark' ? true : false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(), // Deprecated
-      removeListener: vi.fn(), // Deprecated
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn()
-    }))
-  })
 }
 
 beforeAll(() => {
@@ -429,5 +396,4 @@ describe('setTheme', () => {
     expect(result.current.theme).toBe('light')
     expect(result.current.resolvedTheme).toBe('light')
   })
-
 })

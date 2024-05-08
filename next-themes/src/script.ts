@@ -1,5 +1,6 @@
 export const script = (
   attribute,
+  storageConfig,
   storageKey,
   defaultTheme,
   forcedTheme,
@@ -38,7 +39,8 @@ export const script = (
     updateDOM(forcedTheme)
   } else {
     try {
-      const themeName = localStorage.getItem(storageKey) || defaultTheme
+      const storage = 'localStorage' === storageConfig ? window.localStorage : window.sessionStorage
+      const themeName = storage.getItem(storageKey) || defaultTheme
       const isSystem = enableSystem && themeName === 'system'
       const theme = isSystem ? getSystemTheme() : themeName
       updateDOM(theme)

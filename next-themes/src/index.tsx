@@ -160,6 +160,7 @@ const Theme = ({
       <ThemeScript
         {...{
           forcedTheme,
+          storage,
           storageKey,
           attribute,
           enableSystem,
@@ -179,6 +180,7 @@ const Theme = ({
 const ThemeScript = React.memo(
   ({
     forcedTheme,
+    storage,
     storageKey,
     attribute,
     enableSystem,
@@ -190,6 +192,7 @@ const ThemeScript = React.memo(
   }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
     const scriptArgs = JSON.stringify([
       attribute,
+      storage,
       storageKey,
       defaultTheme,
       forcedTheme,

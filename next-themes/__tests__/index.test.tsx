@@ -9,7 +9,7 @@ import { ThemeProvider, useTheme } from '../src/index'
 import { ThemeProviderProps } from '../src/types'
 import { setDeviceTheme } from './mocks/device-theme'
 import { makeBrowserStorageMock } from './mocks/storage'
-import exp from 'constants'
+import { getCookieStorage } from '../src/cookie-storage'
 
 let originalLocalStorage: Storage
 let originalSessionStorage: Storage
@@ -164,47 +164,65 @@ describe('storage', () => {
 
       const storage = getStorage()
       expect(storage.setItem).toBeCalledTimes(0)
+      expect(storage.getItem).toHaveBeenCalledTimes(2)
+      expect(storage.getItem).toHaveBeenCalledWith('theme')
       expect(storage.getItem('theme')).toBeNull()
     })
 
     test(getTestName('should set theme in storage when switching themes'), () => {
-      const { result } = renderHook(() => useTheme(), {
+      const { result, rerender } = renderHook(() => useTheme(), {
         wrapper: makeWrapper({ storage: storagePropValue })
       })
+
       result.current.setTheme('dark')
+      rerender()
 
       const storage = getStorage()
-      expect(storage.setItem).toBeCalledTimes(1)
+      expect(storage.setItem).toHaveBeenCalledOnce()
+      expect(storage.getItem).toHaveBeenCalledTimes(2)
+      expect(storage.getItem).toHaveBeenCalledWith('theme')
+      expect(storage.setItem).toHaveBeenCalledWith('theme', 'dark')
+      expect(result.current.theme).toBe('dark')
       expect(storage.getItem('theme')).toBe('dark')
     })
-  })
-})
 
-describe('custom storageKey', () => {
-  test("should save to localStorage with 'theme' key when using default settings", () => {
-    act(() => {
-      render(
-        <ThemeProvider>
-          <HelperComponent forceSetTheme="light" />
-        </ThemeProvider>
-      )
+    test(getTestName('should set theme in storage with defined storageKey'), () => {
+      const themeKey = 'customKey'
+      const { result, rerender } = renderHook(() => useTheme(), {
+        wrapper: makeWrapper({ storage: storagePropValue, storageKey: themeKey })
+      })
+
+      result.current.setTheme('dark')
+      rerender()
+
+      const storage = getStorage()
+      expect(storage.setItem).toHaveBeenCalledOnce()
+      expect(storage.getItem).toHaveBeenCalledTimes(2)
+      expect(storage.getItem).toHaveBeenCalledWith(themeKey)
+      expect(storage.setItem).toHaveBeenCalledWith(themeKey, 'dark')
+      expect(result.current.theme).toBe('dark')
+      expect(storage.getItem(themeKey)).toBe('dark')
+    })
+  })
+
+  test(`Storage=[cookie]: should not set default value in storage`, () => {
+    renderHook(() => useTheme(), {
+      wrapper: makeWrapper({ defaultTheme: 'dark', storage: 'cookie' })
     })
 
-    expect(window.localStorage.getItem).toHaveBeenCalledWith('theme')
-    expect(window.localStorage.setItem).toHaveBeenCalledWith('theme', 'light')
+    const cookieStorage = getCookieStorage()
+    // expect cookie 'theme' to not be set
+    expect(cookieStorage.getItem('theme')).toBeNull()
   })
 
-  test("should save to localStorage with 'custom' when setting prop 'storageKey' to 'customKey'", () => {
-    act(() => {
-      render(
-        <ThemeProvider storageKey="customKey">
-          <HelperComponent forceSetTheme="light" />
-        </ThemeProvider>
-      )
+  test(`Storage=[cookie]: should set theme in storage when switching themes`, () => {
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: makeWrapper({ storage: 'cookie' })
     })
+    result.current.setTheme('dark')
 
-    expect(window.localStorage.getItem).toHaveBeenCalledWith('customKey')
-    expect(window.localStorage.setItem).toHaveBeenCalledWith('customKey', 'light')
+    const cookieStorage = getCookieStorage()
+    expect(cookieStorage.getItem('theme')).toBe('dark')
   })
 })
 

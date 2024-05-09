@@ -37,6 +37,7 @@ const Theme = ({
   storage: storageConfig = 'localStorage'
 }: ThemeProviderProps) => {
   const storage = React.useMemo(() => {
+    if (isServer) return undefined
     if (storageConfig === 'sessionStorage') return window.sessionStorage
     return window.localStorage
   }, [storageConfig])
@@ -124,6 +125,10 @@ const Theme = ({
 
   // localStorage event handling
   React.useEffect(() => {
+    if (storageConfig !== 'localStorage') {
+      return
+    }
+
     const handleStorage = (e: StorageEvent) => {
       if (e.key !== storageKey) {
         return
@@ -136,7 +141,7 @@ const Theme = ({
 
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
-  }, [setTheme])
+  }, [setTheme, storageConfig])
 
   // Whenever theme or forcedTheme changes, apply it
   React.useEffect(() => {

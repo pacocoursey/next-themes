@@ -1,4 +1,4 @@
-import { ThemeToggle } from './ThemeToggle'
+import { ThemeToggle } from '../ThemeToggle'
 
 export default function Home() {
   return (
@@ -7,7 +7,7 @@ export default function Home() {
         <h1 className="text-5xl text-center text-gray-800 dark:text-gray-100 font-bold">
           Next Themes + Tailwind Dark Mode
         </h1>
-        <p className="italic text-2xl">with app-dir</p>
+        <p className="italic text-2xl">with app-dir (theme persisted in sessionStorage)</p>
 
         <ThemeToggle />
       </div>

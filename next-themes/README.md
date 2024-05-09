@@ -145,7 +145,8 @@ Let's dig into the details.
 
 All your theme configuration is passed to ThemeProvider.
 
-- `storageKey = 'theme'`: Key used to store theme setting in localStorage
+- `storageKey = 'theme'`: Key used to store theme setting in the selected storage (see `storage` property below)
+- `storage`: Optional storage configuration. Defaults to 'localStorage'. Can be set to 'localStorage', 'sessionStorage'.
 - `defaultTheme = 'system'`: Default theme name (for v0.0.12 and lower the default was `light`). If `enableSystem` is false, the default theme is `light`
 - `forcedTheme`: Forced theme name for the current page (does not modify saved theme settings)
 - `enableSystem = true`: Whether to switch between `dark` and `light` based on `prefers-color-scheme`
@@ -157,7 +158,6 @@ All your theme configuration is passed to ThemeProvider.
 - `value`: Optional mapping of theme name to attribute value
   - value is an `object` where key is the theme name and value is the attribute value ([example](#differing-dom-attribute-and-theme-name))
 - `nonce`: Optional nonce passed to the injected `script` tag, used to allow-list the next-themes script in your CSP
-- `storage`: Optional storage configuration. Defaults to 'localStorage'. Can be set to 'localStorage', 'sessionStorage' or a custom storage object with `getItem`, `setItem`, and `removeItem` methods.
 
 ### useTheme
 
@@ -283,6 +283,18 @@ next-themes is designed to support any number of themes! Simply pass a list of t
 ```
 
 For an example on how to use this, check out the [multi-theme example](./examples/multi-theme/README.md)
+
+### Storage
+
+The ThemeProvider persists the users selected theme in a storage location.
+By default, the theme is persisted in the browsers localStorage.
+
+The available storages are:
+
+- `storage='localStorage'` (default)
+  - when using localStorage, the theme is synced across tabs and windows
+- `storage='sessionStorage'`
+  - when using sessionStorage, the theme is only persisted for the current session, and not synced across tabs and windows
 
 ### Without CSS variables
 

@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { script } from './script'
 import type { Attribute, ThemeProviderProps, UseThemeProps } from './types'
+import { getCookieStorage } from './cookie-storage'
 
 const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
@@ -37,8 +38,11 @@ const Theme = ({
   scriptProps,
   storage: storageConfig = 'localStorage'
 }: ThemeProviderProps) => {
-  const storage = React.useMemo(() => {
+  const storage: Storage = React.useMemo(() => {
     if (isServer) return undefined
+    if (storageConfig === 'cookie') {
+      return getCookieStorage()
+    }
     if (storageConfig === 'sessionStorage') return window.sessionStorage
     return window.localStorage
   }, [storageConfig])

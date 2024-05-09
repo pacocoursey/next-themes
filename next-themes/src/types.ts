@@ -55,5 +55,5 @@ export interface ThemeProviderProps extends React.PropsWithChildren {
   /** Props to pass the inline script */
   scriptProps?: ScriptProps
   /** Define where the users theme value is stored. Defaults to 'localStorage' */
-  storage?: 'localStorage' | 'sessionStorage' | undefined
+  storage?: 'localStorage' | 'sessionStorage' | 'cookie' | undefined
 }

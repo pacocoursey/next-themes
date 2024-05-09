@@ -7,26 +7,12 @@ import { cleanup } from '@testing-library/react'
 
 import { ThemeProvider, useTheme } from '../src/index'
 import { ThemeProviderProps } from '../src/types'
+import { setDeviceTheme } from './mocks/device-theme'
+import { makeBrowserStorageMock } from './mocks/storage'
+import exp from 'constants'
 
 let originalLocalStorage: Storage
-const localStorageMock: Storage = (() => {
-  let store: Record<string, string> = {}
-
-  return {
-    getItem: vi.fn((key: string): string => store[key] ?? null),
-    setItem: vi.fn((key: string, value: string): void => {
-      store[key] = value.toString()
-    }),
-    removeItem: vi.fn((key: string): void => {
-      delete store[key]
-    }),
-    clear: vi.fn((): void => {
-      store = {}
-    }),
-    key: vi.fn((index: number): string | null => ''),
-    length: Object.keys(store).length
-  }
-})()
+let originalSessionStorage: Storage
 
 // HelperComponent to render the theme inside a paragraph-tag and setting a theme via the forceSetTheme prop
 const HelperComponent = ({ forceSetTheme }: { forceSetTheme?: string }) => {
@@ -48,28 +34,12 @@ const HelperComponent = ({ forceSetTheme }: { forceSetTheme?: string }) => {
   )
 }
 
-function setDeviceTheme(theme: 'light' | 'dark') {
-  // Create a mock of the window.matchMedia function
-  // Based on: https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
-  Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    value: vi.fn().mockImplementation(query => ({
-      matches: theme === 'dark' ? true : false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(), // Deprecated
-      removeListener: vi.fn(), // Deprecated
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn()
-    }))
-  })
-}
-
 beforeAll(() => {
   // Create mocks of localStorage getItem and setItem functions
   originalLocalStorage = window.localStorage
-  window.localStorage = localStorageMock
+
+  // Create mocks of sessionStorage getItem and setItem functions
+  originalSessionStorage = window.sessionStorage
 })
 
 beforeEach(() => {
@@ -79,8 +49,9 @@ beforeEach(() => {
   document.documentElement.removeAttribute('data-theme')
   document.documentElement.removeAttribute('class')
 
-  // Clear the localStorage-mock
-  localStorageMock.clear()
+  // Clear storage-mocks
+  window.sessionStorage = makeBrowserStorageMock()
+  window.localStorage = makeBrowserStorageMock()
 })
 
 afterEach(() => {
@@ -89,6 +60,7 @@ afterEach(() => {
 
 afterAll(() => {
   window.localStorage = originalLocalStorage
+  window.sessionStorage = originalSessionStorage
 })
 
 function makeWrapper(props: ThemeProviderProps) {
@@ -152,23 +124,59 @@ describe('provider', () => {
 })
 
 describe('storage', () => {
-  test('should not set localStorage with default value', () => {
-    renderHook(() => useTheme(), {
-      wrapper: makeWrapper({ defaultTheme: 'dark' })
-    })
-
-    expect(window.localStorage.setItem).toBeCalledTimes(0)
-    expect(window.localStorage.getItem('theme')).toBeNull()
-  })
-
-  test('should set localStorage when switching themes', () => {
+  // check default storage
+  test('Storage[default]: should use localStorage by default', () => {
     const { result } = renderHook(() => useTheme(), {
+      // 'storage' prop is not set
       wrapper: makeWrapper({})
     })
     result.current.setTheme('dark')
 
     expect(window.localStorage.setItem).toBeCalledTimes(1)
     expect(window.localStorage.getItem('theme')).toBe('dark')
+  })
+
+  const storageTypes: {
+    name: string
+    storagePropValue: ThemeProviderProps['storage']
+    // Callback to allow retrieval of the storages inside the test-functions
+    getStorage: () => Storage
+  }[] = [
+    {
+      name: 'localStorage',
+      storagePropValue: 'localStorage',
+      getStorage: () => window.localStorage
+    },
+    {
+      name: 'sessionStorage',
+      storagePropValue: 'sessionStorage',
+      getStorage: () => window.sessionStorage
+    }
+  ]
+
+  storageTypes.forEach(({ name, storagePropValue, getStorage }) => {
+    const getTestName = (test: string) => `Storage[${name}]: ${test}`
+
+    test(getTestName('should not set default value in storage'), () => {
+      renderHook(() => useTheme(), {
+        wrapper: makeWrapper({ defaultTheme: 'dark', storage: storagePropValue })
+      })
+
+      const storage = getStorage()
+      expect(storage.setItem).toBeCalledTimes(0)
+      expect(storage.getItem('theme')).toBeNull()
+    })
+
+    test(getTestName('should set theme in storage when switching themes'), () => {
+      const { result } = renderHook(() => useTheme(), {
+        wrapper: makeWrapper({ storage: storagePropValue })
+      })
+      result.current.setTheme('dark')
+
+      const storage = getStorage()
+      expect(storage.setItem).toBeCalledTimes(1)
+      expect(storage.getItem('theme')).toBe('dark')
+    })
   })
 })
 
@@ -240,7 +248,7 @@ describe('custom attribute', () => {
 
 describe('custom value-mapping', () => {
   test('should use custom value mapping when using value={{pink:"my-pink-theme"}}', () => {
-    localStorageMock.setItem('theme', 'pink')
+    window.localStorage.setItem('theme', 'pink')
 
     act(() => {
       render(
@@ -284,7 +292,7 @@ describe('custom value-mapping', () => {
 
 describe('forcedTheme', () => {
   test('should render saved theme when no forcedTheme is set', () => {
-    localStorageMock.setItem('theme', 'dark')
+    window.localStorage.setItem('theme', 'dark')
 
     const { result } = renderHook(() => useTheme(), {
       wrapper: makeWrapper({})
@@ -295,7 +303,7 @@ describe('forcedTheme', () => {
   })
 
   test('should render light theme when forcedTheme is set to light', () => {
-    localStorageMock.setItem('theme', 'dark')
+    window.localStorage.setItem('theme', 'dark')
 
     const { result } = renderHook(() => useTheme(), {
       wrapper: makeWrapper({
@@ -429,5 +437,4 @@ describe('setTheme', () => {
     expect(result.current.theme).toBe('light')
     expect(result.current.resolvedTheme).toBe('light')
   })
-
 })

@@ -33,10 +33,17 @@ const Theme = ({
   attribute = 'data-theme',
   value,
   children,
-  nonce
+  nonce,
+  storage: storageConfig = 'localStorage'
 }: ThemeProviderProps) => {
-  const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
-  const [resolvedTheme, setResolvedTheme] = React.useState(() => getTheme(storageKey))
+  const storage = React.useMemo(() => {
+    if (isServer) return undefined
+    if (storageConfig === 'sessionStorage') return window.sessionStorage
+    return window.localStorage
+  }, [storageConfig])
+
+  const [theme, setThemeState] = React.useState(() => getTheme(storageKey, storage, defaultTheme))
+  const [resolvedTheme, setResolvedTheme] = React.useState(() => getTheme(storageKey, storage))
   const attrs = !value ? themes : Object.values(value)
 
   const applyTheme = React.useCallback(theme => {
@@ -85,7 +92,7 @@ const Theme = ({
 
       // Save to storage
       try {
-        localStorage.setItem(storageKey, newTheme)
+        storage.setItem(storageKey, newTheme)
       } catch (e) {
         // Unsupported
       }
@@ -118,6 +125,10 @@ const Theme = ({
 
   // localStorage event handling
   React.useEffect(() => {
+    if (storageConfig !== 'localStorage') {
+      return
+    }
+
     const handleStorage = (e: StorageEvent) => {
       if (e.key !== storageKey) {
         return
@@ -130,7 +141,7 @@ const Theme = ({
 
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
-  }, [setTheme])
+  }, [setTheme, storageConfig])
 
   // Whenever theme or forcedTheme changes, apply it
   React.useEffect(() => {
@@ -154,6 +165,7 @@ const Theme = ({
       <ThemeScript
         {...{
           forcedTheme,
+          storageConfig,
           storageKey,
           attribute,
           enableSystem,
@@ -173,6 +185,7 @@ const Theme = ({
 const ThemeScript = React.memo(
   ({
     forcedTheme,
+    storage,
     storageKey,
     attribute,
     enableSystem,
@@ -184,6 +197,7 @@ const ThemeScript = React.memo(
   }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
     const scriptArgs = JSON.stringify([
       attribute,
+      storage,
       storageKey,
       defaultTheme,
       forcedTheme,
@@ -204,11 +218,11 @@ const ThemeScript = React.memo(
 )
 
 // Helpers
-const getTheme = (key: string, fallback?: string) => {
+const getTheme = (key: string, storage: Storage, fallback?: string) => {
   if (isServer) return undefined
   let theme
   try {
-    theme = localStorage.getItem(key) || undefined
+    theme = storage.getItem(key) || undefined
   } catch (e) {
     // Unsupported
   }

@@ -39,7 +39,7 @@ const Theme = ({
   const [resolvedTheme, setResolvedTheme] = React.useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
 
-  const applyTheme = React.useCallback(theme => {
+  const applyTheme = React.useCallback((theme: string) => {
     let resolved = theme
     if (!resolved) return
 
@@ -48,7 +48,7 @@ const Theme = ({
       resolved = getSystemTheme()
     }
 
-    const names = value ? Array.isArray(value[resolved]) ? value[resolved] : [value[resolved]] : resolved
+    const names = value ? Array.isArray(value[resolved]) ? value[resolved] : [value[resolved]] : [resolved]
     const enable = disableTransitionOnChange ? disableAnimation() : null
     const d = document.documentElement
 

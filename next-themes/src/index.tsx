@@ -48,14 +48,14 @@ const Theme = ({
       resolved = getSystemTheme()
     }
 
-    const names = [value ? value[resolved] : resolved].flat()
+    const names = [value ? value[resolved] ?? [] : resolved].flat()
     const enable = disableTransitionOnChange ? disableAnimation() : null
     const d = document.documentElement
 
     const handleAttribute = (attr: Attribute) => {
       if (attr === 'class') {
         d.classList.remove(...attrs.flat())
-        if (names) d.classList.add(...names)
+        if (names.length) d.classList.add(...names)
       } else if (attr.startsWith('data-')) {
         if (names.length) {
           d.setAttribute(attr, names.join(' '))

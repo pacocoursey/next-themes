@@ -48,7 +48,7 @@ const Theme = ({
       resolved = getSystemTheme()
     }
 
-    const names = value ? Array.isArray(value[resolved]) ? value[resolved] : [value[resolved]] : [resolved]
+    const names = [value ? value[resolved] : resolved].flat()
     const enable = disableTransitionOnChange ? disableAnimation() : null
     const d = document.documentElement
 

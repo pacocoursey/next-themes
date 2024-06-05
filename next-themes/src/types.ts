@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 interface ValueObject {
-  [themeName: string]: string
+  [themeName: string]: string | string[]
 }
 
 export interface UseThemeProps {

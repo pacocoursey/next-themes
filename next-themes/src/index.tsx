@@ -57,7 +57,7 @@ const Theme = ({
         d.classList.remove(...attrs.flat())
         if (names) d.classList.add(...names)
       } else if (attr.startsWith('data-')) {
-        if (names) {
+        if (names.length) {
           d.setAttribute(attr, names.join(' '))
         } else {
           d.removeAttribute(attr)

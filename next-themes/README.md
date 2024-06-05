@@ -256,6 +256,14 @@ If we want the DOM to instead render `data-theme="my-pink-theme"` when the theme
 
 Done! To be extra clear, this affects only the DOM. Here's how all the values will look:
 
+if we want to map a theme to multiple custom theme values, we can simply pass an array:
+```jsx
+<ThemeProvider attribute='class' value={{ pink: ['my-pink-theme', 'another-pink-theme'] }}>
+```
+
+When the selected theme is `pink`, both `my-pink-theme` and `another-pink-theme` will be added as class names.
+
+
 ```js
 const { theme } = useTheme()
 // => "pink"

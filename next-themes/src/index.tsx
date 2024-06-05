@@ -39,7 +39,7 @@ const Theme = ({
   const [resolvedTheme, setResolvedTheme] = React.useState(() => getTheme(storageKey))
   const attrs = !value ? themes : Object.values(value)
 
-  const applyTheme = React.useCallback(theme => {
+  const applyTheme = React.useCallback((theme: string) => {
     let resolved = theme
     if (!resolved) return
 
@@ -48,17 +48,17 @@ const Theme = ({
       resolved = getSystemTheme()
     }
 
-    const name = value ? value[resolved] : resolved
+    const names = [value ? value[resolved] ?? [] : resolved].flat()
     const enable = disableTransitionOnChange ? disableAnimation() : null
     const d = document.documentElement
 
     const handleAttribute = (attr: Attribute) => {
       if (attr === 'class') {
-        d.classList.remove(...attrs)
-        if (name) d.classList.add(name)
+        d.classList.remove(...attrs.flat())
+        if (names.length) d.classList.add(...names)
       } else if (attr.startsWith('data-')) {
-        if (name) {
-          d.setAttribute(attr, name)
+        if (names.length) {
+          d.setAttribute(attr, names.join(' '))
         } else {
           d.removeAttribute(attr)
         }

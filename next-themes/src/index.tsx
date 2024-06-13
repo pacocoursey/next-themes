@@ -26,11 +26,7 @@ const getTheme = (key: string, fallback?: string) => {
 
 const disableAnimation = () => {
   const css = document.createElement('style')
-  css.appendChild(
-    document.createTextNode(
-      `*,*::before,*::after{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}`
-    )
-  )
+  css.appendChild(document.createTextNode('*,*::before,*::after{transition:none!important}'))
   document.head.appendChild(css)
 
   return () => {

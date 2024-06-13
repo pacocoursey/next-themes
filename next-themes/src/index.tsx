@@ -135,7 +135,6 @@ const Theme = ({
     if (enableColorScheme) {
       const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
       const colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
-      // @ts-ignore
       docEl.style.colorScheme = colorScheme
     }
 

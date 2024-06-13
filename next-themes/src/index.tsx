@@ -10,17 +10,81 @@ const isServer = typeof window === 'undefined'
 const ThemeContext = React.createContext<UseThemeProps | undefined>(undefined)
 const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
 
-export const useTheme = () => React.useContext(ThemeContext) ?? defaultContext
+const defaultThemes = ['light', 'dark']
 
-export const ThemeProvider = (props: ThemeProviderProps): React.ReactNode => {
-  const context = React.useContext(ThemeContext)
-
-  // Ignore nested context providers, just passthrough children
-  if (context) return props.children
-  return <Theme {...props} />
+// Helpers
+const getTheme = (key: string, fallback?: string) => {
+  if (isServer) return undefined
+  let theme
+  try {
+    theme = localStorage.getItem(key) || undefined
+  } catch (e) {
+    // Unsupported
+  }
+  return theme || fallback
 }
 
-const defaultThemes = ['light', 'dark']
+const disableAnimation = () => {
+  const css = document.createElement('style')
+  css.appendChild(
+    document.createTextNode(
+      `*,*::before,*::after{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}`
+    )
+  )
+  document.head.appendChild(css)
+
+  return () => {
+    // Force restyle
+    ;(() => window.getComputedStyle(document.body))()
+
+    // Wait for next tick before removing
+    setTimeout(() => {
+      document.head.removeChild(css)
+    }, 1)
+  }
+}
+
+const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
+  if (!e) e = window.matchMedia(MEDIA)
+  const isDark = e.matches
+  const systemTheme = isDark ? 'dark' : 'light'
+  return systemTheme
+}
+
+export const useTheme = () => React.useContext(ThemeContext) ?? defaultContext
+
+const ThemeScript = React.memo(
+  ({
+    forcedTheme,
+    storageKey,
+    attribute,
+    enableSystem,
+    enableColorScheme,
+    defaultTheme,
+    value,
+    themes,
+    nonce
+  }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
+    const scriptArgs = JSON.stringify([
+      attribute,
+      storageKey,
+      defaultTheme,
+      forcedTheme,
+      themes,
+      value,
+      enableSystem,
+      enableColorScheme
+    ]).slice(1, -1)
+
+    return (
+      <script
+        suppressHydrationWarning
+        nonce={typeof window === 'undefined' ? nonce : ''}
+        dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${scriptArgs})` }}
+      />
+    )
+  }
+)
 
 const Theme = ({
   forcedTheme,
@@ -170,74 +234,10 @@ const Theme = ({
   )
 }
 
-const ThemeScript = React.memo(
-  ({
-    forcedTheme,
-    storageKey,
-    attribute,
-    enableSystem,
-    enableColorScheme,
-    defaultTheme,
-    value,
-    themes,
-    nonce
-  }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
-    const scriptArgs = JSON.stringify([
-      attribute,
-      storageKey,
-      defaultTheme,
-      forcedTheme,
-      themes,
-      value,
-      enableSystem,
-      enableColorScheme
-    ]).slice(1, -1)
+export const ThemeProvider = (props: ThemeProviderProps): React.ReactNode => {
+  const context = React.useContext(ThemeContext)
 
-    return (
-      <script
-        suppressHydrationWarning
-        nonce={typeof window === 'undefined' ? nonce : ''}
-        dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${scriptArgs})` }}
-      />
-    )
-  }
-)
-
-// Helpers
-const getTheme = (key: string, fallback?: string) => {
-  if (isServer) return undefined
-  let theme
-  try {
-    theme = localStorage.getItem(key) || undefined
-  } catch (e) {
-    // Unsupported
-  }
-  return theme || fallback
-}
-
-const disableAnimation = () => {
-  const css = document.createElement('style')
-  css.appendChild(
-    document.createTextNode(
-      `*,*::before,*::after{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}`
-    )
-  )
-  document.head.appendChild(css)
-
-  return () => {
-    // Force restyle
-    ;(() => window.getComputedStyle(document.body))()
-
-    // Wait for next tick before removing
-    setTimeout(() => {
-      document.head.removeChild(css)
-    }, 1)
-  }
-}
-
-const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
-  if (!e) e = window.matchMedia(MEDIA)
-  const isDark = e.matches
-  const systemTheme = isDark ? 'dark' : 'light'
-  return systemTheme
+  // Ignore nested context providers, just passthrough children
+  if (context) return props.children
+  return <Theme {...props} />
 }

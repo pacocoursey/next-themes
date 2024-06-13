@@ -114,17 +114,17 @@ const Theme = ({
 
     const name = value ? value[resolved] : resolved
     const enable = disableTransitionOnChange ? disableAnimation() : null
-    const d = document.documentElement
+    const docEl = document.documentElement
 
     const handleAttribute = (attr: Attribute) => {
       if (attr === 'class') {
-        d.classList.remove(...attrs)
-        if (name) d.classList.add(name)
+        docEl.classList.remove(...attrs)
+        if (name) docEl.classList.add(name)
       } else if (attr.startsWith('data-')) {
         if (name) {
-          d.setAttribute(attr, name)
+          docEl.setAttribute(attr, name)
         } else {
-          d.removeAttribute(attr)
+          docEl.removeAttribute(attr)
         }
       }
     }
@@ -136,7 +136,7 @@ const Theme = ({
       const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
       const colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
       // @ts-ignore
-      d.style.colorScheme = colorScheme
+      docEl.style.colorScheme = colorScheme
     }
 
     enable?.()

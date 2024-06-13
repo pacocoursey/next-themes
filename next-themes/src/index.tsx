@@ -3,14 +3,15 @@
 import * as React from 'react'
 import { script } from './script'
 import type { Attribute, ThemeProviderProps, UseThemeProps } from './types'
+import { DARK, LIGHT } from './constants'
 
-const colorSchemes = ['light', 'dark']
+const colorSchemes = [LIGHT, DARK]
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
 const ThemeContext = React.createContext<UseThemeProps | undefined>(undefined)
 const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
 
-const defaultThemes = ['light', 'dark']
+const defaultThemes = [LIGHT, DARK]
 
 // Helpers
 const getTheme = (key: string, fallback?: string) => {
@@ -43,7 +44,7 @@ const disableAnimation = () => {
 const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
   if (!e) e = window.matchMedia(MEDIA)
   const isDark = e.matches
-  const systemTheme = isDark ? 'dark' : 'light'
+  const systemTheme = isDark ? DARK : LIGHT
   return systemTheme
 }
 
@@ -89,7 +90,7 @@ const Theme = ({
   enableColorScheme = true,
   storageKey = 'theme',
   themes = defaultThemes,
-  defaultTheme = enableSystem ? 'system' : 'light',
+  defaultTheme = enableSystem ? 'system' : LIGHT,
   attribute = 'data-theme',
   value,
   children,

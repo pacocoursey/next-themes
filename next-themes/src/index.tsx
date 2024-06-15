@@ -3,24 +3,85 @@
 import * as React from 'react'
 import { script } from './script'
 import type { Attribute, ThemeProviderProps, UseThemeProps } from './types'
+import { DARK, LIGHT } from './constants'
 
-const colorSchemes = ['light', 'dark']
+const colorSchemes = [LIGHT, DARK]
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
 const ThemeContext = React.createContext<UseThemeProps | undefined>(undefined)
 const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
 
-export const useTheme = () => React.useContext(ThemeContext) ?? defaultContext
+const defaultThemes = [LIGHT, DARK]
 
-export const ThemeProvider = (props: ThemeProviderProps): React.ReactNode => {
-  const context = React.useContext(ThemeContext)
-
-  // Ignore nested context providers, just passthrough children
-  if (context) return props.children
-  return <Theme {...props} />
+// Helpers
+const getTheme = (key: string, fallback?: string) => {
+  if (isServer) return undefined
+  let theme
+  try {
+    theme = localStorage.getItem(key) || undefined
+  } catch (e) {
+    // Unsupported
+  }
+  return theme || fallback
 }
 
-const defaultThemes = ['light', 'dark']
+const disableAnimation = () => {
+  const css = document.createElement('style')
+  css.appendChild(document.createTextNode('*,*::before,*::after{transition:none!important}'))
+  document.head.appendChild(css)
+
+  return () => {
+    // Force restyle
+    ;(() => window.getComputedStyle(document.body))()
+
+    // Wait for next tick before removing
+    setTimeout(() => {
+      document.head.removeChild(css)
+    }, 1)
+  }
+}
+
+const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
+  if (!e) e = window.matchMedia(MEDIA)
+  const isDark = e.matches
+  const systemTheme = isDark ? DARK : LIGHT
+  return systemTheme
+}
+
+export const useTheme = () => React.useContext(ThemeContext) ?? defaultContext
+
+const ThemeScript = React.memo(
+  ({
+    forcedTheme,
+    storageKey,
+    attribute,
+    enableSystem,
+    enableColorScheme,
+    defaultTheme,
+    value,
+    themes,
+    nonce
+  }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
+    const scriptArgs = JSON.stringify([
+      attribute,
+      storageKey,
+      defaultTheme,
+      forcedTheme,
+      themes,
+      value,
+      enableSystem,
+      enableColorScheme
+    ]).slice(1, -1)
+
+    return (
+      <script
+        suppressHydrationWarning
+        nonce={typeof window === 'undefined' ? nonce : ''}
+        dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${scriptArgs})` }}
+      />
+    )
+  }
+)
 
 const Theme = ({
   forcedTheme,
@@ -29,7 +90,7 @@ const Theme = ({
   enableColorScheme = true,
   storageKey = 'theme',
   themes = defaultThemes,
-  defaultTheme = enableSystem ? 'system' : 'light',
+  defaultTheme = enableSystem ? 'system' : LIGHT,
   attribute = 'data-theme',
   value,
   children,
@@ -50,17 +111,17 @@ const Theme = ({
 
     const name = value ? value[resolved] : resolved
     const enable = disableTransitionOnChange ? disableAnimation() : null
-    const d = document.documentElement
+    const docEl = document.documentElement
 
     const handleAttribute = (attr: Attribute) => {
       if (attr === 'class') {
-        d.classList.remove(...attrs)
-        if (name) d.classList.add(name)
+        docEl.classList.remove(...attrs)
+        if (name) docEl.classList.add(name)
       } else if (attr.startsWith('data-')) {
         if (name) {
-          d.setAttribute(attr, name)
+          docEl.setAttribute(attr, name)
         } else {
-          d.removeAttribute(attr)
+          docEl.removeAttribute(attr)
         }
       }
     }
@@ -71,8 +132,7 @@ const Theme = ({
     if (enableColorScheme) {
       const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
       const colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
-      // @ts-ignore
-      d.style.colorScheme = colorScheme
+      docEl.style.colorScheme = colorScheme
     }
 
     enable?.()
@@ -170,74 +230,10 @@ const Theme = ({
   )
 }
 
-const ThemeScript = React.memo(
-  ({
-    forcedTheme,
-    storageKey,
-    attribute,
-    enableSystem,
-    enableColorScheme,
-    defaultTheme,
-    value,
-    themes,
-    nonce
-  }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
-    const scriptArgs = JSON.stringify([
-      attribute,
-      storageKey,
-      defaultTheme,
-      forcedTheme,
-      themes,
-      value,
-      enableSystem,
-      enableColorScheme
-    ]).slice(1, -1)
+export const ThemeProvider = (props: ThemeProviderProps): React.ReactNode => {
+  const context = React.useContext(ThemeContext)
 
-    return (
-      <script
-        suppressHydrationWarning
-        nonce={typeof window === 'undefined' ? nonce : ''}
-        dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${scriptArgs})` }}
-      />
-    )
-  }
-)
-
-// Helpers
-const getTheme = (key: string, fallback?: string) => {
-  if (isServer) return undefined
-  let theme
-  try {
-    theme = localStorage.getItem(key) || undefined
-  } catch (e) {
-    // Unsupported
-  }
-  return theme || fallback
-}
-
-const disableAnimation = () => {
-  const css = document.createElement('style')
-  css.appendChild(
-    document.createTextNode(
-      `*,*::before,*::after{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}`
-    )
-  )
-  document.head.appendChild(css)
-
-  return () => {
-    // Force restyle
-    ;(() => window.getComputedStyle(document.body))()
-
-    // Wait for next tick before removing
-    setTimeout(() => {
-      document.head.removeChild(css)
-    }, 1)
-  }
-}
-
-const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
-  if (!e) e = window.matchMedia(MEDIA)
-  const isDark = e.matches
-  const systemTheme = isDark ? 'dark' : 'light'
-  return systemTheme
+  // Ignore nested context providers, just passthrough children
+  if (context) return props.children
+  return <Theme {...props} />
 }

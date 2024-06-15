@@ -8,8 +8,9 @@ export const script = (
   enableSystem,
   enableColorScheme
 ) => {
+  const [DARK, LIGHT] = ['dark', 'light']
   const el = document.documentElement
-  const systemThemes = ['light', 'dark']
+  const systemThemes = [LIGHT, DARK]
   const isClass = attribute === 'class'
   const classes = isClass && value ? themes.map(t => value[t] || t) : themes
 
@@ -31,7 +32,7 @@ export const script = (
   }
 
   function getSystemTheme() {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? DARK : LIGHT
   }
 
   if (forcedTheme) {

@@ -1,5 +1,3 @@
-import { DARK, LIGHT } from './constants'
-
 export const script = (
   attribute,
   storageKey,
@@ -10,6 +8,7 @@ export const script = (
   enableSystem,
   enableColorScheme
 ) => {
+  const [DARK, LIGHT] = ['dark', 'light']
   const el = document.documentElement
   const systemThemes = [LIGHT, DARK]
   const isClass = attribute === 'class'

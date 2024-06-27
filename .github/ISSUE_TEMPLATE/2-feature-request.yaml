@@ -1,7 +1,7 @@
 name: Feature request
 description: Feature request for next-themes.
-title: "[Feature request]: "
-labels: ["request"]
+title: '[Feature request]: '
+labels: ['request']
 body:
   - type: markdown
     attributes:
@@ -12,6 +12,6 @@ body:
     attributes:
       label: What feature would you like to see?
       description: Specify the feature you would like to see and perhaps what problem it would solve for you.
-      placeholder: "I would like to be able to..."
+      placeholder: 'I would like to be able to...'
     validations:
       required: true

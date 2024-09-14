@@ -35,11 +35,16 @@ const Theme = ({
   children,
   nonce
 }: ThemeProviderProps) => {
-  const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
-  const [resolvedTheme, setResolvedTheme] = React.useState(() => getTheme(storageKey))
+  const [theme, setThemeState] = React.useState<string | undefined>()
+  const [resolvedTheme, setResolvedTheme] = React.useState<string | undefined>()
   const attrs = !value ? themes : Object.values(value)
+ 
+  React.useEffect(() => {
+    setThemeState(getTheme(storageKey, defaultTheme))
+    setResolvedTheme(getTheme(storageKey))
+  }, []);
 
-  const applyTheme = React.useCallback(theme => {
+  const applyTheme = React.useCallback((theme) => {
     let resolved = theme
     if (!resolved) return
 

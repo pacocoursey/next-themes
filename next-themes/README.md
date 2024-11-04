@@ -391,6 +391,24 @@ const ThemeSwitch = () => {
 export default ThemeSwitch
 ```
 
+Alternatively, you could lazy load the component on the client side. The following example uses `next/dynamic` but you could also use `React.lazy`:
+
+```js
+import dynamic from 'next/dynamic'
+
+const ThemeSwitch = dynamic(() => import('./ThemeSwitch'), { ssr: false })
+
+const ThemePage = () => {
+  return (
+    <div>
+      <ThemeSwitch />
+    </div>
+  )
+}
+
+export default ThemePage
+```
+
 To avoid [Layout Shift](https://web.dev/cls/), consider rendering a skeleton/placeholder until mounted on the client side.
 
 #### Images

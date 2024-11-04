@@ -11,16 +11,20 @@ export const script = (
 ) => {
   const el = document.documentElement
   const systemThemes = ['light', 'dark']
-  const isClass = attribute === 'class'
-  const classes = isClass && value ? themes.map(t => value[t] || t) : themes
 
   function updateDOM(theme: string) {
-    if (isClass) {
-      el.classList.remove(...classes)
-      el.classList.add(theme)
-    } else {
-      el.setAttribute(attribute, theme)
-    }
+    const attributes = Array.isArray(attribute) ? attribute : [attribute]
+
+    attributes.forEach(attr => {
+      const isClass = attr === 'class'
+      const classes = isClass && value ? themes.map(t => value[t] || t) : themes
+      if (isClass) {
+        el.classList.remove(...classes)
+        el.classList.add(theme)
+      } else {
+        el.setAttribute(attr, theme)
+      }
+    })
 
     setColorScheme(theme)
   }

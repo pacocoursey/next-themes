@@ -4,6 +4,16 @@ interface ValueObject {
   [themeName: string]: string
 }
 
+type DataAttribute = `data-${string}`
+
+interface ScriptProps
+  extends React.DetailedHTMLProps<
+    React.ScriptHTMLAttributes<HTMLScriptElement>,
+    HTMLScriptElement
+  > {
+  [dataAttribute: DataAttribute]: any
+}
+
 export interface UseThemeProps {
   /** List of all available theme names */
   themes: string[]
@@ -19,7 +29,7 @@ export interface UseThemeProps {
   systemTheme?: 'dark' | 'light' | undefined
 }
 
-export type Attribute = `data-${string}` | 'class'
+export type Attribute = DataAttribute | 'class'
 
 export interface ThemeProviderProps extends React.PropsWithChildren {
   /** List of all available theme names */
@@ -42,6 +52,8 @@ export interface ThemeProviderProps extends React.PropsWithChildren {
   value?: ValueObject | undefined
   /** Nonce string to pass to the inline script for CSP headers */
   nonce?: string | undefined
+  /** Props to pass the inline script */
+  scriptProps?: ScriptProps
   /** Define where the users theme value is stored. Defaults to 'localStorage' */
   storage?: 'localStorage' | 'sessionStorage' | undefined
 }

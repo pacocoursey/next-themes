@@ -61,7 +61,7 @@ const Theme = ({
     }
 
     const name = value ? value[resolved] : resolved
-    const enable = disableTransitionOnChange ? disableAnimation() : null
+    const enable = disableTransitionOnChange ? disableAnimation(nonce) : null
     const d = document.documentElement
 
     const handleAttribute = (attr: Attribute) => {
@@ -88,7 +88,7 @@ const Theme = ({
     }
 
     enable?.()
-  }, [])
+  }, [nonce])
 
   const setTheme = React.useCallback(
     value => {
@@ -237,8 +237,9 @@ const getTheme = (key: string, storage: Storage, fallback?: string) => {
   return theme || fallback
 }
 
-const disableAnimation = () => {
+const disableAnimation = (nonce?: string) => {
   const css = document.createElement('style')
+  if (nonce) css.setAttribute('nonce', nonce)
   css.appendChild(
     document.createTextNode(
       `*,*::before,*::after{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}`
@@ -263,3 +264,6 @@ const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
   const systemTheme = isDark ? 'dark' : 'light'
   return systemTheme
 }
+
+// Re-export types
+export type { Attribute, ThemeProviderProps, UseThemeProps } from './types'

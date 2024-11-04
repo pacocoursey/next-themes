@@ -50,7 +50,7 @@ export interface ThemeProviderProps extends React.PropsWithChildren {
   attribute?: Attribute | Attribute[] | undefined
   /** Mapping of theme name to HTML attribute value. Object where key is the theme name and value is the attribute value */
   value?: ValueObject | undefined
-  /** Nonce string to pass to the inline script for CSP headers */
+  /** Nonce string to pass to the inline script and style elements for CSP headers */
   nonce?: string
   /** Props to pass the inline script */
   scriptProps?: ScriptProps

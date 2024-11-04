@@ -460,3 +460,17 @@ describe('setTheme', () => {
     expect(result.current.resolvedTheme).toBe('light')
   })
 })
+
+describe('inline script', () => {
+  test('should pass props to script', () => {
+    act(() => {
+      render(
+        <ThemeProvider defaultTheme="light" scriptProps={{ 'data-test': '1234' }}>
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
+
+    expect(document.querySelector('script[data-test="1234"]')).toBeTruthy()
+  })
+})

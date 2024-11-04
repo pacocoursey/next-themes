@@ -4,8 +4,14 @@ interface ValueObject {
   [themeName: string]: string
 }
 
-interface ScriptAttributeObject {
-  [attributeName: string]: string
+type DataAttribute = `data-${string}`
+
+interface ScriptProps
+  extends React.DetailedHTMLProps<
+    React.ScriptHTMLAttributes<HTMLScriptElement>,
+    HTMLScriptElement
+  > {
+  [dataAttribute: DataAttribute]: any
 }
 
 export interface UseThemeProps {
@@ -23,7 +29,7 @@ export interface UseThemeProps {
   systemTheme?: 'dark' | 'light' | undefined
 }
 
-export type Attribute = `data-${string}` | 'class'
+export type Attribute = DataAttribute | 'class'
 
 export interface ThemeProviderProps extends React.PropsWithChildren {
   /** List of all available theme names */
@@ -47,5 +53,5 @@ export interface ThemeProviderProps extends React.PropsWithChildren {
   /** Nonce string to pass to the inline script for CSP headers */
   nonce?: string
   /** Props to pass the inline script */
-  scriptProps?: ScriptAttributeObject
+  scriptProps?: ScriptProps
 }

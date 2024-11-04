@@ -4,3 +4,5 @@ dist/
 .next/
 .yalc/
 yalc.lock
+.idea/
+.turbo

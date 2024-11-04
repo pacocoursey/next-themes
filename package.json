@@ -1,55 +1,34 @@
 {
-  "name": "next-themes",
-  "version": "0.2.0",
-  "main": "./dist/index.js",
-  "module": "./dist/index.module.js",
-  "types": "./dist/index.d.ts",
-  "source": "./src/index.tsx",
-  "license": "MIT",
-  "files": [
-    "dist"
-  ],
+  "private": true,
   "scripts": {
-    "prepublish": "yarn build",
-    "build": "microbundle --jsx React.createElement --compress --no-sourcemap",
-    "test": "jest __tests__",
-    "test:e2e": "yarn playwright test"
-  },
-  "dependencies": {},
-  "peerDependencies": {
-    "next": "*",
-    "react": "*",
-    "react-dom": "*"
+    "prepublish": "pnpm build --filter=next-themes",
+    "build": "turbo build",
+    "start": "turbo start",
+    "dev": "turbo dev",
+    "test": "turbo test",
+    "test:e2e": "pnpm playwright test",
+    "lint": "prettier . --write"
   },
   "devDependencies": {
-    "@babel/core": "^7.13.10",
-    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.14.5",
-    "@babel/plugin-proposal-optional-chaining": "^7.11.0",
-    "@babel/preset-env": "^7.13.10",
-    "@babel/preset-react": "^7.12.13",
-    "@babel/preset-typescript": "^7.13.0",
-    "@playwright/test": "^1.21.1",
-    "@testing-library/react": "^11.2.5",
-    "@types/jest": "^26.0.21",
-    "@types/next": "^9.0.0",
-    "@types/react": "^16.9.53",
-    "babel-jest": "^26.6.3",
-    "jest": "^26.6.3",
-    "microbundle": "^0.15.0",
-    "prettier": "^2.2.1",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1",
-    "typescript": "^4.0.3"
+    "@playwright/test": "^1.37.1",
+    "@testing-library/react": "^14.2.1",
+    "@types/node": "20.5.7",
+    "@types/react": "^18.2.65",
+    "@types/react-dom": "18.2.7",
+    "jsdom": "^24.0.0",
+    "prettier": "^3.2.5",
+    "tsup": "^8.0.2",
+    "turbo": "^1.10.12",
+    "typescript": "^5.4.2",
+    "vitest": "^1.3.1"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/pacocoursey/next-themes.git"
   },
-  "prettier": {
-    "semi": false,
-    "singleQuote": true,
-    "trailingComma": "none",
-    "arrowParens": "avoid",
-    "printWidth": 100
-  }
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@9.0.6"
 }

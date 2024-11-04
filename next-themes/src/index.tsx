@@ -245,3 +245,6 @@ const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
   const systemTheme = isDark ? 'dark' : 'light'
   return systemTheme
 }
+
+// Re-export types
+export type { Attribute, ThemeProviderProps, UseThemeProps } from './types'

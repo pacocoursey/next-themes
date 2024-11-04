@@ -1,4 +1,4 @@
-import ThemeToggle from '../components/ThemeToggle'
+import { ThemeToggle } from './ThemeToggle'
 
 export default function Home() {
   return (

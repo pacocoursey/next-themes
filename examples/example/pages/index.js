@@ -24,13 +24,7 @@ const Index = () => {
       <br />
 
       <div>
-        <Link href="/dark">
-          <a>Forced Dark Page</a>
-        </Link>{' '}
-        •{' '}
-        <Link href="/light">
-          <a>Forced Light Page</a>
-        </Link>
+        <Link href="/dark">Forced Dark Page</Link> • <Link href="/light">Forced Light Page</Link>
       </div>
     </div>
   )

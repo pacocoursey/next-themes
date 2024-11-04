@@ -1,6 +1,10 @@
 name: E2E - Test
 
-on: push
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   test:
@@ -8,15 +12,12 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - uses: pnpm/action-setup@v2
+      - uses: actions/checkout@v4
+      - name: Enable corepack
+        run: corepack enable
+      - uses: actions/setup-node@v4
         with:
-          version: 8
-
-      - uses: actions/setup-node@v2
-        with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
 
       - run: pnpm install
@@ -31,7 +32,7 @@ jobs:
 
       - name: Cache Playwright Browsers for Playwright's Version
         id: cache-playwright-browsers
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-browsers-${{ env.PLAYWRIGHT_VERSION }}

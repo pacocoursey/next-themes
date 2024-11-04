@@ -33,7 +33,8 @@ const Theme = ({
   attribute = 'data-theme',
   value,
   children,
-  nonce
+  nonce,
+  scriptProps
 }: ThemeProviderProps) => {
   const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
   const [resolvedTheme, setResolvedTheme] = React.useState(() => getTheme(storageKey))
@@ -161,7 +162,8 @@ const Theme = ({
           defaultTheme,
           value,
           themes,
-          nonce
+          nonce,
+          scriptProps
         }}
       />
 
@@ -180,7 +182,8 @@ const ThemeScript = React.memo(
     defaultTheme,
     value,
     themes,
-    nonce
+    nonce,
+    scriptProps
   }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
     const scriptArgs = JSON.stringify([
       attribute,
@@ -195,6 +198,7 @@ const ThemeScript = React.memo(
 
     return (
       <script
+        {...scriptProps}
         suppressHydrationWarning
         nonce={typeof window === 'undefined' ? nonce : ''}
         dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${scriptArgs})` }}

@@ -236,6 +236,19 @@ describe('custom attribute', () => {
 
     expect(document.documentElement.getAttribute('data-example')).toBe('light')
   })
+
+  test('supports multiple attributes', () => {
+    act(() => {
+      render(
+        <ThemeProvider attribute={['data-example', 'data-theme-test']}>
+          <HelperComponent forceSetTheme="light" />
+        </ThemeProvider>
+      )
+    })
+
+    expect(document.documentElement.getAttribute('data-example')).toBe('light')
+    expect(document.documentElement.getAttribute('data-theme-test')).toBe('light')
+  })
 })
 
 describe('custom value-mapping', () => {
@@ -279,6 +292,23 @@ describe('custom value-mapping', () => {
     })
 
     expect(document.documentElement.classList.contains('light')).toBeFalsy()
+  })
+
+  test('supports multiple attributes', () => {
+    act(() => {
+      render(
+        <ThemeProvider
+          attribute={['data-example', 'data-theme-test']}
+          themes={['pink', 'light', 'dark', 'system']}
+          value={{ pink: 'my-pink-theme' }}
+        >
+          <HelperComponent forceSetTheme="pink" />
+        </ThemeProvider>
+      )
+    })
+
+    expect(document.documentElement.getAttribute('data-example')).toBe('my-pink-theme')
+    expect(document.documentElement.getAttribute('data-theme-test')).toBe('my-pink-theme')
   })
 })
 
@@ -430,5 +460,19 @@ describe('setTheme', () => {
 
     expect(result.current.theme).toBe('light')
     expect(result.current.resolvedTheme).toBe('light')
+  })
+})
+
+describe('inline script', () => {
+  test('should pass props to script', () => {
+    act(() => {
+      render(
+        <ThemeProvider defaultTheme="light" scriptProps={{ 'data-test': '1234' }}>
+          <HelperComponent />
+        </ThemeProvider>
+      )
+    })
+
+    expect(document.querySelector('script[data-test="1234"]')).toBeTruthy()
   })
 })

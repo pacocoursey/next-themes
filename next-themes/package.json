@@ -1,6 +1,6 @@
 {
   "name": "next-themes",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "license": "MIT",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -22,8 +22,8 @@
     "test": "vitest run __tests__"
   },
   "peerDependencies": {
-    "react": "^16.8 || ^17 || ^18",
-    "react-dom": "^16.8 || ^17 || ^18"
+    "react": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc",
+    "react-dom": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc"
   },
   "devDependencies": {
     "react": "^18.2.0",

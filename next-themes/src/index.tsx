@@ -12,11 +12,11 @@ const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
 
 export const useTheme = () => React.useContext(ThemeContext) ?? defaultContext
 
-export const ThemeProvider = (props: ThemeProviderProps): React.ReactNode => {
+export const ThemeProvider = (props: ThemeProviderProps) => {
   const context = React.useContext(ThemeContext)
 
   // Ignore nested context providers, just passthrough children
-  if (context) return props.children
+  if (context) return <>{props.children}</>
   return <Theme {...props} />
 }
 
@@ -34,7 +34,8 @@ const Theme = ({
   value,
   themeColor,
   children,
-  nonce
+  nonce,
+  scriptProps
 }: ThemeProviderProps) => {
   const [theme, setThemeState] = React.useState(() =>
     forcedTheme ? 'forced' : getTheme(storageKey, defaultTheme)
@@ -247,7 +248,8 @@ const Theme = ({
           defaultTheme,
           value,
           themes,
-          nonce
+          nonce,
+          scriptProps
         }}
       />
 
@@ -266,7 +268,8 @@ const ThemeScript = React.memo(
     defaultTheme,
     value,
     themes,
-    nonce
+    nonce,
+    scriptProps
   }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
     const scriptArgs = JSON.stringify([
       attribute,
@@ -281,6 +284,7 @@ const ThemeScript = React.memo(
 
     return (
       <script
+        {...scriptProps}
         suppressHydrationWarning
         nonce={typeof window === 'undefined' ? nonce : ''}
         dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${scriptArgs})` }}

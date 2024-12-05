@@ -125,8 +125,11 @@ const Theme = ({
       }
 
       // If default theme set, use it if localstorage === null (happens on local storage manual deletion)
-      const theme = e.newValue || defaultTheme
-      setTheme(theme)
+      if (!e.newValue) {
+        setTheme(defaultTheme)
+      } else {
+        setThemeState(e.newValue) // Direct state update to avoid loops
+      }
     }
 
     window.addEventListener('storage', handleStorage)

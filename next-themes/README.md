@@ -111,7 +111,7 @@ That's it, your Next.js app fully supports dark mode, including System preferenc
 }
 ```
 
-> **Note!** If you set the attribute of your Theme Provider to class for Tailwind next-themes will modify the `class` attribute on the `html` element. See [With Tailwind](#with-tailwind).
+> **Note!** If you set the attribute of your Theme Provider to class for Tailwind next-themes will modify the `class` attribute on the `html` element. See [With TailwindCSS](#with-tailwindcss).
 
 ### useTheme
 

@@ -1,5 +1,8 @@
+import { getCookieStorage } from './cookie-storage'
+
 export const script = (
   attribute,
+  storageConfig,
   storageKey,
   defaultTheme,
   forcedTheme,
@@ -38,11 +41,22 @@ export const script = (
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
 
+  function getStorage() {
+    if (storageConfig === 'cookie') {
+      return getCookieStorage()
+    }
+    if (storageConfig === 'sessionStorage') {
+      return window.sessionStorage
+    }
+    return window.localStorage
+  }
+
   if (forcedTheme) {
     updateDOM(forcedTheme)
   } else {
     try {
-      const themeName = localStorage.getItem(storageKey) || defaultTheme
+      const storage = getStorage()
+      const themeName = storage.getItem(storageKey) || defaultTheme
       const isSystem = enableSystem && themeName === 'system'
       const theme = isSystem ? getSystemTheme() : themeName
       updateDOM(theme)

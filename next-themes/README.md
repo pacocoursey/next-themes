@@ -425,13 +425,26 @@ To avoid [Layout Shift](https://web.dev/cls/), consider rendering a skeleton/pla
 Showing different images based on the current theme also suffers from the hydration mismatch problem. With [`next/image`](https://nextjs.org/docs/basic-features/image-optimization) you can use an empty image until the theme is resolved:
 
 ```jsx
-[import Image from 'next/image'
+'use client'
+
+import Image from 'next/image'
 import { useTheme } from 'next-themes'
+import { useState, useEffect } from 'react'
 
 function ThemedImage() {
   const { resolvedTheme } = useTheme()
-  let src
+  const [isMounted, setIsMounted] = useState(false)
 
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  if (!isMounted) {
+    // Prevent SSR mismatch by rendering nothing on the server
+    return null
+  }
+
+  let src
   switch (resolvedTheme) {
     case 'light':
       src = '/light.png'
@@ -444,10 +457,11 @@ function ThemedImage() {
       break
   }
 
-  return <Image src={src} width={400} height={400} />
+  return <Image src={src} width={400} height={400} alt="Themed image" />
 }
 
-export default ThemedImage](https://github.com/kanavbajaj/next-themes.git)
+export default ThemedImage
+
 ```
 
 #### CSS

@@ -425,7 +425,7 @@ To avoid [Layout Shift](https://web.dev/cls/), consider rendering a skeleton/pla
 Showing different images based on the current theme also suffers from the hydration mismatch problem. With [`next/image`](https://nextjs.org/docs/basic-features/image-optimization) you can use an empty image until the theme is resolved:
 
 ```jsx
-import Image from 'next/image'
+[import Image from 'next/image'
 import { useTheme } from 'next-themes'
 
 function ThemedImage() {
@@ -447,7 +447,7 @@ function ThemedImage() {
   return <Image src={src} width={400} height={400} />
 }
 
-export default ThemedImage
+export default ThemedImage](https://github.com/kanavbajaj/next-themes.git)
 ```
 
 #### CSS

@@ -41,7 +41,7 @@ const Theme = ({
   const attrs = !value ? themes : Object.values(value)
 
   const applyTheme = React.useCallback(theme => {
-    let resolved = theme
+    let resolved = value ? value[theme] : theme
     if (!resolved) return
 
     // If theme is system, resolve it before setting theme

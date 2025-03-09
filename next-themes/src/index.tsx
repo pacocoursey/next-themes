@@ -37,7 +37,7 @@ const Theme = ({
   scriptProps
 }: ThemeProviderProps) => {
   const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
-  const [resolvedTheme, setResolvedTheme] = React.useState(() => getTheme(storageKey))
+  const [resolvedTheme, setResolvedTheme] = React.useState(() => theme === 'system' ? getSystemTheme() : theme)
   const attrs = !value ? themes : Object.values(value)
 
   const applyTheme = React.useCallback(theme => {

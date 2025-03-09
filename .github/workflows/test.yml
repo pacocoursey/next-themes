@@ -13,9 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # - name: Enable corepack
-      #   run: corepack enable
-
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:

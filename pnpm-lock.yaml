@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@playwright/test':
-        specifier: ^1.37.1
-        version: 1.42.1
+        specifier: ^1.51.0
+        version: 1.51.0
       '@testing-library/react':
         specifier: ^14.2.1
         version: 14.2.2(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -31,7 +31,7 @@ importers:
         version: 3.2.5
       tsup:
         specifier: ^8.3.5
-        version: 8.3.5(jiti@1.21.0)(postcss@8.4.31)(typescript@5.4.3)(yaml@2.4.1)
+        version: 8.3.5(jiti@1.21.0)(postcss@8.5.3)(typescript@5.4.3)
       turbo:
         specifier: ^1.10.12
         version: 1.13.0
@@ -46,7 +46,7 @@ importers:
     dependencies:
       next:
         specifier: ^14.2.21
-        version: 14.2.21(@playwright/test@1.42.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        version: 14.2.21(@playwright/test@1.51.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       next-themes:
         specifier: workspace:*
         version: link:../../next-themes
@@ -73,7 +73,7 @@ importers:
         version: 10.4.15(postcss@8.4.31)
       next:
         specifier: ^14.2.21
-        version: 14.2.21(@playwright/test@1.42.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        version: 14.2.21(@playwright/test@1.51.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       next-themes:
         specifier: workspace:*
         version: link:../../next-themes
@@ -97,7 +97,7 @@ importers:
     dependencies:
       next:
         specifier: ^14.2.21
-        version: 14.2.21(@playwright/test@1.42.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        version: 14.2.21(@playwright/test@1.51.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       next-themes:
         specifier: workspace:*
         version: link:../../next-themes
@@ -122,7 +122,7 @@ importers:
     dependencies:
       next:
         specifier: ^14.2.21
-        version: 14.2.21(@playwright/test@1.42.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        version: 14.2.21(@playwright/test@1.51.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       next-themes:
         specifier: workspace:*
         version: link:../../next-themes
@@ -564,10 +564,9 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
-  '@playwright/test@1.42.1':
-    resolution: {integrity: sha512-Gq9rmS54mjBL/7/MvBaNOBwbfnh7beHvS6oS4srqXFcQHpQCV1+c8JXWE8VLPyRDhgS3H8x8A7hztqI9VnwrAQ==}
-    engines: {node: '>=16'}
-    deprecated: Please update to the latest version of Playwright to test up-to-date browsers.
+  '@playwright/test@1.51.0':
+    resolution: {integrity: sha512-dJ0dMbZeHhI+wb77+ljx/FeC8VBP6j/rj9OAojO08JI80wTZy6vRk9KvHKiDCUh4iMpEiseMgqRBIeW+eKX6RA==}
+    engines: {node: '>=18'}
     hasBin: true
 
   '@rollup/rollup-android-arm-eabi@4.35.0':
@@ -1475,14 +1474,14 @@ packages:
   pkg-types@1.3.1:
     resolution: {integrity: sha512-/Jm5M4RvtBFVkKWRu2BLUTNP8/M2a+UwuAX+ae4770q1qVGtfjG+WTCupoZixokjmHiry8uI+dlY8KXYV5HVVQ==}
 
-  playwright-core@1.42.1:
-    resolution: {integrity: sha512-mxz6zclokgrke9p1vtdy/COWBH+eOZgYUVVU34C73M+4j4HLlQJHtfcqiqqxpP0o8HhMkflvfbquLX5dg6wlfA==}
-    engines: {node: '>=16'}
+  playwright-core@1.51.0:
+    resolution: {integrity: sha512-x47yPE3Zwhlil7wlNU/iktF7t2r/URR3VLbH6EknJd/04Qc/PSJ0EY3CMXipmglLG+zyRxW6HNo2EGbKLHPWMg==}
+    engines: {node: '>=18'}
     hasBin: true
 
-  playwright@1.42.1:
-    resolution: {integrity: sha512-PgwB03s2DZBcNRoW+1w9E+VkLBxweib6KTXM0M3tkiT4jVxKSi6PmVJ591J+0u10LUrgxB7dLRbiJqO5s2QPMg==}
-    engines: {node: '>=16'}
+  playwright@1.51.0:
+    resolution: {integrity: sha512-442pTfGM0xxfCYxuBa/Pu6B2OqxqqaYq39JS8QDMGThUvIOCd6s0ANDog3uwA0cHavVlnTQzGCN7Id2YekDSXA==}
+    engines: {node: '>=18'}
     hasBin: true
 
   possible-typed-array-names@1.0.0:
@@ -2278,9 +2277,9 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@playwright/test@1.42.1':
+  '@playwright/test@1.51.0':
     dependencies:
-      playwright: 1.42.1
+      playwright: 1.51.0
 
   '@rollup/rollup-android-arm-eabi@4.35.0':
     optional: true
@@ -3093,7 +3092,7 @@ snapshots:
 
   nanoid@3.3.9: {}
 
-  next@14.2.21(@playwright/test@1.42.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
+  next@14.2.21(@playwright/test@1.51.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:
       '@next/env': 14.2.21
       '@swc/helpers': 0.5.5
@@ -3114,7 +3113,7 @@ snapshots:
       '@next/swc-win32-arm64-msvc': 14.2.21
       '@next/swc-win32-ia32-msvc': 14.2.21
       '@next/swc-win32-x64-msvc': 14.2.21
-      '@playwright/test': 1.42.1
+      '@playwright/test': 1.51.0
     transitivePeerDependencies:
       - '@babel/core'
       - babel-plugin-macros
@@ -3198,11 +3197,11 @@ snapshots:
       mlly: 1.7.4
       pathe: 2.0.3
 
-  playwright-core@1.42.1: {}
+  playwright-core@1.51.0: {}
 
-  playwright@1.42.1:
+  playwright@1.51.0:
     dependencies:
-      playwright-core: 1.42.1
+      playwright-core: 1.51.0
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -3227,13 +3226,12 @@ snapshots:
     optionalDependencies:
       postcss: 8.4.31
 
-  postcss-load-config@6.0.1(jiti@1.21.0)(postcss@8.4.31)(yaml@2.4.1):
+  postcss-load-config@6.0.1(jiti@1.21.0)(postcss@8.5.3):
     dependencies:
       lilconfig: 3.1.3
     optionalDependencies:
       jiti: 1.21.0
-      postcss: 8.4.31
-      yaml: 2.4.1
+      postcss: 8.5.3
 
   postcss-nested@6.0.1(postcss@8.4.31):
     dependencies:
@@ -3544,7 +3542,7 @@ snapshots:
 
   tslib@2.8.1: {}
 
-  tsup@8.3.5(jiti@1.21.0)(postcss@8.4.31)(typescript@5.4.3)(yaml@2.4.1):
+  tsup@8.3.5(jiti@1.21.0)(postcss@8.5.3)(typescript@5.4.3):
     dependencies:
       bundle-require: 5.1.0(esbuild@0.24.2)
       cac: 6.7.14
@@ -3554,7 +3552,7 @@ snapshots:
       esbuild: 0.24.2
       joycon: 3.1.1
       picocolors: 1.1.1
-      postcss-load-config: 6.0.1(jiti@1.21.0)(postcss@8.4.31)(yaml@2.4.1)
+      postcss-load-config: 6.0.1(jiti@1.21.0)(postcss@8.5.3)
       resolve-from: 5.0.0
       rollup: 4.35.0
       source-map: 0.8.0-beta.0
@@ -3563,7 +3561,7 @@ snapshots:
       tinyglobby: 0.2.12
       tree-kill: 1.2.2
     optionalDependencies:
-      postcss: 8.4.31
+      postcss: 8.5.3
       typescript: 5.4.3
     transitivePeerDependencies:
       - jiti

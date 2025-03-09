@@ -10,7 +10,7 @@
     "lint": "prettier . --write"
   },
   "devDependencies": {
-    "@playwright/test": "^1.37.1",
+    "@playwright/test": "^1.51.0",
     "@testing-library/react": "^14.2.1",
     "@types/node": "20.5.7",
     "@types/react": "^18.2.65",

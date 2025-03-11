@@ -19,7 +19,7 @@ export const script = (
       const classes = isClass && value ? themes.map(t => value[t] || t) : themes
       if (isClass) {
         el.classList.remove(...classes)
-        el.classList.add(value[theme] || theme)
+        el.classList.add(value && value[theme] ? value[theme] : theme)
       } else {
         el.setAttribute(attr, theme)
       }

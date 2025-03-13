@@ -459,6 +459,32 @@ describe('setTheme', () => {
     expect(result.current.theme).toBe('light')
     expect(result.current.resolvedTheme).toBe('light')
   })
+
+  test('setTheme(<function>) gets relevant state value', () => {
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { })
+
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: ({ children }) => <ThemeProvider defaultTheme="light">{children}</ThemeProvider>
+    })
+
+    act(() => {
+      result.current.setTheme((theme) => {
+        console.log('1', theme)
+        return theme === 'dark' ? 'light' : 'dark'
+      })
+      result.current.setTheme((theme) => {
+        console.log('2', theme)
+        return theme === 'light' ? 'dark' : 'light'
+      })
+    })
+
+    expect(consoleSpy).toHaveBeenCalledWith('1', 'light')
+    expect(consoleSpy).toHaveBeenCalledWith('2', 'dark')
+    expect(result.current.theme).toBe('light')
+
+    consoleSpy.mockRestore()
+  })
+
 })
 
 describe('inline script', () => {

@@ -8,7 +8,16 @@ const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
 const ThemeContext = React.createContext<UseThemeProps | undefined>(undefined)
-const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
+const defaultContext: UseThemeProps = { setTheme: _ => { }, themes: [] }
+
+const saveToLS = (storageKey: string, value: string) => {
+  // Save to storage
+  try {
+    localStorage.setItem(storageKey, value)
+  } catch (e) {
+    // Unsupported
+  }
+}
 
 export const useTheme = () => React.useContext(ThemeContext) ?? defaultContext
 
@@ -79,20 +88,20 @@ const Theme = ({
     enable?.()
   }, [nonce])
 
-  const setTheme = React.useCallback(
-    value => {
-      const newTheme = typeof value === 'function' ? value(theme) : value
-      setThemeState(newTheme)
+  const setTheme = React.useCallback(value => {
+    if (typeof value === 'function') {
+      setThemeState(prevTheme => {
+        const newTheme = value(prevTheme)
 
-      // Save to storage
-      try {
-        localStorage.setItem(storageKey, newTheme)
-      } catch (e) {
-        // Unsupported
-      }
-    },
-    [theme]
-  )
+        saveToLS(storageKey, newTheme)
+
+        return newTheme
+      })
+    } else {
+      setThemeState(value)
+      saveToLS(storageKey, value)
+    }
+  }, [])
 
   const handleMediaQuery = React.useCallback(
     (e: MediaQueryListEvent | MediaQueryList) => {
@@ -234,7 +243,7 @@ const disableAnimation = (nonce?: string) => {
 
   return () => {
     // Force restyle
-    ;(() => window.getComputedStyle(document.body))()
+    ; (() => window.getComputedStyle(document.body))()
 
     // Wait for next tick before removing
     setTimeout(() => {

@@ -8,7 +8,7 @@ const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
 const ThemeContext = React.createContext<UseThemeProps | undefined>(undefined)
-const defaultContext: UseThemeProps = { setTheme: _ => { }, themes: [] }
+const defaultContext: UseThemeProps = { setTheme: _ => {}, themes: [] }
 
 const saveToLS = (storageKey: string, value: string) => {
   // Save to storage
@@ -32,6 +32,7 @@ export const ThemeProvider = (props: ThemeProviderProps) => {
 const defaultThemes = ['light', 'dark']
 
 const Theme = ({
+  withScript = true,
   forcedTheme,
   disableTransitionOnChange = false,
   enableSystem = true,
@@ -46,52 +47,71 @@ const Theme = ({
   scriptProps
 }: ThemeProviderProps) => {
   const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
-  const [resolvedTheme, setResolvedTheme] = React.useState(() => theme === 'system' ? getSystemTheme() : theme)
+  const [resolvedTheme, setResolvedTheme] = React.useState(() =>
+    theme === 'system' ? getSystemTheme() : theme
+  )
   const attrs = !value ? themes : Object.values(value)
 
-  const applyTheme = React.useCallback(theme => {
-    let resolved = theme
-    if (!resolved) return
-
-    // If theme is system, resolve it before setting theme
-    if (theme === 'system' && enableSystem) {
-      resolved = getSystemTheme()
+  const isThemeCurrentTheme = (theme: string) => {
+    const attr = Array.isArray(attribute) ? attribute[0] : attribute
+    if (!attr) return false
+    if (attr === 'class') {
+      return document.documentElement.classList.contains(theme)
     }
+    return document.documentElement.getAttribute(attr) === theme
+  }
 
-    const name = value ? value[resolved] : resolved
-    const enable = disableTransitionOnChange ? disableAnimation(nonce) : null
-    const d = document.documentElement
+  const applyTheme = React.useCallback(
+    (theme: string | undefined) => {
+      let resolved = theme
+      if (!resolved) return
 
-    const handleAttribute = (attr: Attribute) => {
-      if (attr === 'class') {
-        d.classList.remove(...attrs)
-        if (name) d.classList.add(name)
-      } else if (attr.startsWith('data-')) {
-        if (name) {
-          d.setAttribute(attr, name)
-        } else {
-          d.removeAttribute(attr)
+      // If theme is system, resolve it before setting theme
+      if (theme === 'system' && enableSystem) {
+        resolved = getSystemTheme()
+      }
+
+      // Avoid additional work, if no changes need to be made.
+      // In particular, this avoids the `disableAnimation` call,
+      // which is expensive.
+      if (isThemeCurrentTheme(resolved)) return
+
+      const name = value ? value[resolved] : resolved
+      const enable = disableTransitionOnChange ? disableAnimation(nonce) : null
+      const d = document.documentElement
+
+      const handleAttribute = (attr: Attribute) => {
+        if (attr === 'class') {
+          d.classList.remove(...attrs)
+          if (name) d.classList.add(name)
+        } else if (attr.startsWith('data-')) {
+          if (name) {
+            d.setAttribute(attr, name)
+          } else {
+            d.removeAttribute(attr)
+          }
         }
       }
-    }
 
-    if (Array.isArray(attribute)) attribute.forEach(handleAttribute)
-    else handleAttribute(attribute)
+      if (Array.isArray(attribute)) attribute.forEach(handleAttribute)
+      else handleAttribute(attribute)
 
-    if (enableColorScheme) {
-      const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
-      const colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
-      // @ts-ignore
-      d.style.colorScheme = colorScheme
-    }
+      if (enableColorScheme) {
+        const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
+        const colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
+        // @ts-ignore
+        d.style.colorScheme = colorScheme
+      }
 
-    enable?.()
-  }, [nonce])
+      enable?.()
+    },
+    [nonce]
+  )
 
-  const setTheme = React.useCallback(value => {
+  const setTheme: React.Dispatch<React.SetStateAction<string>> = React.useCallback(value => {
     if (typeof value === 'function') {
       setThemeState(prevTheme => {
-        const newTheme = value(prevTheme)
+        const newTheme = value(prevTheme as string)
 
         saveToLS(storageKey, newTheme)
 
@@ -164,36 +184,37 @@ const Theme = ({
 
   return (
     <ThemeContext.Provider value={providerValue}>
-      <ThemeScript
-        {...{
-          forcedTheme,
-          storageKey,
-          attribute,
-          enableSystem,
-          enableColorScheme,
-          defaultTheme,
-          value,
-          themes,
-          nonce,
-          scriptProps
-        }}
-      />
-
+      {withScript ? (
+        <ThemeScript
+          {...{
+            forcedTheme,
+            storageKey,
+            attribute,
+            enableSystem,
+            enableColorScheme,
+            defaultTheme,
+            value,
+            themes,
+            nonce,
+            scriptProps
+          }}
+        />
+      ) : null}
       {children}
     </ThemeContext.Provider>
   )
 }
 
-const ThemeScript = React.memo(
+export const ThemeScript = React.memo(
   ({
     forcedTheme,
     storageKey,
-    attribute,
-    enableSystem,
-    enableColorScheme,
-    defaultTheme,
+    attribute = 'data-theme',
+    enableSystem = true,
+    enableColorScheme = true,
+    defaultTheme = enableSystem ? 'system' : 'light',
     value,
-    themes,
+    themes = defaultThemes,
     nonce,
     scriptProps
   }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
@@ -210,10 +231,13 @@ const ThemeScript = React.memo(
 
     return (
       <script
+        id="theme-script"
         {...scriptProps}
         suppressHydrationWarning
         nonce={typeof window === 'undefined' ? nonce : ''}
-        dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${scriptArgs})` }}
+        dangerouslySetInnerHTML={{
+          __html: `(${script.toString()})(${scriptArgs})`
+        }}
       />
     )
   }
@@ -222,7 +246,7 @@ const ThemeScript = React.memo(
 // Helpers
 const getTheme = (key: string, fallback?: string) => {
   if (isServer) return undefined
-  let theme
+  let theme: string | undefined
   try {
     theme = localStorage.getItem(key) || undefined
   } catch (e) {
@@ -243,7 +267,7 @@ const disableAnimation = (nonce?: string) => {
 
   return () => {
     // Force restyle
-    ; (() => window.getComputedStyle(document.body))()
+    ;(() => window.getComputedStyle(document.body))()
 
     // Wait for next tick before removing
     setTimeout(() => {
@@ -253,8 +277,8 @@ const disableAnimation = (nonce?: string) => {
 }
 
 const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
-  if (!e) e = window.matchMedia(MEDIA)
-  const isDark = e.matches
+  const match = e || window.matchMedia(MEDIA)
+  const isDark = match.matches
   const systemTheme = isDark ? 'dark' : 'light'
   return systemTheme
 }

@@ -202,7 +202,7 @@ const Theme = ({
   )
 }
 
-const ThemeScript = React.memo(
+export const ThemeScript = React.memo(
   ({
     forcedTheme,
     storageKey,

@@ -51,12 +51,14 @@ const Theme = ({
   const attrs = !value ? themes : Object.values(value)
 
   const isThemeCurrentTheme = (theme: string) => {
-    const attr = Array.isArray(attribute) ? attribute[0] : attribute
-    if (!attr) return false
-    if (attr === 'class') {
-      return document.documentElement.classList.contains(theme)
-    }
-    return document.documentElement.getAttribute(attr) === theme
+    const attributes = Array.isArray(attribute) ? attribute : [attribute]
+    if (!attributes) return false
+    return attributes.every(attr => {
+      if (attr === 'class') {
+        return document.documentElement.classList.contains(theme)
+      }
+      return document.documentElement.getAttribute(attr) === theme
+    });
   }
 
   const applyTheme = React.useCallback(theme => {

@@ -10,6 +10,7 @@ export const script = (
 ): void => {
   const el = document.documentElement
   const systemThemes = ['light', 'dark']
+
   function updateDOM(theme: string) {
     const attributes = Array.isArray(attribute) ? attribute : [attribute]
 
@@ -45,6 +46,8 @@ export const script = (
       const isSystem = enableSystem && themeName === 'system'
       const theme = isSystem ? getSystemTheme() : themeName
       updateDOM(theme)
-    } catch (e) {}
+    } catch (e) {
+      //
+    }
   }
 }

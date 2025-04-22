@@ -1,8 +1,11 @@
 'use client'
 
 import * as React from 'react'
-import { script } from './script'
 import type { Attribute, ThemeProviderProps, UseThemeProps } from './types'
+
+// @ts-ignore
+import scriptTemplate from './script.template.js';
+const scriptText = scriptTemplate as string;
 
 const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
@@ -213,7 +216,7 @@ const ThemeScript = React.memo(
         {...scriptProps}
         suppressHydrationWarning
         nonce={typeof window === 'undefined' ? nonce : ''}
-        dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${scriptArgs})` }}
+        dangerouslySetInnerHTML={{ __html: `(${scriptText})(${scriptArgs})` }}
       />
     )
   }

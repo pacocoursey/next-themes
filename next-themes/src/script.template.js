@@ -1,4 +1,4 @@
-export const script = (
+(
   attribute,
   storageKey,
   defaultTheme,
@@ -11,7 +11,7 @@ export const script = (
   const el = document.documentElement
   const systemThemes = ['light', 'dark']
 
-  function updateDOM(theme: string) {
+  function updateDOM(theme) {
     const attributes = Array.isArray(attribute) ? attribute : [attribute]
 
     attributes.forEach(attr => {
@@ -28,7 +28,7 @@ export const script = (
     setColorScheme(theme)
   }
 
-  function setColorScheme(theme: string) {
+  function setColorScheme(theme) {
     if (enableColorScheme && systemThemes.includes(theme)) {
       el.style.colorScheme = theme
     }

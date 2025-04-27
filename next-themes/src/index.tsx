@@ -50,16 +50,6 @@ const Theme = ({
   const [resolvedTheme, setResolvedTheme] = React.useState(() => theme === 'system' ? getSystemTheme() : theme)
   const attrs = !value ? themes : Object.values(value)
 
-  const isThemeCurrentTheme = (theme: string) => {
-    const attributes = Array.isArray(attribute) ? attribute : [attribute]
-    return attributes.every(attr => {
-      if (attr === 'class') {
-        return document.documentElement.classList.contains(theme)
-      }
-      return document.documentElement.getAttribute(attr) === theme
-    });
-  }
-
   const applyTheme = React.useCallback(theme => {
     let resolved = theme
     if (!resolved) return
@@ -68,11 +58,6 @@ const Theme = ({
     if (theme === 'system' && enableSystem) {
       resolved = getSystemTheme()
     }
-
-    // Avoid additional work, if no changes need to be made.
-    // In particular, this avoids the `disableAnimation` call,
-    // which is expensive.
-    if (isThemeCurrentTheme(resolved)) return
 
     const name = value ? value[resolved] : resolved
     const enable = disableTransitionOnChange ? disableAnimation(nonce) : null

@@ -104,10 +104,10 @@ const Theme = ({
     enable?.()
   }, [nonce])
 
-  const setTheme: React.Dispatch<React.SetStateAction<string>> = React.useCallback(value => {
+  const setTheme = React.useCallback(value => {
     if (typeof value === 'function') {
       setThemeState(prevTheme => {
-        const newTheme = value(prevTheme as string)
+        const newTheme = value(prevTheme)
 
         saveToLS(storageKey, newTheme)
 

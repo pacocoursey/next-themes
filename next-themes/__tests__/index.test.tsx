@@ -5,7 +5,7 @@ import { act, render, renderHook, screen } from '@testing-library/react'
 import { vi, beforeAll, beforeEach, afterEach, afterAll, describe, test, it, expect } from 'vitest'
 import { cleanup } from '@testing-library/react'
 
-import { ThemeProvider, ThemeScript, useTheme } from '../src/index'
+import { ThemeProvider, useTheme } from '../src/index'
 import { ThemeProviderProps } from '../src/types'
 
 let originalLocalStorage: Storage

@@ -77,6 +77,8 @@ beforeEach(() => {
   setDeviceTheme('light')
   document.documentElement.style.colorScheme = ''
   document.documentElement.removeAttribute('data-theme')
+  document.documentElement.removeAttribute('data-theme-test')
+  document.documentElement.removeAttribute('data-example')
   document.documentElement.removeAttribute('class')
 
   // Clear the localStorage-mock

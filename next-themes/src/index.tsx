@@ -52,7 +52,6 @@ const Theme = ({
 
   const isThemeCurrentTheme = (theme: string) => {
     const attributes = Array.isArray(attribute) ? attribute : [attribute]
-    if (!attributes) return false
     return attributes.every(attr => {
       if (attr === 'class') {
         return document.documentElement.classList.contains(theme)

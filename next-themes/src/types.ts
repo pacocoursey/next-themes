@@ -56,4 +56,6 @@ export interface ThemeProviderProps extends React.PropsWithChildren {
   nonce?: string
   /** Props to pass the inline script */
   scriptProps?: ScriptProps
+  /** Optional ID */
+  id?: string
 }

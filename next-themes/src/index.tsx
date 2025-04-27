@@ -206,14 +206,15 @@ export const ThemeScript = React.memo(
   ({
     forcedTheme,
     storageKey,
-    attribute = 'data-theme',
-    enableSystem = true,
-    enableColorScheme = true,
-    defaultTheme = enableSystem ? 'system' : 'light',
+    attribute,
+    enableSystem,
+    enableColorScheme,
+    defaultTheme,
     value,
-    themes = defaultThemes,
+    themes,
     nonce,
-    scriptProps
+    scriptProps,
+    id
   }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
     const scriptArgs = JSON.stringify([
       attribute,
@@ -228,7 +229,7 @@ export const ThemeScript = React.memo(
 
     return (
       <script
-        id="theme-script"
+        id={id}
         {...scriptProps}
         suppressHydrationWarning
         nonce={typeof window === 'undefined' ? nonce : ''}

@@ -44,7 +44,8 @@ const Theme = ({
   value,
   children,
   nonce,
-  scriptProps
+  scriptProps,
+  id
 }: ThemeProviderProps) => {
   const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
   const [resolvedTheme, setResolvedTheme] = React.useState(() => theme === 'system' ? getSystemTheme() : theme)
@@ -177,7 +178,8 @@ const Theme = ({
             value,
             themes,
             nonce,
-            scriptProps
+            scriptProps,
+            id
           }}
         />
       ) : null}

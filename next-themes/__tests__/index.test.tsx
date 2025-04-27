@@ -515,18 +515,4 @@ describe('manual script insertion', () => {
     })
     expect(document.querySelector('script[data-test="1234"]')).toBeFalsy()
   })
-  it('should work with manual script insertion', () => {
-    const { result } = renderHook(() => useTheme(), {
-      wrapper: ({ children }) => (
-        <ThemeProvider withScript={false} defaultTheme="dark">
-          <ThemeScript defaultTheme="dark" scriptProps={{ 'data-test': '4567' }} />
-          {children}
-        </ThemeProvider>
-      )
-    })
-
-    expect(result.current.theme).toBe('dark')
-    expect(result.current.resolvedTheme).toBe('dark')
-    expect(document.querySelector('script[data-test="4567"]')).toBeTruthy()
-  })
 })

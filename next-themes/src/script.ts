@@ -1,13 +1,13 @@
 export const script = (
-  attribute: string | string[],
-  storageKey: string,
-  defaultTheme: string,
-  forcedTheme: string,
-  themes: string[],
-  value: Record<string, string>,
-  enableSystem: boolean,
-  enableColorScheme: boolean
-): void => {
+  attribute,
+  storageKey,
+  defaultTheme,
+  forcedTheme,
+  themes,
+  value,
+  enableSystem,
+  enableColorScheme
+) => {
   const el = document.documentElement
   const systemThemes = ['light', 'dark']
 
@@ -19,7 +19,7 @@ export const script = (
       const classes = isClass && value ? themes.map(t => value[t] || t) : themes
       if (isClass) {
         el.classList.remove(...classes)
-        el.classList.add(value?.[theme] ? value[theme] : theme)
+        el.classList.add(value && value[theme] ? value[theme] : theme)
       } else {
         el.setAttribute(attr, theme)
       }
@@ -34,7 +34,7 @@ export const script = (
     }
   }
 
-  function getSystemTheme(): string {
+  function getSystemTheme() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
 

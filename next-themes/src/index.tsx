@@ -177,7 +177,7 @@ const Theme = ({
             value,
             themes,
             nonce,
-            scriptProps,
+            scriptProps
           }}
         />
       ) : null}
@@ -197,7 +197,7 @@ export const ThemeScript = React.memo(
     value,
     themes,
     nonce,
-    scriptProps,
+    scriptProps
   }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
     const scriptArgs = JSON.stringify([
       attribute,

@@ -45,7 +45,6 @@ const Theme = ({
   children,
   nonce,
   scriptProps,
-  id
 }: ThemeProviderProps) => {
   const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
   const [resolvedTheme, setResolvedTheme] = React.useState(() => theme === 'system' ? getSystemTheme() : theme)
@@ -179,7 +178,6 @@ const Theme = ({
             themes,
             nonce,
             scriptProps,
-            id
           }}
         />
       ) : null}
@@ -200,7 +198,6 @@ export const ThemeScript = React.memo(
     themes,
     nonce,
     scriptProps,
-    id
   }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
     const scriptArgs = JSON.stringify([
       attribute,
@@ -215,7 +212,6 @@ export const ThemeScript = React.memo(
 
     return (
       <script
-        id={id}
         {...scriptProps}
         suppressHydrationWarning
         nonce={typeof window === 'undefined' ? nonce : ''}

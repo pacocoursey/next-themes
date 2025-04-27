@@ -5,7 +5,7 @@ import { act, render, renderHook, screen } from '@testing-library/react'
 import { vi, beforeAll, beforeEach, afterEach, afterAll, describe, test, it, expect } from 'vitest'
 import { cleanup } from '@testing-library/react'
 
-import { ThemeProvider, useTheme } from '../src/index'
+import { ThemeProvider, ThemeScript, useTheme } from '../src/index'
 import { ThemeProviderProps } from '../src/types'
 
 let originalLocalStorage: Storage
@@ -498,5 +498,35 @@ describe('inline script', () => {
     })
 
     expect(document.querySelector('script[data-test="1234"]')).toBeTruthy()
+  })
+})
+
+describe('manual script insertion', () => {
+  test('should not insert script when `withScript` is false', () => {
+    act(() => {
+      render(
+        <ThemeProvider
+          withScript={false}
+          scriptProps={{ 'data-test': '1234' }}
+        >
+          <div />
+        </ThemeProvider>
+      )
+    })
+    expect(document.querySelector('script[data-test="1234"]')).toBeFalsy()
+  })
+  it('should work with manual script insertion', () => {
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: ({ children }) => (
+        <ThemeProvider withScript={false} defaultTheme="dark">
+          <ThemeScript defaultTheme="dark" scriptProps={{ 'data-test': '4567' }} />
+          {children}
+        </ThemeProvider>
+      )
+    })
+
+    expect(result.current.theme).toBe('dark')
+    expect(result.current.resolvedTheme).toBe('dark')
+    expect(document.querySelector('script[data-test="4567"]')).toBeTruthy()
   })
 })

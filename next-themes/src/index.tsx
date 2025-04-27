@@ -226,7 +226,7 @@ export const ThemeScript = React.memo(
 // Helpers
 const getTheme = (key: string, fallback?: string) => {
   if (isServer) return undefined
-  let theme: string | undefined
+  let theme
   try {
     theme = localStorage.getItem(key) || undefined
   } catch (e) {
@@ -257,8 +257,8 @@ const disableAnimation = (nonce?: string) => {
 }
 
 const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
-  const match = e || window.matchMedia(MEDIA)
-  const isDark = match.matches
+  if (!e) e = window.matchMedia(MEDIA)
+  const isDark = e.matches
   const systemTheme = isDark ? 'dark' : 'light'
   return systemTheme
 }

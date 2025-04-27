@@ -501,9 +501,6 @@ describe('inline script', () => {
 
     expect(document.querySelector('script[data-test="1234"]')).toBeTruthy()
   })
-})
-
-describe('manual script insertion', () => {
   test('should not insert script when `withScript` is false', () => {
     act(() => {
       render(

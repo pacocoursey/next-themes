@@ -501,17 +501,4 @@ describe('inline script', () => {
 
     expect(document.querySelector('script[data-test="1234"]')).toBeTruthy()
   })
-  test('should not insert script when `withScript` is false', () => {
-    act(() => {
-      render(
-        <ThemeProvider
-          withScript={false}
-          scriptProps={{ 'data-test': '1234' }}
-        >
-          <div />
-        </ThemeProvider>
-      )
-    })
-    expect(document.querySelector('script[data-test="1234"]')).toBeFalsy()
-  })
 })

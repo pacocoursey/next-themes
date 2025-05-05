@@ -32,7 +32,6 @@ export const ThemeProvider = (props: ThemeProviderProps) => {
 const defaultThemes = ['light', 'dark']
 
 const Theme = ({
-  withScript = true,
   forcedTheme,
   disableTransitionOnChange = false,
   enableSystem = true,
@@ -165,22 +164,20 @@ const Theme = ({
 
   return (
     <ThemeContext.Provider value={providerValue}>
-      {withScript ? (
-        <ThemeScript
-          {...{
-            forcedTheme,
-            storageKey,
-            attribute,
-            enableSystem,
-            enableColorScheme,
-            defaultTheme,
-            value,
-            themes,
-            nonce,
-            scriptProps
-          }}
-        />
-      ) : null}
+      <ThemeScript
+        {...{
+          forcedTheme,
+          storageKey,
+          attribute,
+          enableSystem,
+          enableColorScheme,
+          defaultTheme,
+          value,
+          themes,
+          nonce,
+          scriptProps
+        }}
+      />
       {children}
     </ThemeContext.Provider>
   )

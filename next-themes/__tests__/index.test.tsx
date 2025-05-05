@@ -5,7 +5,7 @@ import { act, render, renderHook, screen } from '@testing-library/react'
 import { vi, beforeAll, beforeEach, afterEach, afterAll, describe, test, it, expect } from 'vitest'
 import { cleanup } from '@testing-library/react'
 
-import { ThemeProvider, ThemeScript, useTheme } from '../src/index'
+import { ThemeProvider, useTheme } from '../src/index'
 import { ThemeProviderProps } from '../src/types'
 
 let originalLocalStorage: Storage
@@ -77,8 +77,6 @@ beforeEach(() => {
   setDeviceTheme('light')
   document.documentElement.style.colorScheme = ''
   document.documentElement.removeAttribute('data-theme')
-  document.documentElement.removeAttribute('data-theme-test')
-  document.documentElement.removeAttribute('data-example')
   document.documentElement.removeAttribute('class')
 
   // Clear the localStorage-mock

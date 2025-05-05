@@ -178,7 +178,7 @@ const Theme = ({
           scriptProps
         }}
       />
-      
+
       {children}
     </ThemeContext.Provider>
   )

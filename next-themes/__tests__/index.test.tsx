@@ -77,6 +77,8 @@ beforeEach(() => {
   setDeviceTheme('light')
   document.documentElement.style.colorScheme = ''
   document.documentElement.removeAttribute('data-theme')
+  document.documentElement.removeAttribute('data-theme-test')
+  document.documentElement.removeAttribute('data-example')
   document.documentElement.removeAttribute('class')
 
   // Clear the localStorage-mock
@@ -498,5 +500,18 @@ describe('inline script', () => {
     })
 
     expect(document.querySelector('script[data-test="1234"]')).toBeTruthy()
+  })
+  test('should not insert script when `withScript` is false', () => {
+    act(() => {
+      render(
+        <ThemeProvider
+          withScript={false}
+          scriptProps={{ 'data-test': '1234' }}
+        >
+          <div />
+        </ThemeProvider>
+      )
+    })
+    expect(document.querySelector('script[data-test="1234"]')).toBeFalsy()
   })
 })

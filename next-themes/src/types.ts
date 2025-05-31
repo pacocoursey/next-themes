@@ -32,6 +32,8 @@ export interface UseThemeProps {
 export type Attribute = DataAttribute | 'class'
 
 export interface ThemeProviderProps extends React.PropsWithChildren {
+  /** Automatically include the script tag in the document (default is true) */
+  withScript?: boolean | undefined
   /** List of all available theme names */
   themes?: string[] | undefined
   /** Forced theme name for the current page */

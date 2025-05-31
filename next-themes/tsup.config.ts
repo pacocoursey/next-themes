@@ -9,5 +9,8 @@ export default defineConfig({
   external: ['react'],
   format: ['esm', 'cjs'],
   splitting: false,
-  bundle: true
+  bundle: true,
+  loader: {
+    '.template.js': 'text'
+  },
 })

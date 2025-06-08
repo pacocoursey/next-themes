@@ -3,11 +3,31 @@
 }
 
 :root {
+  --fg: #222;
+  --bg: #ddd;
+}
+
+[data-contrast='less'] {
+  --fg: #444;
+  --bg: #bbb;
+}
+
+[data-contrast='more'] {
   --fg: #000;
   --bg: #fff;
 }
 
 [data-theme='dark'] {
+  --fg: #ddd;
+  --bg: #222;
+}
+
+[data-theme='dark'][data-contrast='less'] {
+  --fg: #bbb;
+  --bg: #444;
+}
+
+[data-theme='dark'][data-contrast='more'] {
   --fg: #fff;
   --bg: #000;
 }

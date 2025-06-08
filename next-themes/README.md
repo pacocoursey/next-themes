@@ -3,15 +3,18 @@
 An abstraction for themes in your React app.
 
 - ✅ Perfect dark mode in 2 lines of code
+- ✅ Perfect contrast mode in 2 lines of code
 - ✅ System setting with prefers-color-scheme
+- ✅ System setting with prefers-contrast
 - ✅ Themed browser UI with color-scheme
 - ✅ Support for Next.js 13 `appDir`
 - ✅ No flash on load (both SSR and SSG)
-- ✅ Sync theme across tabs and windows
-- ✅ Disable flashing when changing themes
-- ✅ Force pages to specific themes
+- ✅ Sync theme & contrast across tabs and windows
+- ✅ Disable flashing when changing themes & contrast
+- ✅ Force pages to specific themes & contrast
 - ✅ Class or data attribute selector
 - ✅ `useTheme` hook
+- ✅ `useContrast` hook
 
 Check out the [Live Example](https://next-themes-example.vercel.app/) to try it for yourself.
 
@@ -21,6 +24,8 @@ Check out the [Live Example](https://next-themes-example.vercel.app/) to try it 
 $ npm install next-themes
 # or
 $ yarn add next-themes
+# or
+$ pnpm add next-themes
 ```
 
 ## Use
@@ -50,6 +55,23 @@ function MyApp({ Component, pageProps }) {
     <ThemeProvider>
       <Component {...pageProps} />
     </ThemeProvider>
+  )
+}
+
+export default MyApp
+```
+
+Adding contrast mode support takes 2 lines of code:
+
+```jsx
+// pages/_app.js
+import { ContrastProvider } from 'next-themes'
+
+function MyApp({ Component, pageProps }) {
+  return (
+    <ContrastProvider>
+      <Component {...pageProps} />
+    </ContrastProvider>
   )
 }
 
@@ -90,13 +112,31 @@ export default function Layout({ children }) {
 }
 ```
 
-Note that `ThemeProvider` is a client component, not a server component.
+Adding contrast mode support takes 2 lines of code:
+
+```jsx
+// app/layout.jsx
+import { ContrastProvider } from 'next-themes'
+
+export default function Layout({ children }) {
+  return (
+    <html suppressHydrationWarning>
+      <head />
+      <body>
+        <ContrastProvider>{children}</ContrastProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+Note that `ThemeProvider` and `ContrastProvider` are client components, not a server components.
 
 > **Note!** If you do not add [suppressHydrationWarning](https://reactjs.org/docs/dom-elements.html#suppresshydrationwarning:~:text=It%20only%20works%20one%20level%20deep) to your `<html>` you will get warnings because `next-themes` updates that element. This property only applies one level deep, so it won't block hydration warnings on other elements.
 
 ### HTML & CSS
 
-That's it, your Next.js app fully supports dark mode, including System preference with `prefers-color-scheme`. The theme is also immediately synced between tabs. By default, next-themes modifies the `data-theme` attribute on the `html` element, which you can easily use to style your app:
+That's it, your Next.js app fully supports dark mode/contrast mode, including System preference with `prefers-color-scheme` and `prefers-contrast`. The theme is also immediately synced between tabs. By default, next-themes modifies the `data-theme` attribute and `data-contrast` on the `html` element, which you can easily use to style your app:
 
 ```css
 :root {
@@ -108,6 +148,11 @@ That's it, your Next.js app fully supports dark mode, including System preferenc
 [data-theme='dark'] {
   --background: black;
   --foreground: white;
+}
+
+[data-contrast='more'] {
+  --background: red;
+  --foreground: cyan;
 }
 ```
 
@@ -133,7 +178,28 @@ const ThemeChanger = () => {
 }
 ```
 
-> **Warning!** The above code is hydration _unsafe_ and will throw a hydration mismatch warning when rendering with SSG or SSR. This is because we cannot know the `theme` on the server, so it will always be `undefined` until mounted on the client.
+### useContrast
+
+Your UI will need to know the current contrast and be able to change it. The `useContrast` hook provides contrast information:
+
+```jsx
+import { useContrast } from 'next-themes'
+
+const ContrastChanger = () => {
+  const { contrast, setContrast } = useContrast()
+
+  return (
+    <div>
+      The current contrast is: {contrast}
+      <button onClick={() => setContrast('more')}>More contrast Mode</button>
+      <button onClick={() => setContrast('less')}>Less contrast Mode</button>
+      <button onClick={() => setContrast('no-preference')}>No preference contrast Mode</button>
+    </div>
+  )
+}
+```
+
+> **Warning!** The above code is hydration _unsafe_ and will throw a hydration mismatch warning when rendering with SSG or SSR. This is because we cannot know the `theme` or `contrast` on the server, so it will always be `undefined` until mounted on the client.
 >
 > You should delay rendering any theme toggling UI until mounted on the client. See the [example](#avoid-hydration-mismatch).
 
@@ -169,6 +235,29 @@ useTheme takes no parameters, but returns:
 - `resolvedTheme`: If `enableSystem` is true and the active theme is "system", this returns whether the system preference resolved to "dark" or "light". Otherwise, identical to `theme`
 - `systemTheme`: If `enableSystem` is true, represents the System theme preference ("dark" or "light"), regardless what the active theme is
 - `themes`: The list of themes passed to `ThemeProvider` (with "system" appended, if `enableSystem` is true)
+
+### ContrastProvider
+
+All your contrast configuration is passed to ContrastProvider.
+
+- `storageKey = 'contrast'`: Key used to store contrast setting in localStorage
+- `defaultContrast = 'no-preference'`: Default contrast name
+- `forcedContrast`: Forced contrast name for the current page (does not modify saved contrast settings)
+- `disableTransitionOnChange = false`: Optionally disable all CSS transitions when switching contrasts ([example](#disable-transitions-on-theme-change))
+- `attribute = 'data-contrast'`: HTML attribute modified based on the active theme
+  - accepts `class` and `data-*` (meaning any data attribute, `data-mode`, `data-color`, etc.) ([example](#class-instead-of-data-attribute))
+- `value`: Optional mapping of contrast name to attribute value
+  - value is an `object` where key is the contrast name and value is the attribute value ([example](#differing-dom-attribute-and-theme-name))
+- `nonce`: Optional nonce passed to the injected `script` tag, used to allow-list the next-themes script in your CSP
+- `scriptProps`: Optional props to pass to the injected `script` tag ([example](#using-with-cloudflare-rocket-loader))
+
+### useContrast
+
+useContrast takes no parameters, but returns:
+
+- `contrast`: Active contrast name
+- `setContrast(name)`: Function to update the contrast. The API is identical to the [set function](https://react.dev/reference/react/useState#setstate) returned by `useState`-hook. Pass the new contrast value or use a callback to set the new contrast based on the current contrast.
+- `forcedContrast`: Forced page contrast or falsy. If `forcedContrast` is set, you should disable any contrast switching UI
 
 Not too bad, right? Let's see how to use these properties with examples:
 

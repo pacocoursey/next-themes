@@ -1,10 +1,12 @@
-import { ThemeProvider } from 'next-themes'
+import { ThemeProvider, ContrastProvider } from 'next-themes'
 import '../styles.css'
 
 function MyApp({ Component, pageProps }) {
   return (
     <ThemeProvider forcedTheme={Component.theme || undefined}>
-      <Component {...pageProps} />
+      <ContrastProvider forcedContrast={Component.contrast || undefined}>
+        <Component {...pageProps} />
+      </ContrastProvider>
     </ThemeProvider>
   )
 }

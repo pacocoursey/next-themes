@@ -1,14 +1,27 @@
 'use client'
 
 import * as React from 'react'
-import { script } from './script'
-import type { Attribute, ThemeProviderProps, UseThemeProps } from './types'
+import { scriptTheme, scriptContrast } from './script'
+import type {
+  Attribute,
+  Contrast,
+  ContrastProviderProps,
+  ThemeProviderProps,
+  UseContrastProps,
+  UseThemeProps
+} from './types'
 
 const colorSchemes = ['light', 'dark']
-const MEDIA = '(prefers-color-scheme: dark)'
+const COLOR_SCHEME_MEDIA = '(prefers-color-scheme: dark)'
+const CONTRAST_LESS_MEDIA = '(prefers-contrast: less)'
+const CONTRAST_MORE_MEDIA = '(prefers-contrast: more)'
 const isServer = typeof window === 'undefined'
+
 const ThemeContext = React.createContext<UseThemeProps | undefined>(undefined)
-const defaultContext: UseThemeProps = { setTheme: _ => { }, themes: [] }
+const defaultThemeContext: UseThemeProps = { setTheme: _ => { }, themes: [] }
+
+const ContrastContext = React.createContext<UseContrastProps | undefined>(undefined)
+const defaultContrastContext: UseContrastProps = { setContrast: _ => { } }
 
 const saveToLS = (storageKey: string, value: string) => {
   // Save to storage
@@ -19,7 +32,8 @@ const saveToLS = (storageKey: string, value: string) => {
   }
 }
 
-export const useTheme = () => React.useContext(ThemeContext) ?? defaultContext
+export const useTheme = () => React.useContext(ThemeContext) ?? defaultThemeContext
+export const useContrast = () => React.useContext(ContrastContext) ?? defaultContrastContext
 
 export const ThemeProvider = (props: ThemeProviderProps) => {
   const context = React.useContext(ThemeContext)
@@ -27,6 +41,14 @@ export const ThemeProvider = (props: ThemeProviderProps) => {
   // Ignore nested context providers, just passthrough children
   if (context) return <>{props.children}</>
   return <Theme {...props} />
+}
+
+export const ContrastProvider = (props: ContrastProviderProps) => {
+  const context = React.useContext(ContrastContext)
+
+  // Ignore nested context providers, just passthrough children
+  if (context) return <>{props.children}</>
+  return <ContrastProviderInternal {...props} />
 }
 
 const defaultThemes = ['light', 'dark']
@@ -45,7 +67,7 @@ const Theme = ({
   nonce,
   scriptProps
 }: ThemeProviderProps) => {
-  const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
+  const [theme, setThemeState] = React.useState(() => getFromLocalStorage(storageKey, defaultTheme))
   const [resolvedTheme, setResolvedTheme] = React.useState(() => theme === 'system' ? getSystemTheme() : theme)
   const attrs = !value ? themes : Object.values(value)
 
@@ -80,9 +102,7 @@ const Theme = ({
 
     if (enableColorScheme) {
       const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
-      const colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
-      // @ts-ignore
-      d.style.colorScheme = colorScheme
+      d.style.colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
     }
 
     enable?.()
@@ -117,7 +137,7 @@ const Theme = ({
 
   // Always listen to System preference
   React.useEffect(() => {
-    const media = window.matchMedia(MEDIA)
+    const media = window.matchMedia(COLOR_SCHEME_MEDIA)
 
     // Intentionally use deprecated listener methods to support iOS & old browsers
     media.addListener(handleMediaQuery)
@@ -184,6 +204,143 @@ const Theme = ({
   )
 }
 
+const ContrastProviderInternal = ({
+  forcedContrast,
+  disableTransitionOnChange = false,
+  storageKey = 'contrast',
+  defaultContrast = 'no-preference',
+  attribute = 'data-contrast',
+  value,
+  children,
+  nonce,
+  scriptProps
+}: ContrastProviderProps) => {
+  const [contrast, setContrastState] = React.useState<Contrast>(() => getFromLocalStorage(storageKey, defaultContrast))
+  const attrs = !value ? [] : Object.values(value)
+
+  const applyContrast = React.useCallback(contrast => {
+    if (!contrast) return
+
+    const name = value ? value[contrast] : contrast
+    const enable = disableTransitionOnChange ? disableAnimation(nonce) : null
+
+    const d = document.documentElement
+
+    const handleAttribute = (attr: Attribute) => {
+      if (attr === 'class') {
+        d.classList.remove(...attrs)
+        if (name) d.classList.add(name)
+      } else if (attr.startsWith('data-')) {
+        if (name) {
+          d.setAttribute(attr, name)
+        } else {
+          d.removeAttribute(attr)
+        }
+      }
+    }
+
+    if (Array.isArray(attribute)) attribute.forEach(handleAttribute)
+    else handleAttribute(attribute)
+
+    enable?.()
+  }, [nonce])
+
+  const setContrast = React.useCallback(value => {
+    if (typeof value === 'function') {
+      setContrastState(prevContrast => {
+        const newContrast = value(prevContrast)
+
+        saveToLS(storageKey, newContrast)
+
+        return newContrast
+      })
+    } else {
+      setContrastState(value)
+      saveToLS(storageKey, value)
+    }
+  }, [])
+
+  const handleContrastMediaQuery = React.useCallback(
+    (e: MediaQueryListEvent | MediaQueryList) => {
+      const resolved = getSystemContrast(e)
+      setContrastState(resolved)
+
+      if (!forcedContrast) {
+        applyContrast(resolved)
+      }
+    },
+    [forcedContrast]
+  )
+
+  // Always listen to System preference
+  React.useEffect(() => {
+    const contrastMoreMedia = window.matchMedia(CONTRAST_MORE_MEDIA)
+    const contrastLessMedia = window.matchMedia(CONTRAST_LESS_MEDIA)
+
+    // Intentionally use deprecated listener methods to support iOS & old browsers
+    contrastMoreMedia.addListener(handleContrastMediaQuery)
+    contrastLessMedia.addListener(handleContrastMediaQuery)
+    handleContrastMediaQuery(contrastMoreMedia)
+    handleContrastMediaQuery(contrastLessMedia)
+
+    return () => {
+      contrastMoreMedia.removeListener(handleContrastMediaQuery)
+      contrastLessMedia.removeListener(handleContrastMediaQuery)
+    }
+  }, [handleContrastMediaQuery])
+
+  // localStorage event handling
+  React.useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key !== storageKey) {
+        return
+      }
+
+      // If default contrast set, use it if localstorage === null (happens on local storage manual deletion)
+      if (!e.newValue) {
+        setContrast(defaultContrast)
+      } else {
+        setContrastState(e.newValue as Contrast) // Direct state update to avoid loops
+      }
+    }
+
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [setContrast])
+
+  // Whenever theme or forcedContrast changes, apply it
+  React.useEffect(() => {
+    applyContrast(forcedContrast ?? contrast)
+  }, [forcedContrast, contrast])
+
+  const providerValue = React.useMemo(
+    () => ({
+      contrast,
+      setContrast,
+      forcedContrast,
+    }),
+    [contrast, setContrast, forcedContrast]
+  )
+
+  return (
+    <ContrastContext.Provider value={providerValue}>
+      <ContrastScript
+        {...{
+          forcedContrast,
+          storageKey,
+          attribute,
+          defaultContrast,
+          value,
+          nonce,
+          scriptProps
+        }}
+      />
+
+      {children}
+    </ContrastContext.Provider>
+  )
+}
+
 export const ThemeScript = React.memo(
   ({
     forcedTheme,
@@ -213,14 +370,43 @@ export const ThemeScript = React.memo(
         {...scriptProps}
         suppressHydrationWarning
         nonce={typeof window === 'undefined' ? nonce : ''}
-        dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${scriptArgs})` }}
+        dangerouslySetInnerHTML={{ __html: `(${scriptTheme.toString()})(${scriptArgs})` }}
+      />
+    )
+  }
+)
+
+export const ContrastScript = React.memo(
+  ({
+    forcedContrast,
+    storageKey,
+    attribute,
+    defaultContrast,
+    value,
+    nonce,
+    scriptProps
+  }: Omit<ContrastProviderProps, 'children'>) => {
+    const scriptArgs = JSON.stringify([
+      attribute,
+      storageKey,
+      defaultContrast,
+      forcedContrast,
+      value,
+    ]).slice(1, -1)
+
+    return (
+      <script
+        {...scriptProps}
+        suppressHydrationWarning
+        nonce={typeof window === 'undefined' ? nonce : ''}
+        dangerouslySetInnerHTML={{ __html: `(${scriptContrast.toString()})(${scriptArgs})` }}
       />
     )
   }
 )
 
 // Helpers
-const getTheme = (key: string, fallback?: string) => {
+const getFromLocalStorage = (key: string, fallback?: string) => {
   if (isServer) return undefined
   let theme
   try {
@@ -253,11 +439,21 @@ const disableAnimation = (nonce?: string) => {
 }
 
 const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
-  if (!e) e = window.matchMedia(MEDIA)
+  if (!e) e = window.matchMedia(COLOR_SCHEME_MEDIA)
   const isDark = e.matches
-  const systemTheme = isDark ? 'dark' : 'light'
-  return systemTheme
+
+  return isDark ? 'dark' : 'light'
+}
+
+const getSystemContrast = (e?: MediaQueryList | MediaQueryListEvent): Contrast => {
+  if (!e) e = window.matchMedia(CONTRAST_MORE_MEDIA)
+  if (e.matches) return 'more'
+
+  e = window.matchMedia(CONTRAST_LESS_MEDIA)
+  if (e.matches) return 'less'
+
+  return 'no-preference'
 }
 
 // Re-export types
-export type { Attribute, ThemeProviderProps, UseThemeProps } from './types'
+export type { Attribute, Contrast, ThemeProviderProps, UseThemeProps, UseContrastProps } from './types'

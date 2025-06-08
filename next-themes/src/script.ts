@@ -60,14 +60,14 @@ export const scriptContrast = (
   value
 ) => {
   const el = document.documentElement
-  const contrasts = {more: 'more-contrast', less: 'less-contrast', 'no-preference': 'no-preference-contrast'}
+  const contrasts = ['more', 'less', 'no-preference']
 
   function updateDOM(contrast: string) {
     const attributes = Array.isArray(attribute) ? attribute : [attribute]
 
     attributes.forEach(attr => {
       const isClass = attr === 'class'
-      const classes = isClass && value ? Object.entries(contrasts).map(([k, v]) => value[k] || v) : Object.values(contrasts)
+      const classes = isClass && value ? contrasts.map(k => value[k] || k) : contrasts
       if (isClass) {
         el.classList.remove(...classes)
         el.classList.add(value && value[contrast] ? value[contrast] : contrast)

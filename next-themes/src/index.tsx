@@ -52,6 +52,7 @@ export const ContrastProvider = (props: ContrastProviderProps) => {
 }
 
 const defaultThemes = ['light', 'dark']
+const defaultContrasts = ['more', 'less', 'no-preference']
 
 const Theme = ({
   forcedTheme,
@@ -216,7 +217,7 @@ const ContrastProviderInternal = ({
   scriptProps
 }: ContrastProviderProps) => {
   const [contrast, setContrastState] = React.useState<Contrast>(() => getFromLocalStorage(storageKey, defaultContrast))
-  const attrs = !value ? [] : Object.values(value)
+  const attrs = !value ? defaultContrasts : Object.values(value)
 
   const applyContrast = React.useCallback(contrast => {
     if (!contrast) return

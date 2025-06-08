@@ -35,9 +35,7 @@ test.describe('basic contrast test-suite', () => {
 
       await page.goto('/')
       await checkAppliedContrast(page, initialContrast)
-      // Select dark
       await page.locator('[data-test-id="contrast-selector"]').selectOption(targetContrast)
-      // Check if dark theme is applied
       await checkAppliedContrast(page, targetContrast)
     })
   }

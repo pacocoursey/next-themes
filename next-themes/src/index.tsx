@@ -264,13 +264,14 @@ const ContrastProviderInternal = ({
   const handleContrastMediaQuery = React.useCallback(
     (e: MediaQueryListEvent | MediaQueryList) => {
       const resolved = getSystemContrast(e)
+      if (getFromLocalStorage(storageKey)) return
       setContrastState(resolved)
 
       if (!forcedContrast) {
         applyContrast(resolved)
       }
     },
-    [forcedContrast]
+    [storageKey, forcedContrast]
   )
 
   // Always listen to System preference

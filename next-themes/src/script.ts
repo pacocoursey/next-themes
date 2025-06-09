@@ -1,4 +1,4 @@
-export const scriptTheme = (
+export const script = (
   attribute,
   storageKey,
   defaultTheme,
@@ -46,43 +46,6 @@ export const scriptTheme = (
       const isSystem = enableSystem && themeName === 'system'
       const theme = isSystem ? getSystemTheme() : themeName
       updateDOM(theme)
-    } catch (e) {
-      //
-    }
-  }
-}
-
-export const scriptContrast = (
-  attribute,
-  storageKey,
-  defaultContrast,
-  forcedContrast,
-  value
-) => {
-  const el = document.documentElement
-  const contrasts = ['more', 'less', 'no-preference']
-
-  function updateDOM(contrast: string) {
-    const attributes = Array.isArray(attribute) ? attribute : [attribute]
-
-    attributes.forEach(attr => {
-      const isClass = attr === 'class'
-      const classes = isClass && value ? contrasts.map(k => value[k] || k) : contrasts
-      if (isClass) {
-        el.classList.remove(...classes)
-        el.classList.add(value && value[contrast] ? value[contrast] : contrast)
-      } else {
-        el.setAttribute(attr, contrast)
-      }
-    })
-  }
-
-  if (forcedContrast) {
-    updateDOM(forcedContrast)
-  } else {
-    try {
-      const contrast = localStorage.getItem(storageKey) || defaultContrast
-      updateDOM(contrast)
     } catch (e) {
       //
     }

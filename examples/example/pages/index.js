@@ -1,4 +1,5 @@
-import { useTheme, useContrast } from 'next-themes'
+import { useTheme } from 'next-themes'
+import { useContrast } from 'next-contrasts'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 

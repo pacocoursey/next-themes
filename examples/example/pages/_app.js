@@ -1,4 +1,5 @@
-import { ThemeProvider, ContrastProvider } from 'next-themes'
+import { ThemeProvider } from 'next-themes'
+import { ContrastProvider } from 'next-contrasts'
 import '../styles.css'
 
 function MyApp({ Component, pageProps }) {

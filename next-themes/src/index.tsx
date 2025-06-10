@@ -80,9 +80,7 @@ const Theme = ({
 
     if (enableColorScheme) {
       const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
-      const colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
-      // @ts-ignore
-      d.style.colorScheme = colorScheme
+      d.style.colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
     }
 
     enable?.()
@@ -255,8 +253,7 @@ const disableAnimation = (nonce?: string) => {
 const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
   if (!e) e = window.matchMedia(MEDIA)
   const isDark = e.matches
-  const systemTheme = isDark ? 'dark' : 'light'
-  return systemTheme
+  return isDark ? 'dark' : 'light'
 }
 
 // Re-export types

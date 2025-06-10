@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "prepublish": "pnpm build --filter=next-themes",
+    "prepublish": "pnpm build --filter=next-themes --filter=next-contrasts",
     "build": "turbo build",
     "start": "turbo start",
     "dev": "turbo dev",

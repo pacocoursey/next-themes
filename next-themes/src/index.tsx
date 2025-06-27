@@ -43,24 +43,25 @@ const Theme = ({
   value,
   children,
   nonce,
-  scriptProps
+  scriptProps,
+  themeRoot
 }: ThemeProviderProps) => {
   const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
   const [resolvedTheme, setResolvedTheme] = React.useState(() => theme === 'system' ? getSystemTheme() : theme)
   const attrs = !value ? themes : Object.values(value)
-
+  
   const applyTheme = React.useCallback(theme => {
     let resolved = theme
     if (!resolved) return
-
+    
     // If theme is system, resolve it before setting theme
     if (theme === 'system' && enableSystem) {
       resolved = getSystemTheme()
     }
-
+    
     const name = value ? value[resolved] : resolved
-    const enable = disableTransitionOnChange ? disableAnimation(nonce) : null
-    const d = document.documentElement
+    const enable = disableTransitionOnChange ? disableAnimation(nonce, themeRoot?.shadowRoot ?? document.head) : null
+    const d = themeRoot ?? document.documentElement
 
     const handleAttribute = (attr: Attribute) => {
       if (attr === 'class') {
@@ -86,7 +87,7 @@ const Theme = ({
     }
 
     enable?.()
-  }, [nonce])
+  }, [nonce, themeRoot])
 
   const setTheme = React.useCallback(value => {
     if (typeof value === 'function') {
@@ -175,7 +176,8 @@ const Theme = ({
           value,
           themes,
           nonce,
-          scriptProps
+          scriptProps,
+          themeRoot
         }}
       />
 
@@ -231,7 +233,7 @@ const getTheme = (key: string, fallback?: string) => {
   return theme || fallback
 }
 
-const disableAnimation = (nonce?: string) => {
+const disableAnimation = (nonce?: string, target: Element | ShadowRoot = document.head) => {
   const css = document.createElement('style')
   if (nonce) css.setAttribute('nonce', nonce)
   css.appendChild(
@@ -239,7 +241,7 @@ const disableAnimation = (nonce?: string) => {
       `*,*::before,*::after{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}`
     )
   )
-  document.head.appendChild(css)
+  target.appendChild(css)
 
   return () => {
     // Force restyle
@@ -247,7 +249,7 @@ const disableAnimation = (nonce?: string) => {
 
     // Wait for next tick before removing
     setTimeout(() => {
-      document.head.removeChild(css)
+      target.removeChild(css)
     }, 1)
   }
 }

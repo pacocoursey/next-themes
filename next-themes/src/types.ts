@@ -54,4 +54,6 @@ export interface ThemeProviderProps extends React.PropsWithChildren<unknown> {
   nonce?: string
   /** Props to pass the inline script */
   scriptProps?: ScriptProps
+  /** Custom root element (e.g. Shadow host) where theme attributes should be applied instead of document.documentElement */
+  themeRoot?: Element
 }

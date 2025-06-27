@@ -6,9 +6,10 @@ export const script = (
   themes,
   value,
   enableSystem,
-  enableColorScheme
+  enableColorScheme,
+  element
 ) => {
-  const el = document.documentElement
+  const el = element ?? document.documentElement
   const systemThemes = ['light', 'dark']
 
   function updateDOM(theme: string) {

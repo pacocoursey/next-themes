@@ -47,6 +47,9 @@ importers:
       next:
         specifier: ^14.2.21
         version: 14.2.21(@playwright/test@1.51.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      next-contrasts:
+        specifier: workspace:*
+        version: link:../../next-contrasts
       next-themes:
         specifier: workspace:*
         version: link:../../next-themes
@@ -142,6 +145,15 @@ importers:
       tailwindcss:
         specifier: 3.3.3
         version: 3.3.3
+
+  next-contrasts:
+    devDependencies:
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.2.0(react@18.2.0)
 
   next-themes:
     devDependencies:

@@ -7,7 +7,7 @@ import type { Attribute, ThemeProviderProps, UseThemeProps } from './types'
 const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
 const isServer = typeof window === 'undefined'
-const ThemeContext = React.createContext<UseThemeProps | undefined>(undefined)
+export const ThemeContext = React.createContext<UseThemeProps | undefined>(undefined)
 const defaultContext: UseThemeProps = { setTheme: _ => { }, themes: [] }
 
 const saveToLS = (storageKey: string, value: string) => {

@@ -40,16 +40,19 @@ const createStore = () => {
     }
   }
 
+  const memoryFallback = new Map<string, string>()
+
   function getThemeSnapshot(storageKey: string, defaultTheme: string) {
     if (isServer) return defaultTheme
     try {
       return localStorage.getItem(storageKey) || defaultTheme
     } catch (e) {
-      return defaultTheme
+      return memoryFallback.get(storageKey) || defaultTheme
     }
   }
 
   function saveToLS(storageKey: string, value: string) {
+    memoryFallback.set(storageKey, value)
     try {
       localStorage.setItem(storageKey, value)
     } catch (e) {

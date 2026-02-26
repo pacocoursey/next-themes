@@ -500,3 +500,53 @@ describe('inline script', () => {
     expect(document.querySelector('script[data-test="1234"]')).toBeTruthy()
   })
 })
+
+describe('disabled localStorage', () => {
+  const brokenLocalStorage: Storage = {
+    getItem: () => { throw new Error('localStorage disabled') },
+    setItem: () => { throw new Error('localStorage disabled') },
+    removeItem: () => { throw new Error('localStorage disabled') },
+    clear: () => { throw new Error('localStorage disabled') },
+    key: () => null,
+    length: 0
+  }
+
+  beforeEach(() => {
+    window.localStorage = brokenLocalStorage
+  })
+
+  afterEach(() => {
+    window.localStorage = localStorageMock
+  })
+
+  test('should fall back to defaultTheme', () => {
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: makeWrapper({ enableSystem: false, defaultTheme: 'light' })
+    })
+
+    expect(result.current.theme).toBe('light')
+    expect(result.current.resolvedTheme).toBe('light')
+  })
+
+  test('should allow toggling theme via in-memory fallback', () => {
+    const { result, rerender } = renderHook(() => useTheme(), {
+      wrapper: makeWrapper({ enableSystem: false, defaultTheme: 'light' })
+    })
+
+    expect(result.current.theme).toBe('light')
+
+    act(() => {
+      result.current.setTheme('dark')
+    })
+    rerender()
+
+    expect(result.current.theme).toBe('dark')
+
+    act(() => {
+      result.current.setTheme('light')
+    })
+    rerender()
+
+    expect(result.current.theme).toBe('light')
+  })
+})

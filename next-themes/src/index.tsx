@@ -21,11 +21,11 @@ const createStore = () => {
     if (!themeListeners.has(storageKey)) {
       themeListeners.set(storageKey, new Set())
     }
-    themeListeners.get(storageKey)!.add(callback)
+    themeListeners.get(storageKey)?.add(callback)
 
     if (isServer) {
       return () => {
-        themeListeners.get(storageKey)!.delete(callback)
+        themeListeners.get(storageKey)?.delete(callback)
       }
     }
 
@@ -58,14 +58,56 @@ const createStore = () => {
     emitThemeChange(storageKey)
   }
 
+  let mediaListeners = new Set<() => void>()
+
+  function subscribeMedia(callback: () => void) {
+    mediaListeners.add(callback)
+
+    if (isServer) {
+      return () => {
+        mediaListeners.delete(callback)
+      }
+    }
+
+    const media = window.matchMedia(MEDIA)
+    const handler = () => {
+      mediaListeners.forEach(fn => fn())
+    }
+    media.addListener(handler)
+
+    return () => {
+      mediaListeners.delete(callback)
+      media.removeListener(handler)
+    }
+  }
+
+  function getMediaSnapshot() {
+    if (isServer) return undefined
+    return window.matchMedia(MEDIA).matches ? 'dark' : 'light'
+  }
+
+  function getMediaServerSnapshot() {
+    return undefined
+  }
+
   return {
     getThemeSnapshot,
     subscribeTheme,
-    saveToLS
+    saveToLS,
+    subscribeMedia,
+    getMediaSnapshot,
+    getMediaServerSnapshot
   }
 }
 
-const { getThemeSnapshot, subscribeTheme, saveToLS } = createStore()
+const {
+  getThemeSnapshot,
+  subscribeTheme,
+  saveToLS,
+  subscribeMedia,
+  getMediaSnapshot,
+  getMediaServerSnapshot
+} = createStore()
 
 export const useTheme = () => React.useContext(ThemeContext) ?? defaultContext
 
@@ -104,22 +146,18 @@ const Theme = ({
   const getServerSnapshot = React.useCallback(() => defaultTheme, [defaultTheme])
 
   const theme = React.useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+  const systemTheme = React.useSyncExternalStore(
+    subscribeMedia,
+    getMediaSnapshot,
+    getMediaServerSnapshot
+  )
+  const resolvedTheme = theme === 'system' ? systemTheme : theme
 
-  const [resolvedTheme, setResolvedTheme] = React.useState(() => {
-    if (isServer || theme !== 'system') return theme
-    return getSystemTheme()
-  })
   const attrs = !value ? themes : Object.values(value)
 
   const applyTheme = React.useCallback(
-    theme => {
-      let resolved = theme
+    (resolved: string | undefined) => {
       if (!resolved) return
-
-      // If theme is system, resolve it before setting theme
-      if (theme === 'system' && enableSystem) {
-        resolved = getSystemTheme()
-      }
 
       const name = value ? value[resolved] : resolved
       const enable = disableTransitionOnChange ? disableAnimation(nonce) : null
@@ -166,32 +204,9 @@ const Theme = ({
     [storageKey, defaultTheme]
   )
 
-  const handleMediaQuery = React.useCallback(
-    (e: MediaQueryListEvent | MediaQueryList) => {
-      const resolved = getSystemTheme(e)
-      setResolvedTheme(resolved)
-
-      if (theme === 'system' && enableSystem && !forcedTheme) {
-        applyTheme('system')
-      }
-    },
-    [theme, forcedTheme]
-  )
-
-  // Always listen to System preference
   React.useEffect(() => {
-    const media = window.matchMedia(MEDIA)
-
-    // Intentionally use deprecated listener methods to support iOS & old browsers
-    media.addListener(handleMediaQuery)
-    handleMediaQuery(media)
-
-    return () => media.removeListener(handleMediaQuery)
-  }, [handleMediaQuery])
-
-  React.useEffect(() => {
-    applyTheme(forcedTheme ?? theme)
-  }, [forcedTheme, theme])
+    applyTheme(forcedTheme ?? resolvedTheme)
+  }, [forcedTheme, resolvedTheme])
 
   const providerValue = React.useMemo(
     () => ({
@@ -200,9 +215,9 @@ const Theme = ({
       forcedTheme,
       resolvedTheme: theme === 'system' ? resolvedTheme : theme,
       themes: enableSystem ? [...themes, 'system'] : themes,
-      systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
+      systemTheme: (enableSystem ? systemTheme : undefined) as 'light' | 'dark' | undefined
     }),
-    [theme, setTheme, forcedTheme, resolvedTheme, enableSystem, themes]
+    [theme, setTheme, forcedTheme, resolvedTheme, systemTheme, enableSystem, themes]
   )
 
   return (
@@ -282,13 +297,6 @@ const disableAnimation = (nonce?: string) => {
       document.head.removeChild(css)
     }, 1)
   }
-}
-
-const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
-  if (!e) e = window.matchMedia(MEDIA)
-  const isDark = e.matches
-  const systemTheme = isDark ? 'dark' : 'light'
-  return systemTheme
 }
 
 // Re-export types

@@ -1,47 +1,91 @@
 'use client'
 
-import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
+import { useTheme } from 'next-themes'
 
-function ThemeToggles() {
+export default function ThemeToggle() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  // The active theme is not available on the server.
-  // If you have styling that is conditionally applied based on the active-theme,
-  // you have to await the mounted state before rendering the active theme.
-  useEffect(() => setMounted(true), [])
 
-  const themeMapping: Record<string, string> = {
-    light: 'Default',
-    'dark-classic': 'Dark',
-    tangerine: 'Tangerine',
-    'dark-tangerine': 'Tangerine (dark)',
-    mint: 'Mint',
-    'dark-mint': 'Mint (dark)'
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return (
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button
+          type="button"
+          disabled
+          style={{
+            padding: '8px 16px',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            background: 'transparent',
+            cursor: 'not-allowed',
+            opacity: 0.6,
+          }}
+        >
+          Light
+        </button>
+        <button
+          type="button"
+          disabled
+          style={{
+            padding: '8px 16px',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            background: 'transparent',
+            cursor: 'not-allowed',
+            opacity: 0.6,
+          }}
+        >
+          Dark
+        </button>
+        <button
+          type="button"
+          disabled
+          style={{
+            padding: '8px 16px',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            background: 'transparent',
+            cursor: 'not-allowed',
+            opacity: 0.6,
+          }}
+        >
+          System
+        </button>
+      </div>
+    )
   }
 
+  const availableThemes = ['light', 'dark', 'system'] as const
+
   return (
-    <div>
-      <div className="mt-16 grid grid-cols-3 grid-rows-2 grid-flow-col gap-4">
-        {Object.entries(themeMapping).map(([key, value]) => (
+    <div style={{ display: 'flex', gap: '8px' }}>
+      {availableThemes.map((currentTheme) => {
+        const isActive = theme === currentTheme
+
+        return (
           <button
-            key={key}
-            className={`px-4 py-2 font-semibold rounded-md transition-colors duration-200 ${
-              // The theme is only available after the component is mounted.
-              mounted && theme == key
-                ? 'border border-primary bg-primary-foreground text-primary'
-                : 'bg-primary text-primary-foreground'
-            }`}
-            onClick={() => {
-              setTheme(key)
+            key={currentTheme}
+            type="button"
+            onClick={() => setTheme(currentTheme)}
+            aria-pressed={isActive}
+            style={{
+              padding: '8px 16px',
+              border: isActive ? '2px solid #000' : '1px solid #ccc',
+              borderRadius: '4px',
+              background: isActive ? '#f0f0f0' : 'transparent',
+              cursor: 'pointer',
+              textTransform: 'capitalize',
             }}
           >
-            {value}
+            {currentTheme}
           </button>
-        ))}
-      </div>
+        )
+      })}
     </div>
   )
 }
-
-export default ThemeToggles

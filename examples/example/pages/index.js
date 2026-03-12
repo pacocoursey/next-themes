@@ -1,33 +1,53 @@
-import { useTheme } from 'next-themes'
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import ThemeToggle from '../../../components/ThemeToggle'
 
-const Index = () => {
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-
+export default function IndexPage() {
   return (
-    <div>
-      <h1>next-themes Example</h1>
-      <select value={theme} onChange={e => setTheme(e.target.value)} data-test-id="theme-selector">
-        <option value="system">System</option>
-        {mounted && (
-          <>
-            <option value="dark">Dark</option>
-            <option value="light">Light</option>
-          </>
-        )}
-      </select>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+      }}
+    >
+      <main
+        style={{
+          width: '100%',
+          maxWidth: '720px',
+          textAlign: 'center',
+        }}
+      >
+        <h1
+          style={{
+            fontSize: '40px',
+            fontWeight: 700,
+            marginBottom: '16px',
+          }}
+        >
+          next-themes demo
+        </h1>
 
-      <br />
-      <br />
+        <p
+          style={{
+            fontSize: '18px',
+            lineHeight: 1.6,
+            marginBottom: '24px',
+          }}
+        >
+          This example demonstrates switching between light, dark, and system
+          themes with a reusable ThemeToggle component.
+        </p>
 
-      <div>
-        <Link href="/dark">Forced Dark Page</Link> • <Link href="/light">Forced Light Page</Link>
-      </div>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <ThemeToggle />
+        </div>
+      </main>
     </div>
   )
 }
-
-export default Index

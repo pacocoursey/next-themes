@@ -10,10 +10,14 @@ const isServer = typeof window === 'undefined'
 const ThemeContext = React.createContext<UseThemeProps | undefined>(undefined)
 const defaultContext: UseThemeProps = { setTheme: _ => { }, themes: [] }
 
-const saveToLS = (storageKey: string, value: string) => {
-  // Save to storage
+const getStorage = (type: 'localStorage' | 'sessionStorage') => {
+  if (isServer) return null
+  return type === 'sessionStorage' ? window.sessionStorage : window.localStorage
+}
+
+const saveToStorage = (storage: Storage | null, key: string, value: string) => {
   try {
-    localStorage.setItem(storageKey, value)
+    storage?.setItem(key, value)
   } catch (e) {
     // Unsupported
   }
@@ -37,6 +41,7 @@ const Theme = ({
   enableSystem = true,
   enableColorScheme = true,
   storageKey = 'theme',
+  storage = 'localStorage',
   themes = defaultThemes,
   defaultTheme = enableSystem ? 'system' : 'light',
   attribute = 'data-theme',
@@ -45,7 +50,8 @@ const Theme = ({
   nonce,
   scriptProps
 }: ThemeProviderProps) => {
-  const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
+  const storageObj = getStorage(storage)
+  const [theme, setThemeState] = React.useState(() => getTheme(storageObj, storageKey, defaultTheme))
   const [resolvedTheme, setResolvedTheme] = React.useState(() => theme === 'system' ? getSystemTheme() : theme)
   const attrs = !value ? themes : Object.values(value)
 
@@ -92,16 +98,14 @@ const Theme = ({
     if (typeof value === 'function') {
       setThemeState(prevTheme => {
         const newTheme = value(prevTheme)
-
-        saveToLS(storageKey, newTheme)
-
+        saveToStorage(storageObj, storageKey, newTheme)
         return newTheme
       })
     } else {
       setThemeState(value)
-      saveToLS(storageKey, value)
+      saveToStorage(storageObj, storageKey, value)
     }
-  }, [])
+  }, [storageObj])
 
   const handleMediaQuery = React.useCallback(
     (e: MediaQueryListEvent | MediaQueryList) => {
@@ -128,6 +132,8 @@ const Theme = ({
 
   // localStorage event handling
   React.useEffect(() => {
+    if (storage !== 'localStorage') return
+
     const handleStorage = (e: StorageEvent) => {
       if (e.key !== storageKey) {
         return
@@ -168,6 +174,7 @@ const Theme = ({
         {...{
           forcedTheme,
           storageKey,
+          storage,
           attribute,
           enableSystem,
           enableColorScheme,
@@ -188,6 +195,7 @@ export const ThemeScript = React.memo(
   ({
     forcedTheme,
     storageKey,
+    storage,
     attribute,
     enableSystem,
     enableColorScheme,
@@ -205,7 +213,8 @@ export const ThemeScript = React.memo(
       themes,
       value,
       enableSystem,
-      enableColorScheme
+      enableColorScheme,
+      storage
     ]).slice(1, -1)
 
     return (
@@ -220,15 +229,15 @@ export const ThemeScript = React.memo(
 )
 
 // Helpers
-const getTheme = (key: string, fallback?: string) => {
+const getTheme = (storage: Storage | null, key: string, fallback?: string) => {
   if (isServer) return undefined
-  let theme
+  if (!storage) return fallback
+
   try {
-    theme = localStorage.getItem(key) || undefined
+    return storage.getItem(key) || fallback
   } catch (e) {
-    // Unsupported
+    return fallback
   }
-  return theme || fallback
 }
 
 const disableAnimation = (nonce?: string) => {

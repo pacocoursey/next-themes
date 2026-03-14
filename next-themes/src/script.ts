@@ -6,10 +6,12 @@ export const script = (
   themes,
   value,
   enableSystem,
-  enableColorScheme
+  enableColorScheme,
+  storage
 ) => {
   const el = document.documentElement
   const systemThemes = ['light', 'dark']
+  const storageObj = storage === 'sessionStorage' ? window.sessionStorage : window.localStorage
 
   function updateDOM(theme: string) {
     const attributes = Array.isArray(attribute) ? attribute : [attribute]
@@ -42,7 +44,7 @@ export const script = (
     updateDOM(forcedTheme)
   } else {
     try {
-      const themeName = localStorage.getItem(storageKey) || defaultTheme
+      const themeName = storageObj.getItem(storageKey) || defaultTheme
       const isSystem = enableSystem && themeName === 'system'
       const theme = isSystem ? getSystemTheme() : themeName
       updateDOM(theme)

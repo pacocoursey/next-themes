@@ -44,6 +44,8 @@ export interface ThemeProviderProps extends React.PropsWithChildren<unknown> {
   enableColorScheme?: boolean | undefined
   /** Key used to store theme setting in localStorage */
   storageKey?: string | undefined
+  /** Choose storage type: "localStorage" or "sessionStorage" */
+  storage?: 'localStorage' | 'sessionStorage' | undefined
   /** Default theme name (for v0.0.12 and lower the default was light). If `enableSystem` is false, the default theme is light */
   defaultTheme?: string | undefined
   /** HTML attribute modified based on the active theme. Accepts `class`, `data-*` (meaning any data attribute, `data-mode`, `data-color`, etc.), or an array which could include both */

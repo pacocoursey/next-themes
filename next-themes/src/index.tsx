@@ -197,6 +197,13 @@ export const ThemeScript = React.memo(
     nonce,
     scriptProps
   }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
+    // Only render during SSR. The script executes once in the browser before
+    // React hydrates, preventing flash of unstyled content (FOUC). Rendering
+    // it again on the client would trigger a React 19 warning ("Scripts inside
+    // React components are never executed when rendering on the client") and
+    // serves no purpose since the script has already run.
+    if (typeof window !== 'undefined') return null
+
     const scriptArgs = JSON.stringify([
       attribute,
       storageKey,
@@ -212,7 +219,7 @@ export const ThemeScript = React.memo(
       <script
         {...scriptProps}
         suppressHydrationWarning
-        nonce={typeof window === 'undefined' ? nonce : ''}
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${scriptArgs})` }}
       />
     )

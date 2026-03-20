@@ -488,7 +488,7 @@ describe('setTheme', () => {
 })
 
 describe('inline script', () => {
-  test('should pass props to script', () => {
+  test('should not render script tag on client (avoids React 19 warning)', () => {
     act(() => {
       render(
         <ThemeProvider defaultTheme="light" scriptProps={{ 'data-test': '1234' }}>
@@ -497,6 +497,9 @@ describe('inline script', () => {
       )
     })
 
-    expect(document.querySelector('script[data-test="1234"]')).toBeTruthy()
+    // ThemeScript returns null on the client to prevent the React 19 warning:
+    // "Scripts inside React components are never executed when rendering on the client."
+    // The script only renders during SSR where it runs once to prevent FOUC.
+    expect(document.querySelector('script[data-test="1234"]')).toBeNull()
   })
 })

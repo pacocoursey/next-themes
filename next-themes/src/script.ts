@@ -17,11 +17,13 @@ export const script = (
     attributes.forEach(attr => {
       const isClass = attr === 'class'
       const classes = isClass && value ? themes.map(t => value[t] || t) : themes
+      const resolved = value && value[theme] ? value[theme] : theme;
+      
       if (isClass) {
         el.classList.remove(...classes)
-        el.classList.add(value && value[theme] ? value[theme] : theme)
+        el.classList.add(resolved)
       } else {
-        el.setAttribute(attr, theme)
+        el.setAttribute(attr, resolved)
       }
     })
 

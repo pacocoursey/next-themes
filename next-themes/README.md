@@ -56,6 +56,17 @@ function MyApp({ Component, pageProps }) {
 export default MyApp
 ```
 
+### With Tailwind 4+
+
+If dark mode is malfunctioning in Tailwind CSS v4 or later, you need to explicitly define the dark variant in your global stylesheet.
+
+To fix this, update your `styles/global.css` file and add:
+
+```jsx
+// styles/global.css
+@custom-variant dark (&:where(.dark, .dark *));
+```
+
 ### With app/
 
 You'll need to update your `app/layout.jsx` to use next-themes. The simplest `layout` looks like this:

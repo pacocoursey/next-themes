@@ -537,7 +537,36 @@ Now set the attribute for your ThemeProvider to `data-mode`:
 
 With this setup, you can now use Tailwind's dark mode classes, as in the previous example:
 
+#### Tailwind v4 with data attributes (avoids hydration mismatch)
+
+Tailwind v4 uses CSS `@custom-variant` instead of a `tailwind.config.js` file. You can configure dark mode to match a `data-theme` attribute on the `html` element, which is the **default** attribute that next-themes sets. Because `data-theme` is applied by the inline script before hydration (not by React), your component classes never change between server and client — which means you can skip the `mounted` workaround entirely.
+
+In your global CSS file, add:
+
+```css
+/* globals.css */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+```
+
+Leave the `ThemeProvider` at its default (no `attribute` prop needed):
+
+```tsx
+// app/layout.tsx
+<ThemeProvider>
+  {children}
+</ThemeProvider>
+```
+
+Now use Tailwind dark-mode classes normally. Because the dark styles are driven by the `data-theme` attribute (set server-side by next-themes' inline script) rather than reading from `localStorage`, your HTML is stable between SSR and CSR:
+
+```tsx
+<h1 className="text-black dark:text-white">Hello</h1>
+```
+
+> **Note:** This approach works because `data-theme` is written to the `html` element by next-themes' injected script before React hydrates. Tailwind's CSS rules match the attribute directly, so React never has to change a class name — there is nothing to mismatch.
+
 ## Discussion
+
 
 ### The Flash
 

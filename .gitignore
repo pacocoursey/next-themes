@@ -6,3 +6,4 @@ dist/
 yalc.lock
 .idea/
 .turbo
+implementation.md

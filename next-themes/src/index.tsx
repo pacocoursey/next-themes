@@ -10,12 +10,11 @@ const isServer = typeof window === 'undefined'
 const ThemeContext = React.createContext<UseThemeProps | undefined>(undefined)
 const defaultContext: UseThemeProps = { setTheme: _ => { }, themes: [] }
 
-const saveToLS = (storageKey: string, value: string) => {
-  // Save to storage
+const saveToLS = (storageKey: string, value: string, onStorageError?: (error: unknown) => void) => {
   try {
     localStorage.setItem(storageKey, value)
   } catch (e) {
-    // Unsupported
+    onStorageError?.(e)
   }
 }
 
@@ -43,23 +42,48 @@ const Theme = ({
   value,
   children,
   nonce,
-  scriptProps
+  scriptProps,
+  onStorageError
 }: ThemeProviderProps) => {
-  const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
+  const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme, onStorageError))
   const [resolvedTheme, setResolvedTheme] = React.useState(() => theme === 'system' ? getSystemTheme() : theme)
-  const attrs = !value ? themes : Object.values(value)
+
+  const propsRef = React.useRef({
+    attribute,
+    value,
+    enableSystem,
+    enableColorScheme,
+    defaultTheme,
+    disableTransitionOnChange,
+    nonce,
+    onStorageError
+  })
+
+  const themeRef = React.useRef({ theme, forcedTheme })
+
+  const propsVersionRef = React.useRef(0)
 
   const applyTheme = React.useCallback(theme => {
     let resolved = theme
     if (!resolved) return
 
-    // If theme is system, resolve it before setting theme
-    if (theme === 'system' && enableSystem) {
+    const {
+      attribute: attr,
+      value: val,
+      enableSystem: enableSys,
+      enableColorScheme: enableCS,
+      defaultTheme: defTheme,
+      disableTransitionOnChange: disableTrans,
+      nonce: n
+    } = propsRef.current
+
+    if (theme === 'system' && enableSys) {
       resolved = getSystemTheme()
     }
 
-    const name = value ? value[resolved] : resolved
-    const enable = disableTransitionOnChange ? disableAnimation(nonce) : null
+    const attrs = !val ? themes : Object.values(val)
+    const name = val ? val[resolved] : resolved
+    const enable = disableTrans ? disableAnimation(n) : null
     const d = document.documentElement
 
     const handleAttribute = (attr: Attribute) => {
@@ -75,45 +99,73 @@ const Theme = ({
       }
     }
 
-    if (Array.isArray(attribute)) attribute.forEach(handleAttribute)
-    else handleAttribute(attribute)
+    if (Array.isArray(attr)) attr.forEach(handleAttribute)
+    else handleAttribute(attr)
 
-    if (enableColorScheme) {
-      const fallback = colorSchemes.includes(defaultTheme) ? defaultTheme : null
+    if (enableCS) {
+      const fallback = colorSchemes.includes(defTheme) ? defTheme : null
       const colorScheme = colorSchemes.includes(resolved) ? resolved : fallback
       // @ts-ignore
       d.style.colorScheme = colorScheme
+    } else {
+      // @ts-ignore
+      d.style.colorScheme = ''
     }
 
     enable?.()
-  }, [nonce])
+  }, [])
 
   const setTheme = React.useCallback(value => {
     if (typeof value === 'function') {
       setThemeState(prevTheme => {
         const newTheme = value(prevTheme)
-
-        saveToLS(storageKey, newTheme)
-
+        saveToLS(storageKey, newTheme, propsRef.current.onStorageError)
         return newTheme
       })
     } else {
       setThemeState(value)
-      saveToLS(storageKey, value)
+      saveToLS(storageKey, value, propsRef.current.onStorageError)
     }
   }, [])
+
+  const mediaQueryInitialized = React.useRef(false)
 
   const handleMediaQuery = React.useCallback(
     (e: MediaQueryListEvent | MediaQueryList) => {
       const resolved = getSystemTheme(e)
       setResolvedTheme(resolved)
 
-      if (theme === 'system' && enableSystem && !forcedTheme) {
+      // Skip applyTheme on the initial synchronous call — the [forcedTheme, theme]
+      // effect already handles the initial mount. Only apply on actual change events.
+      if (!mediaQueryInitialized.current) {
+        mediaQueryInitialized.current = true
+        return
+      }
+
+      if (themeRef.current.theme === 'system' && propsRef.current.enableSystem && !themeRef.current.forcedTheme) {
         applyTheme('system')
       }
     },
-    [theme, forcedTheme]
+    [theme, forcedTheme, applyTheme]
   )
+
+  // Sync refs on every render so callbacks always read current values
+  React.useEffect(() => {
+    propsRef.current = {
+      attribute,
+      value,
+      enableSystem,
+      enableColorScheme,
+      defaultTheme,
+      disableTransitionOnChange,
+      nonce,
+      onStorageError
+    }
+  })
+
+  React.useEffect(() => {
+    themeRef.current = { theme, forcedTheme }
+  })
 
   // Always listen to System preference
   React.useEffect(() => {
@@ -145,10 +197,13 @@ const Theme = ({
     return () => window.removeEventListener('storage', handleStorage)
   }, [setTheme])
 
-  // Whenever theme or forcedTheme changes, apply it
+  // Whenever theme, forcedTheme, or props change, re-apply to the DOM.
+  // propsVersionRef increments every render so prop-only changes trigger re-application.
+  // applyTheme reads from propsRef.current, so it always gets the latest values.
   React.useEffect(() => {
+    propsVersionRef.current++
     applyTheme(forcedTheme ?? theme)
-  }, [forcedTheme, theme])
+  }, [forcedTheme, theme, propsVersionRef.current])
 
   const providerValue = React.useMemo(
     () => ({
@@ -197,7 +252,7 @@ export const ThemeScript = React.memo(
     nonce,
     scriptProps
   }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
-    const scriptArgs = JSON.stringify([
+    const escapedScript = JSON.stringify([
       attribute,
       storageKey,
       defaultTheme,
@@ -206,27 +261,31 @@ export const ThemeScript = React.memo(
       value,
       enableSystem,
       enableColorScheme
-    ]).slice(1, -1)
+    ])
+      .slice(1, -1)
+      .replace(/</g, '\\u003c')
+      .replace(/>/g, '\\u003e')
+      .replace(/\//g, '\\u002f')
 
     return (
       <script
         {...scriptProps}
         suppressHydrationWarning
         nonce={typeof window === 'undefined' ? nonce : ''}
-        dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${scriptArgs})` }}
+        dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${escapedScript})` }}
       />
     )
   }
 )
 
 // Helpers
-const getTheme = (key: string, fallback?: string) => {
+const getTheme = (key: string, fallback?: string, onStorageError?: (error: unknown) => void) => {
   if (isServer) return undefined
   let theme
   try {
     theme = localStorage.getItem(key) || undefined
   } catch (e) {
-    // Unsupported
+    onStorageError?.(e)
   }
   return theme || fallback
 }

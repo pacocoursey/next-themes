@@ -54,4 +54,6 @@ export interface ThemeProviderProps extends React.PropsWithChildren<unknown> {
   nonce?: string
   /** Props to pass the inline script */
   scriptProps?: ScriptProps
+  /** Called when localStorage read/write fails (quota exceeded, SSR, Safari private mode, etc.). Defaults to console.warn */
+  onStorageError?: (error: unknown) => void
 }

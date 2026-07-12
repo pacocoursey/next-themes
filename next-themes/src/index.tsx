@@ -126,10 +126,19 @@ const Theme = ({
     }
   }, [])
 
+  const mediaQueryInitialized = React.useRef(false)
+
   const handleMediaQuery = React.useCallback(
     (e: MediaQueryListEvent | MediaQueryList) => {
       const resolved = getSystemTheme(e)
       setResolvedTheme(resolved)
+
+      // Skip applyTheme on the initial synchronous call — the [forcedTheme, theme]
+      // effect already handles the initial mount. Only apply on actual change events.
+      if (!mediaQueryInitialized.current) {
+        mediaQueryInitialized.current = true
+        return
+      }
 
       if (themeRef.current.theme === 'system' && propsRef.current.enableSystem && !themeRef.current.forcedTheme) {
         applyTheme('system')

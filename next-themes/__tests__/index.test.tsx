@@ -500,3 +500,59 @@ describe('inline script', () => {
     expect(document.querySelector('script[data-test="1234"]')).toBeTruthy()
   })
 })
+
+describe('dynamic prop changes', () => {
+  test('applyTheme reflects changed attribute prop after mount', () => {
+    const { rerender } = render(
+      <ThemeProvider attribute="data-theme" defaultTheme="light">
+        <HelperComponent forceSetTheme="light" />
+      </ThemeProvider>
+    )
+
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+
+    rerender(
+      <ThemeProvider attribute="data-mode" defaultTheme="light">
+        <HelperComponent forceSetTheme="light" />
+      </ThemeProvider>
+    )
+
+    expect(document.documentElement.getAttribute('data-mode')).toBe('light')
+  })
+
+  test('applyTheme reflects changed value mapping after mount', () => {
+    const { rerender } = render(
+      <ThemeProvider defaultTheme="light">
+        <HelperComponent forceSetTheme="light" />
+      </ThemeProvider>
+    )
+
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+
+    rerender(
+      <ThemeProvider defaultTheme="light" value={{ light: 'custom-light' }}>
+        <HelperComponent forceSetTheme="light" />
+      </ThemeProvider>
+    )
+
+    expect(document.documentElement.getAttribute('data-theme')).toBe('custom-light')
+  })
+
+  test('applyTheme reflects changed enableColorScheme after mount', () => {
+    const { rerender } = render(
+      <ThemeProvider enableColorScheme={true} defaultTheme="light">
+        <HelperComponent />
+      </ThemeProvider>
+    )
+
+    expect(document.documentElement.style.colorScheme).toBe('light')
+
+    rerender(
+      <ThemeProvider enableColorScheme={false} defaultTheme="light">
+        <HelperComponent />
+      </ThemeProvider>
+    )
+
+    expect(document.documentElement.style.colorScheme).toBe('')
+  })
+})

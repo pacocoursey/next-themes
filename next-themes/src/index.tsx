@@ -252,7 +252,7 @@ export const ThemeScript = React.memo(
     nonce,
     scriptProps
   }: Omit<ThemeProviderProps, 'children'> & { defaultTheme: string }) => {
-    const scriptArgs = JSON.stringify([
+    const escapedScript = JSON.stringify([
       attribute,
       storageKey,
       defaultTheme,
@@ -261,14 +261,18 @@ export const ThemeScript = React.memo(
       value,
       enableSystem,
       enableColorScheme
-    ]).slice(1, -1)
+    ])
+      .slice(1, -1)
+      .replace(/</g, '\\u003c')
+      .replace(/>/g, '\\u003e')
+      .replace(/\//g, '\\u002f')
 
     return (
       <script
         {...scriptProps}
         suppressHydrationWarning
         nonce={typeof window === 'undefined' ? nonce : ''}
-        dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${scriptArgs})` }}
+        dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${escapedScript})` }}
       />
     )
   }

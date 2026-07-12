@@ -556,3 +556,28 @@ describe('dynamic prop changes', () => {
     expect(document.documentElement.style.colorScheme).toBe('')
   })
 })
+
+describe('onStorageError', () => {
+  it('calls onStorageError when localStorage.setItem throws', () => {
+    const onStorageError = vi.fn()
+    const originalSetItem = localStorageMock.setItem
+
+    localStorageMock.setItem = vi.fn(() => {
+      throw new Error('Quota exceeded')
+    })
+
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: makeWrapper({ onStorageError })
+    })
+
+    act(() => {
+      result.current.setTheme('dark')
+    })
+
+    expect(onStorageError).toHaveBeenCalledTimes(1)
+    expect(onStorageError).toHaveBeenCalledWith(expect.objectContaining({ message: 'Quota exceeded' }))
+
+    // Restore
+    localStorageMock.setItem = originalSetItem
+  })
+})

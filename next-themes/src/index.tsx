@@ -10,11 +10,11 @@ const isServer = typeof window === 'undefined'
 const ThemeContext = React.createContext<UseThemeProps | undefined>(undefined)
 const defaultContext: UseThemeProps = { setTheme: _ => { }, themes: [] }
 
-const saveToLS = (storageKey: string, value: string) => {
+const saveToLS = (storageKey: string, value: string, onStorageError?: (error: unknown) => void) => {
   try {
     localStorage.setItem(storageKey, value)
   } catch (e) {
-    // Unsupported
+    onStorageError?.(e)
   }
 }
 
@@ -42,9 +42,10 @@ const Theme = ({
   value,
   children,
   nonce,
-  scriptProps
+  scriptProps,
+  onStorageError
 }: ThemeProviderProps) => {
-  const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
+  const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme, onStorageError))
   const [resolvedTheme, setResolvedTheme] = React.useState(() => theme === 'system' ? getSystemTheme() : theme)
 
   const propsRef = React.useRef({
@@ -54,7 +55,8 @@ const Theme = ({
     enableColorScheme,
     defaultTheme,
     disableTransitionOnChange,
-    nonce
+    nonce,
+    onStorageError
   })
 
   const themeRef = React.useRef({ theme, forcedTheme })
@@ -117,12 +119,12 @@ const Theme = ({
     if (typeof value === 'function') {
       setThemeState(prevTheme => {
         const newTheme = value(prevTheme)
-        saveToLS(storageKey, newTheme)
+        saveToLS(storageKey, newTheme, propsRef.current.onStorageError)
         return newTheme
       })
     } else {
       setThemeState(value)
-      saveToLS(storageKey, value)
+      saveToLS(storageKey, value, propsRef.current.onStorageError)
     }
   }, [])
 
@@ -156,7 +158,8 @@ const Theme = ({
       enableColorScheme,
       defaultTheme,
       disableTransitionOnChange,
-      nonce
+      nonce,
+      onStorageError
     }
   })
 
@@ -272,13 +275,13 @@ export const ThemeScript = React.memo(
 )
 
 // Helpers
-const getTheme = (key: string, fallback?: string) => {
+const getTheme = (key: string, fallback?: string, onStorageError?: (error: unknown) => void) => {
   if (isServer) return undefined
   let theme
   try {
     theme = localStorage.getItem(key) || undefined
   } catch (e) {
-    // Unsupported
+    onStorageError?.(e)
   }
   return theme || fallback
 }

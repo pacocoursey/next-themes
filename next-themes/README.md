@@ -537,6 +537,36 @@ Now set the attribute for your ThemeProvider to `data-mode`:
 
 With this setup, you can now use Tailwind's dark mode classes, as in the previous example:
 
+#### Tailwind v4 with data attributes
+
+Tailwind v4 uses CSS `@custom-variant` instead of a `tailwind.config.js` file. You can configure dark mode to match the `data-theme` attribute on the `html` element, which is the **default** attribute that next-themes sets. The injected script updates this attribute in the browser before hydration, so Tailwind can apply the correct CSS without your components branching on `useTheme`.
+
+In your global CSS file, add:
+
+```css
+/* globals.css */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+```
+
+Leave the `ThemeProvider` at its default (no `attribute` prop needed), and keep `suppressHydrationWarning` on the `html` element because next-themes updates that element:
+
+```tsx
+// app/layout.tsx
+<html suppressHydrationWarning>
+  <body>
+    <ThemeProvider>{children}</ThemeProvider>
+  </body>
+</html>
+```
+
+Now use Tailwind dark-mode classes normally:
+
+```tsx
+<h1 className="text-black dark:text-white">Hello</h1>
+```
+
+> **Note:** This avoids the `mounted` guard for CSS-only theme styling because the rendered class names are the same on the server and client. If a value from `useTheme` changes the rendered markup, continue to use the [mounted pattern](#avoid-hydration-mismatch).
+
 ## Discussion
 
 ### The Flash

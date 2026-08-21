@@ -144,6 +144,10 @@ importers:
         version: 3.3.3
 
   next-themes:
+    dependencies:
+      '@types/react':
+        specifier: '*'
+        version: 18.2.72
     devDependencies:
       react:
         specifier: ^18.2.0

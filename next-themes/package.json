@@ -22,8 +22,14 @@
     "test": "vitest run __tests__"
   },
   "peerDependencies": {
+    "@types/react": "*",
     "react": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc",
     "react-dom": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "react": "^18.2.0",

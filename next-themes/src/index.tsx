@@ -6,7 +6,7 @@ import type { Attribute, ThemeProviderProps, UseThemeProps } from './types'
 
 const colorSchemes = ['light', 'dark']
 const MEDIA = '(prefers-color-scheme: dark)'
-const isServer = typeof window === 'undefined'
+const isServer = typeof window === 'undefined' || typeof document === 'undefined'
 const ThemeContext = React.createContext<UseThemeProps | undefined>(undefined)
 const defaultContext: UseThemeProps = { setTheme: _ => { }, themes: [] }
 
@@ -212,7 +212,7 @@ export const ThemeScript = React.memo(
       <script
         {...scriptProps}
         suppressHydrationWarning
-        nonce={typeof window === 'undefined' ? nonce : ''}
+        nonce={isServer ? nonce : ''}
         dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${scriptArgs})` }}
       />
     )

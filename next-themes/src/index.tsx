@@ -64,6 +64,15 @@ const Theme = ({
 
     const handleAttribute = (attr: Attribute) => {
       if (attr === 'class') {
+        // The bootstrap script may have already applied the resolved theme.
+        if (
+          name &&
+          d.classList.contains(name) &&
+          !attrs.some(attr => attr !== name && d.classList.contains(attr))
+        ) {
+          return
+        }
+
         d.classList.remove(...attrs)
         if (name) d.classList.add(name)
       } else if (attr.startsWith('data-')) {

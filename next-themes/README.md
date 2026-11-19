@@ -202,6 +202,8 @@ If your Next.js app uses a class to style the page based on the theme, change th
 
 Now, setting the theme to "dark" will set `class="dark"` on the `html` element.
 
+If the resolved theme class is already present, next-themes leaves it in place unless another configured theme class needs to be removed. Unrelated classes on `html` are preserved.
+
 ### Force page to a theme
 
 Let's say your cool new marketing page is dark mode only. The page should always use the dark theme, and changing the theme should have no effect. To force a theme on your Next.js pages, simply set a variable on the page component:

@@ -135,7 +135,7 @@ const Theme = ({
 
       // If default theme set, use it if localstorage === null (happens on local storage manual deletion)
       if (!e.newValue) {
-        setTheme(defaultTheme)
+        setThemeState(defaultTheme)
       } else {
         setThemeState(e.newValue) // Direct state update to avoid loops
       }
@@ -143,7 +143,7 @@ const Theme = ({
 
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
-  }, [setTheme])
+  }, [storageKey, defaultTheme])
 
   // Whenever theme or forcedTheme changes, apply it
   React.useEffect(() => {

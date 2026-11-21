@@ -73,6 +73,7 @@ beforeAll(() => {
 })
 
 beforeEach(() => {
+  vi.clearAllMocks()
   // Reset window side-effects
   setDeviceTheme('light')
   document.documentElement.style.colorScheme = ''
@@ -169,6 +170,27 @@ describe('storage', () => {
 
     expect(window.localStorage.setItem).toBeCalledTimes(1)
     expect(window.localStorage.getItem('theme')).toBe('dark')
+  })
+
+  test('should revert to defaultTheme on null storage event without re-writing to localStorage', () => {
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: makeWrapper({ defaultTheme: 'system' })
+    })
+
+    result.current.setTheme('dark')
+    expect(window.localStorage.setItem).toBeCalledTimes(1)
+
+    act(() => {
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: 'theme',
+          newValue: null
+        })
+      )
+    })
+
+    expect(result.current.theme).toBe('system')
+    expect(window.localStorage.setItem).toBeCalledTimes(1)
   })
 })
 

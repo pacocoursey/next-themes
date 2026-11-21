@@ -134,6 +134,18 @@ describe('defaultTheme', () => {
     expect(result.current.theme).toBe('dark')
     expect(result.current.resolvedTheme).toBe('dark')
   })
+
+  test('should respect defaultTheme and preserve actual systemTheme when enableSystem=true', () => {
+    setDeviceTheme('dark')
+
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: makeWrapper({ defaultTheme: 'light', enableSystem: true })
+    })
+
+    expect(result.current.theme).toBe('light')
+    expect(result.current.resolvedTheme).toBe('light')
+    expect(result.current.systemTheme).toBe('dark')
+  })
 })
 
 describe('provider', () => {

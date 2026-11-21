@@ -46,6 +46,7 @@ const Theme = ({
   scriptProps
 }: ThemeProviderProps) => {
   const [theme, setThemeState] = React.useState(() => getTheme(storageKey, defaultTheme))
+  const [systemTheme, setSystemTheme] = React.useState<'light' | 'dark' | undefined>(() => getSystemTheme())
   const [resolvedTheme, setResolvedTheme] = React.useState(() => theme === 'system' ? getSystemTheme() : theme)
   const attrs = !value ? themes : Object.values(value)
 
@@ -106,6 +107,7 @@ const Theme = ({
   const handleMediaQuery = React.useCallback(
     (e: MediaQueryListEvent | MediaQueryList) => {
       const resolved = getSystemTheme(e)
+      setSystemTheme(resolved)
       setResolvedTheme(resolved)
 
       if (theme === 'system' && enableSystem && !forcedTheme) {
@@ -157,9 +159,9 @@ const Theme = ({
       forcedTheme,
       resolvedTheme: theme === 'system' ? resolvedTheme : theme,
       themes: enableSystem ? [...themes, 'system'] : themes,
-      systemTheme: (enableSystem ? resolvedTheme : undefined) as 'light' | 'dark' | undefined
+      systemTheme: (enableSystem ? systemTheme : undefined) as 'light' | 'dark' | undefined
     }),
-    [theme, setTheme, forcedTheme, resolvedTheme, enableSystem, themes]
+    [theme, setTheme, forcedTheme, resolvedTheme, systemTheme, enableSystem, themes]
   )
 
   return (
